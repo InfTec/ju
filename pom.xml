@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>ch.inftec.ju</groupId>
-	<artifactId>root</artifactId>
+	<artifactId>ju-root</artifactId>
 	<version>1.0</version>
 	<packaging>pom</packaging>
 
