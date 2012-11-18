@@ -1,0 +1,2 @@
+# Set default behaviour. We'll use unix style newline by default.
+* text eol=lf

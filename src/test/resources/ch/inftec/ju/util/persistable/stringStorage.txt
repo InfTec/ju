@@ -1,0 +1,16 @@
+Object: 0
+  Attribute: p1=v1
+  Attribute: p2=v2
+  Attribute: p3=v3
+  Object: 1
+    Attribute: p21=v21
+    Attribute: p22=v22
+    Attribute: p23=v23
+    Object: 2
+      Attribute: p31=v31
+      Attribute: p32=v32
+      Attribute: p33=v33
+    Object: 3
+      Attribute: p31=v31
+      Attribute: p32=v32
+      Attribute: p33=v33

@@ -1,0 +1,3 @@
+First line %key1%
+Second %key2% line
+äöüéèãâ

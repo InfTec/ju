@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+	<element>
+		<childElement name="Child 1"/>
+		<childElement name="Child 2"/>
+		<textElement>This is a little text</textElement>
+	</element>
+</root>
