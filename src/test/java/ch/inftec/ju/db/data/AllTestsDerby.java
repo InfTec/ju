@@ -4,10 +4,10 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
-import ch.inftec.ju.db.specific.DerbyTests;
+import ch.inftec.ju.db.data.specific.DerbyTest;
 
 @RunWith(Suite.class)
-@SuiteClasses({ DerbyTests.class })
+@SuiteClasses({ DerbyTest.class })
 public class AllTestsDerby {
 
 }
