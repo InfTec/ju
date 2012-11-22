@@ -56,7 +56,7 @@ public final class TestDbUtils {
 	 */
 	abstract static class AbstractTestDb implements TestDb { 
 		private final String dbConnectionName;
-		private static DbConnectionFactory dcf = DbConnectionFactoryLoader.createInstance();
+		private static DbConnectionFactory dcf = DbConnectionFactoryLoader.createInstance("/META-INF/ju-testing-persistence.xml");
 		
 		/**
 		 * Creates a new TestDb instance using the specified DB connection.

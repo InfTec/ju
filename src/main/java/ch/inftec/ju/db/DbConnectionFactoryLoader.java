@@ -27,7 +27,7 @@ public class DbConnectionFactoryLoader {
 	
 	/**
 	 * Creates a new instance of a DbConnectionFactory. The factory loads the persistence.xml file
-	 * which must be found at 'META-INF/persistence.xml'.
+	 * which must be found at '/META-INF/persistence.xml'.
 	 * @return DbConnectionFactory instance
 	 */
 	public static DbConnectionFactory createInstance() {
@@ -36,7 +36,7 @@ public class DbConnectionFactoryLoader {
 	
 	/**
 	 * Creates a new instance of a DbConnectionFactory using the specified resource.xml file
-	 * @param resourceXmlPath Path to resource.xml file, e.g. META-INF/persistence.xml
+	 * @param resourceXmlPath Path to resource.xml file, e.g. /META-INF/persistence.xml
 	 * @return DbConnectionFactory intance
 	 */
 	public static DbConnectionFactory createInstance(String resourceXmlPath) {

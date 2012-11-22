@@ -14,6 +14,6 @@ import ch.inftec.ju.util.persistable.EclipseLinkTest;
 @SuiteClasses({ DbConnectionTest.class, DbRowUtilsTest.class,
 		EclipseLinkTest.class, DerbyTests.class,
 		DbPersistenceStorageTest.class, })
-public class AllTestsDerby {
+public class DerbyAllTest {
 
 }
