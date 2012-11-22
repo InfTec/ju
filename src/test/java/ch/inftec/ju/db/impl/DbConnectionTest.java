@@ -2,12 +2,15 @@ package ch.inftec.ju.db.impl;
 
 import java.util.List;
 
+import javax.persistence.EntityManager;
+
 import org.junit.Assert;
 import org.junit.Test;
 
 import ch.inftec.ju.db.DbConnection;
 import ch.inftec.ju.db.DbConnectionFactory;
 import ch.inftec.ju.db.DbConnectionFactoryLoader;
+import ch.inftec.ju.db.data.entity.CustomObject;
 import ch.inftec.ju.util.JuCollectionUtils;
 import ch.inftec.ju.util.TestUtils;
 
@@ -17,6 +20,10 @@ import ch.inftec.ju.util.TestUtils;
  *
  */
 public class DbConnectionTest {
+	
+	/**
+	 * Tests the creation of a DbConnectionFactory using the default connection.xml path.
+	 */
 	@Test
 	public void connectionFactoryFromXml() throws Exception {
 		DbConnectionFactory factory = DbConnectionFactoryLoader.createInstance();
@@ -40,6 +47,27 @@ public class DbConnectionTest {
 		
 		try (DbConnection derbyConnection = factory.openDbConnection("Derby InMemory-DB")) {
 			Assert.assertEquals("Derby InMemory-DB", derbyConnection.getName());
+		}
+	}
+	
+	/**
+	 * Tests the creation of a DbConnectionFactory using a custom persistence.xml path.
+	 */
+	@Test
+	public void connectionFactoryFromCustomXml() throws Exception {
+		DbConnectionFactory factory = DbConnectionFactoryLoader.createInstance("/META-INF/customPersistence.xml");
+		
+		// Try getting a connection
+		
+		try (DbConnection derbyConnection = factory.openDbConnection("CustomDerby")) {
+			Assert.assertEquals("CustomDerby", derbyConnection.getName());
+			
+			// Store CustomObject
+			EntityManager em = derbyConnection.getEntityManager();
+			CustomObject co = new CustomObject();
+			co.setText("Test");
+			em.persist(co);
+			em.flush();
 		}
 	}
 }
