@@ -1,7 +1,9 @@
 package ch.inftec.ju.util;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -11,6 +13,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import org.apache.commons.lang3.reflect.FieldUtils;
 
@@ -220,6 +223,51 @@ public final class ReflectUtils {
 			}
 		} catch (Exception ex) {
 			throw new JuRuntimeException("Couldn't create instance using default constructor for class " + clazz, ex);
+		}
+	}
+	
+	/**
+	 * Gets all declared fields of the specified class that have the specified annotation.
+	 * <p>
+	 * This will not returned any inherited fields of base classes.
+	 * <p>
+	 * Annotations need to have retention=RUNTIME to be found at runtime
+	 * @param clazz Class of the object to find fields of
+	 * @param annotationClass Class of the annotation the field needs to have
+	 * @return All declared fields of the class (regardless of accessibility) that have the annotation assigned.
+	 * Fields will be sorted by name
+	 */
+	public static List<Field> getDeclaredFieldsByAnnotation(Class<?> clazz, Class<? extends Annotation> annotationClass) {
+		Map<String, Field> fields = new TreeMap<>();
+		
+		for (Field field : clazz.getDeclaredFields()) {
+			Annotation a = field.getAnnotation(annotationClass);
+			if (a != null) fields.put(field.getName(), field);			
+		}
+		
+		return new ArrayList<>(fields.values());
+	}
+	
+	/**
+	 * Gets the value if the (alphabetically) first declared field of the specified object that has the
+	 * specified annotation assigned.
+	 * <p>
+	 * If no such field can be found, null is returned.
+	 * @param obj Object to find field of
+	 * @param annotationClass Class of the annotation the field needs to have
+	 * @param forceAccess If true, access is forced even if the field is private
+	 * @return Value of the (alphabetically) first declared field with the specified annotation or null if none exists
+	 */
+	public static Object getDeclaredFieldValueByAnnotation(Object obj, Class<? extends Annotation> annotationClass, boolean forceAccess) {
+		List<Field> fields = ReflectUtils.getDeclaredFieldsByAnnotation(obj.getClass(), annotationClass);
+		if (fields.isEmpty()) return null;
+		
+		Field field = fields.get(0);
+		try {
+			if (forceAccess) field.setAccessible(true);
+			return field.get(obj);
+		} catch (IllegalAccessException ex) {
+			throw new JuRuntimeException("Couldn't access field " + field.getName(), ex);
 		}
 	}
 }

@@ -2,7 +2,11 @@ package ch.inftec.ju.util;
 
 import static org.junit.Assert.assertEquals;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -78,6 +82,33 @@ public class ReflectTest {
 		}
 	}
 	
+	/**
+	 * Tests the getFieldsByAnnotation method.
+	 */
+	@Test
+	public void getDeclaredFieldsByAnnotation() {
+		// Try to get declared field that is only inherited
+		List<Field> f1 = ReflectUtils.getDeclaredFieldsByAnnotation(AnnoClass.class, Anno1.class);
+		Assert.assertEquals(0,  f1.size());
+		
+		// Get private fields
+		List<Field> f2 = ReflectUtils.getDeclaredFieldsByAnnotation(AnnoClass.class, Anno2.class);
+		Assert.assertEquals(2, f2.size());
+		Assert.assertEquals("privateField1", f2.get(0).getName());
+		Assert.assertEquals("privateField2", f2.get(1).getName());
+	}
+	
+	/**
+	 * Tests the getDeclaredFieldValueByAnnotation method.
+	 */
+	@Test
+	public void getDeclaredFieldValueByAnnotation() {
+		AnnoClass a1 = new AnnoClass();
+		
+		Assert.assertNull(ReflectUtils.getDeclaredFieldValueByAnnotation(a1, Anno1.class, true));
+		Assert.assertEquals(11, ReflectUtils.getDeclaredFieldValueByAnnotation(a1, Anno2.class, true));
+	}
+	
 	protected int getMethodTest(Object o1, Object o2) {
 		return 1;
 	}
@@ -96,4 +127,27 @@ public class ReflectTest {
 		public static String test2 = "test2Value";
 		public static String test3 = null;
 	}
+	
+	@Retention(RetentionPolicy.RUNTIME)
+	@interface Anno1 {		
+	}
+	
+	@Retention(RetentionPolicy.RUNTIME)
+	@interface Anno2 {		
+	}
+	
+	private static class AnnoBaseClass {
+		@Anno1
+		protected int inheritedField = 1;
+	}
+	
+	private static class AnnoClass extends AnnoBaseClass {
+		@Anno2
+		private int privateField2 = 22;
+		
+		@Anno2
+		private int privateField1 = 11;
+	}
+	
+	
 }
