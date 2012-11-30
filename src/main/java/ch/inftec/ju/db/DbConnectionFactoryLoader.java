@@ -27,12 +27,21 @@ public class DbConnectionFactoryLoader {
 	
 	/**
 	 * Creates a new instance of a DbConnectionFactory. The factory loads the persistence.xml file
-	 * which must be found at 'META-INF/persistence.xml'.
+	 * which must be found at '/META-INF/persistence.xml'.
 	 * @return DbConnectionFactory instance
 	 */
 	public static DbConnectionFactory createInstance() {
+		return DbConnectionFactoryLoader.createInstance("/META-INF/persistence.xml");
+	}
+	
+	/**
+	 * Creates a new instance of a DbConnectionFactory using the specified resource.xml file
+	 * @param resourceXmlPath Path to resource.xml file, e.g. /META-INF/persistence.xml
+	 * @return DbConnectionFactory intance
+	 */
+	public static DbConnectionFactory createInstance(String resourceXmlPath) {
 		try {
-			return new DbConnectionFactoryLoader().loadFromXml(DbConnectionFactoryLoader.class.getResource("/META-INF/persistence.xml"));
+			return new DbConnectionFactoryLoader().loadFromXml(resourceXmlPath);
 		} catch (Exception ex) {
 			throw new JuRuntimeException("Couldn't create DbConnectionFactory instance", ex);
 		}
@@ -41,15 +50,17 @@ public class DbConnectionFactoryLoader {
 	/**
 	 * Loads a new ConnectionFactory from the specified XML file. The XML is a standard JPA
 	 * persistence.xml file that may contain JU specific properties.
-	 * @param persistenceXmlUrl URL to the persistence.xml file
+	 * @param resourceXmlPath Path to the persistence.xml file
 	 * @return ConnectionFactory instance containing the connections defined in the XML
 	 * @throws IllegalArgumentException If the XML cannot be processed
 	 */
-	private DbConnectionFactory loadFromXml(URL persistenceXmlUrl) {
-		log.info("Loading DB connections from XML: " + persistenceXmlUrl);
+	private DbConnectionFactory loadFromXml(String resourceXmlPath) {
+		log.info("Loading DB connections from XML: " + resourceXmlPath);
 		
 		try {
-			DbConnectionFactoryImpl factory = new DbConnectionFactoryImpl();
+			URL persistenceXmlUrl = DbConnectionFactoryLoader.class.getResource(resourceXmlPath);
+			
+			DbConnectionFactoryImpl factory = new DbConnectionFactoryImpl(resourceXmlPath);
 			
 			Document doc = XmlUtils.loadXml(persistenceXmlUrl, null);
 			XPathGetter xg = new XPathGetter(doc);
@@ -67,7 +78,7 @@ public class DbConnectionFactoryLoader {
 			
 			return factory;
 		} catch (Exception ex) {
-			throw new IllegalArgumentException("Couldn't load connections from XML: " + persistenceXmlUrl, ex);
+			throw new IllegalArgumentException("Couldn't load connections from XML: " + resourceXmlPath, ex);
 		}		
 	}
 }

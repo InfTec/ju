@@ -6,9 +6,12 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Properties;
 
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
+
+import org.eclipse.persistence.config.PersistenceUnitProperties;
 
 import ch.inftec.ju.util.JuCollectionUtils;
 
@@ -29,6 +32,13 @@ class DbConnectionFactoryImpl implements DbConnectionFactory {
 	 */
 	private Hashtable<String, EntityManagerFactory> factories = new Hashtable<>();
 	
+	private final String persistenceXmlPath;
+	
+	public DbConnectionFactoryImpl(String persistenceXmlPath) {
+		this.persistenceXmlPath = persistenceXmlPath;
+		
+	}
+	
 	/**
 	 * Gets the EntityManagerFactory for the specified connection.
 	 * @param name Connection name
@@ -36,7 +46,14 @@ class DbConnectionFactoryImpl implements DbConnectionFactory {
 	 */
 	private EntityManagerFactory getEntityManagerFactory(String name) {
 		if (!this.factories.containsKey(name)) {
-			this.factories.put(name, Persistence.createEntityManagerFactory(name)); 
+			Properties props = new Properties();
+			
+			// EclipseLink doesn't seem to like the '/' at the start of a path, so we'll strip it
+			String persistencePath = this.persistenceXmlPath;
+			if (persistencePath.startsWith("/")) persistencePath = persistencePath.substring(1);
+			
+			props.setProperty(PersistenceUnitProperties.ECLIPSELINK_PERSISTENCE_XML, persistencePath);
+			this.factories.put(name, Persistence.createEntityManagerFactory(name, props)); 
 		}
 		
 		return this.factories.get(name);
