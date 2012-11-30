@@ -1,5 +1,6 @@
 package ch.inftec.ju.db;
 
+import java.sql.Connection;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -61,6 +62,15 @@ public interface DbConnection extends AutoCloseable {
 	 * @return EntityManager instance
 	 */
 	public EntityManager getEntityManager();
+	
+	/**
+	 * Gets the raw JDBC connection wrapped by this DbConnection instance.
+	 * <p>
+	 * Don't use the transaction and close methods of the Connection directly as this
+	 * is handled by the DbConnection instance.
+	 * @return Connection instance
+	 */
+	public Connection getConnection();
 	
 	/**
 	 * Rolls back any changes.
