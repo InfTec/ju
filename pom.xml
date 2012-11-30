@@ -5,14 +5,13 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<artifactId>ju-root</artifactId>
 		<groupId>ch.inftec.ju</groupId>
+		<artifactId>ju-root</artifactId>
 		<version>1.0</version>
 	</parent>
 
-	<groupId>ch.inftec.ju.dbutil</groupId>
 	<artifactId>ju-dbutil</artifactId>
-	<version>1.0</version>
+	<version>1.1-SNAPSHOT</version>
 	<name>JU dbutil</name>
 
 	<repositories>
@@ -64,7 +63,7 @@
 		<dependency>
 			<groupId>com.oracle</groupId>
 			<artifactId>my-ojdbc6</artifactId>
-			<version>11.2.0.3</version>
+			<version>11.2.0.3</version>			
 		</dependency>
 
 		<dependency>

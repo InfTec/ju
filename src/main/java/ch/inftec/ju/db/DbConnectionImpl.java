@@ -105,6 +105,11 @@ final class DbConnectionImpl implements DbConnection {
 	}
 	
 	@Override
+	public Connection getConnection() {
+		return this.establishConnection();
+	}
+	
+	@Override
 	public void rollback() {
 		if (this.entityManager != null) {
 			this.entityManager.getTransaction().rollback();
