@@ -37,9 +37,15 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>ch.inftec.ju</groupId>
+			<groupId>${project.groupId}</groupId>
 			<artifactId>ju-util</artifactId>
 			<version>1.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>ju-testing</artifactId>
+			<version>1.0.testData-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>
@@ -64,7 +70,7 @@
 		<dependency>
 			<groupId>com.oracle</groupId>
 			<artifactId>my-ojdbc6</artifactId>
-			<version>11.2.0.3</version>			
+			<version>11.2.0.3</version>
 		</dependency>
 
 		<dependency>
