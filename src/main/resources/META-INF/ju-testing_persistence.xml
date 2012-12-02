@@ -4,16 +4,15 @@
 	xsi:schemaLocation="http://java.sun.com/xml/ns/persistence
         http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd"
 	version="2.0">
-	
-	<!-- This file is specify to satisfy the Eclipse JPA plugin. The actually
-	     file read will be ju-testing-persistence.xml
-	 -->
-	
+
+	<!-- Persistence.xml for ju-testing -->
+		
 	<persistence-unit name="Derby InMemory-DB">
 		<provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
 
 		<class>ch.inftec.ju.testing.db.data.entity.Team</class>
 		<class>ch.inftec.ju.testing.db.data.entity.Player</class>
+		<class>ch.inftec.ju.testing.db.data.entity.TestingEntity</class>
 
 		<properties>
 

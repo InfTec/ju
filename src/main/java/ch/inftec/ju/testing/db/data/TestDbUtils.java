@@ -54,19 +54,33 @@ public final class TestDbUtils {
 	 * @author tgdmemae
 	 *
 	 */
-	abstract static class AbstractTestDb implements TestDb { 
+	abstract static class AbstractTestDb implements TestDb {
+		private final String persistenceXmlFileName;
 		private final String dbConnectionName;
-		private static DbConnectionFactory dcf = DbConnectionFactoryLoader.createInstance("/META-INF/ju-testing_persistence.xml");
 		
 		/**
 		 * Creates a new TestDb instance using the specified DB connection.
+		 * <p>
+		 * Uses the default persistence.xml file.
 		 * @param dbConnectionName Connection name
 		 * @throws JuDbException If the tables cannot be created
 		 */
 		public AbstractTestDb(String dbConnectionName) throws JuDbException {
+			this(dbConnectionName, "/META-INF/ju-testing_persistence.xml");
+		}
+		
+		/**
+		 * Creates a new TestDb instance using the specified DB connection and
+		 * persistenceXml file.
+		 * @param dbConnectionName Connection name
+		 * @param persistenceXmlFileName Persistence.xml file name
+		 * @throws JuDbException If the tables cannot be created
+		 */
+		public AbstractTestDb(String dbConnectionName, String persistenceXmlFileName) {
+			this.persistenceXmlFileName = persistenceXmlFileName;
 			this.dbConnectionName = dbConnectionName;
 			
-			this.createTables();
+			this.createTables();			
 		}
 
 		@Override
@@ -76,7 +90,8 @@ public final class TestDbUtils {
 		
 		@Override
 		public final DbConnection openDbConnection() {
-			return dcf.openDbConnection(dbConnectionName);
+			DbConnectionFactory factory = DbConnectionFactoryLoader.createInstance(persistenceXmlFileName);
+			return factory.openDbConnection(dbConnectionName);
 		}
 		
 		/**

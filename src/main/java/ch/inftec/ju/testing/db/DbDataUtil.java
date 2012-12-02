@@ -3,11 +3,15 @@ package ch.inftec.ju.testing.db;
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.net.URL;
 
 import org.dbunit.database.DatabaseConnection;
 import org.dbunit.database.IDatabaseConnection;
 import org.dbunit.database.QueryDataSet;
 import org.dbunit.dataset.xml.FlatXmlDataSet;
+import org.dbunit.dataset.xml.FlatXmlDataSetBuilder;
+import org.dbunit.operation.DatabaseOperation;
+import org.eclipse.persistence.internal.oxm.record.DOMInputSource;
 import org.w3c.dom.Document;
 
 import ch.inftec.ju.db.DbConnection;
@@ -27,6 +31,7 @@ import ch.inftec.ju.util.xml.XmlOutputConverter;
  */
 public class DbDataUtil {
 	private final DbConnection dbConnection;
+	private final IDatabaseConnection iConnection;
 	
 	/**
 	 * Creates a new DbDataUtil instance using the specified DbConnection.
@@ -34,6 +39,11 @@ public class DbDataUtil {
 	 */
 	public DbDataUtil(DbConnection dbConnection) {
 		this.dbConnection = dbConnection;
+		try {
+			this.iConnection = new DatabaseConnection(dbConnection.getConnection());
+		} catch (Exception ex) {
+			throw new JuDbException("Couldn't initialize DatabaseConnection", ex);
+		}
 	}
 	
 	/**
@@ -41,7 +51,15 @@ public class DbDataUtil {
 	 * @return ExportBuilder instance
 	 */
 	public ExportBuilder buildExport() {
-		return new ExportBuilder(dbConnection);
+		return new ExportBuilder(iConnection);
+	}
+	
+	/**
+	 * Returns a new ImportBuilder to import data from XML resources into the DB.
+	 * @return ImportBuilder instance
+	 */
+	public ImportBuilder buildImport() {
+		return new ImportBuilder(iConnection);
 	}
 	
 	/**
@@ -53,15 +71,8 @@ public class DbDataUtil {
 		//private final DbConnection dbConnection;
 		private final QueryDataSet queryDataSet;
 		
-		private ExportBuilder(DbConnection dbConnection) {
-			//this.dbConnection = dbConnection;
-			
-			try {
-				IDatabaseConnection connection = new DatabaseConnection(dbConnection.getConnection());
-				this.queryDataSet = new QueryDataSet(connection);
-			} catch (Exception ex) {
-				throw new JuDbException("Couldn't initialize DB", ex);
-			}
+		private ExportBuilder(IDatabaseConnection iConnection) {
+			this.queryDataSet = new QueryDataSet(iConnection);
 		}
 		
 		/**
@@ -114,6 +125,58 @@ public class DbDataUtil {
 				throw new JuDbException("Couldn't write DB data to file " + fileName, ex);
 			}
 		}		
+	}
+	
+	/**
+	 * Builder class to configure and execute DB data imports.
+	 * @author Martin
+	 *
+	 */
+	public static class ImportBuilder {
+		private final IDatabaseConnection iConnection;
+		private FlatXmlDataSet flatXmlDataSet;
+		
+		private ImportBuilder(IDatabaseConnection iConnection) {
+			this.iConnection = iConnection;
+		}
+		
+		/**
+		 * Imports DB data from the specified XML
+		 * @param xmlUrl URL to XML file location
+		 */
+		public ImportBuilder from(URL xmlUrl) {
+			try {
+				flatXmlDataSet = new FlatXmlDataSetBuilder().build(xmlUrl);
+				return this;
+			} catch (Exception ex) {
+				throw new JuDbException("Couldn't import data from XML: xmlUrl", ex);
+			}
+		}
+		
+		/**
+		 * Imports DB data from the specified XML Document
+		 * @param xmlUrl URL to XML file location
+		 */
+		public ImportBuilder from(Document doc) {
+			try {
+				flatXmlDataSet = new FlatXmlDataSetBuilder().build(new DOMInputSource(doc));
+				return this;
+			} catch (Exception ex) {
+				throw new JuDbException("Couldn't import data from XML Document", ex);
+			}
+		}
+		
+		/**
+		 * Performs a clean import of the data into the DB, i.e. cleans any existing
+		 * data and imports the data.
+		 */
+		public void cleanImport() {
+			try {
+				DatabaseOperation.CLEAN_INSERT.execute(iConnection, flatXmlDataSet);
+			} catch (Exception ex) {
+				throw new JuDbException("Couldnt clean and insert data into DB", ex);
+			}
+		}
 	}
 	
 	public void exportDataToXml() {

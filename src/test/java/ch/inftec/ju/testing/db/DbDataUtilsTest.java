@@ -7,6 +7,8 @@ import org.junit.Test;
 import org.w3c.dom.Document;
 
 import ch.inftec.ju.testing.db.data.TestDbUtils;
+import ch.inftec.ju.testing.db.data.entity.TestingEntity;
+import ch.inftec.ju.util.IOUtil;
 import ch.inftec.ju.util.xml.XPathGetter;
 
 
@@ -29,7 +31,7 @@ public class DbDataUtilsTest extends AbstractBaseDbTest {
 		if (file.exists()) Assert.fail(String.format("File %s already exists", fileName));
 		du.buildExport()
 			.addTable("Team", null)
-			.writeToXmlFile("writeToXmlFile_team.xml");
+			.writeToXmlFile(fileName);
 		
 		Assert.assertTrue(file.exists());
 		file.delete();
@@ -49,5 +51,24 @@ public class DbDataUtilsTest extends AbstractBaseDbTest {
 		
 		XPathGetter xg = new XPathGetter(doc);
 		Assert.assertEquals(TestDbUtils.ENTITY_TEAM_COUNT, xg.getSingleLong("count(//Team)").intValue());
+	}
+	
+	/**
+	 * Tests the data import from an XML file.
+	 */
+	@Test
+	public void importDataFromXml() {
+		TestingEntity entity1 = new TestingEntity();
+		entity1.setName("Test");
+		em.persist(entity1);
+		
+		Assert.assertEquals(1, em.createQuery("Select t from TestingEntity t").getResultList().size());
+		
+		DbDataUtil du = new DbDataUtil(dbConn);
+		du.buildImport()
+			.from(IOUtil.getResourceURL("DbDataUtilsTest_importDataFromXml.xml"))
+			.cleanImport();
+		
+		Assert.assertEquals(2, em.createQuery("Select t from TestingEntity t").getResultList().size());		
 	}
 }
