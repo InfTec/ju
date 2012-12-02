@@ -13,7 +13,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import ch.inftec.ju.util.JuException;
+import ch.inftec.ju.util.JuRuntimeException;
 
 /**
  * Class providing a couple of helper functions to evaluate XPath expressions. There
@@ -62,14 +62,14 @@ public class XPathGetter {
 	 * Evaluates the specified XPath expression.
 	 * @param query XPath expression
 	 * @return XPath result
-	 * @throws JuException If the XPath cannot be evaluated
+	 * @throws JuRuntimeException If the XPath cannot be evaluated
 	 */
-	private String evaluate(String query) throws JuException {
+	private String evaluate(String query) throws JuRuntimeException {
 		try {
 			XPathExpression xPathExpression = this.getXPath().compile(query);
 			return xPathExpression.evaluate(this.node);
 		} catch (Exception ex) {
-			throw new JuException("Couldn't evaluate xPath expression: " + query, ex);			
+			throw new JuRuntimeException("Couldn't evaluate xPath expression: " + query, ex);			
 		}
 	}
 	
@@ -77,14 +77,14 @@ public class XPathGetter {
 	 * Evaluates the specified XPath expression and returns a NodeList.
 	 * @param query XPath expression
 	 * @return XPath result as a NodeList
-	 * @throws JuException If the XPath cannot be evaluated
+	 * @throws JuRuntimeException If the XPath cannot be evaluated
 	 */
-	private NodeList evaluateNodeSet(String query) throws JuException {
+	private NodeList evaluateNodeSet(String query) throws JuRuntimeException {
 		try {
 			XPathExpression xPathExpression = this.getXPath().compile(query);
 			return (NodeList)xPathExpression.evaluate(this.node, XPathConstants.NODESET);
 		} catch (Exception ex) {
-			throw new JuException("Couldn't evaluate xPath expression: " + query, ex);			
+			throw new JuRuntimeException("Couldn't evaluate xPath expression: " + query, ex);			
 		}
 	}
 	
@@ -92,9 +92,9 @@ public class XPathGetter {
 	 * Evaluates the specified XPath expression and returns a single String.
 	 * @param query XPath expression
 	 * @return XPath result as String
-	 * @throws JuException If the XPath cannot be evaluated
+	 * @throws JuRuntimeException If the XPath cannot be evaluated
 	 */
-	public String getSingle(String query) throws JuException {
+	public String getSingle(String query) throws JuRuntimeException {
 		return this.evaluate(query);
 	}
 	
@@ -102,17 +102,17 @@ public class XPathGetter {
 	 * Evaluates the specified XPath expression and returns a single Long.
 	 * @param query XPath expression
 	 * @return XPath result as Long
-	 * @throws JuException If the XPath cannot be evaluated or if the 
+	 * @throws JuRuntimeException If the XPath cannot be evaluated or if the 
 	 * result cannot be converted to a Long
 	 */
-	public Long getSingleLong(String query) throws JuException {
+	public Long getSingleLong(String query) throws JuRuntimeException {
 		String value = this.getSingle(query);
 		if (value == null || value.length() == 0) return null;
 		
 		try { 
 			return Long.parseLong(value);
 		} catch (Exception ex) {
-			throw new JuException("Couldn't convert " + value + " to Long", ex);
+			throw new JuRuntimeException("Couldn't convert " + value + " to Long", ex);
 		}
 	}
 	
@@ -120,9 +120,9 @@ public class XPathGetter {
 	 * Evaluates the specified XPath expression and returns a String array.
 	 * @param query XPath expression
 	 * @return XPath result as String array
-	 * @throws JuException If the XPath cannot be evaluated
+	 * @throws JuRuntimeException If the XPath cannot be evaluated
 	 */
-	public String[] getArray(String query) throws JuException {
+	public String[] getArray(String query) throws JuRuntimeException {
 		try {			
 			XPathExpression xPathExpression = this.getXPath().compile(query);
 			NodeList list = (NodeList)xPathExpression.evaluate(this.node, XPathConstants.NODESET);
@@ -135,7 +135,7 @@ public class XPathGetter {
 			
 			return values;
 		} catch (Exception ex) {
-			throw new JuException("Couldn't evaluate xPath query: " + query);
+			throw new JuRuntimeException("Couldn't evaluate xPath query: " + query);
 		}
 	}
 	
@@ -143,10 +143,10 @@ public class XPathGetter {
 	 * Evaluates the specified XPath expression and returns a Long array.
 	 * @param query XPath expression
 	 * @return XPath result as Long array
-	 * @throws JuException If the XPath cannot be evaluated or if a result
+	 * @throws JuRuntimeException If the XPath cannot be evaluated or if a result
 	 * cannot be converted to Long
 	 */
-	public Long[] getArrayLong(String query) throws JuException {
+	public Long[] getArrayLong(String query) throws JuRuntimeException {
 		String[] values = this.getArray(query);
 		
 		Long[] longValues = new Long[values.length];
@@ -158,7 +158,7 @@ public class XPathGetter {
 				try {
 					longValues[i] = Long.parseLong(value);
 				} catch (Exception ex) {
-					throw new JuException("Couldn't convert " + value + " to Long", ex);
+					throw new JuRuntimeException("Couldn't convert " + value + " to Long", ex);
 				}
 			}
 		}
@@ -170,9 +170,9 @@ public class XPathGetter {
 	 * Evaluates the specified XPath expression and returns a NodeList.
 	 * @param query XPath expression
 	 * @return XPath result as NodeList
-	 * @throws JuException If the XPath cannot be evaluated
+	 * @throws JuRuntimeException If the XPath cannot be evaluated
 	 */
-	public NodeList getNodeList(String query) throws JuException {
+	public NodeList getNodeList(String query) throws JuRuntimeException {
 		return this.evaluateNodeSet(query);
 	}
 	
@@ -181,9 +181,9 @@ public class XPathGetter {
 	 * is at least one matching node.
 	 * @param query XPath expression
 	 * @return True if there is at least one matching node
-	 * @throws JuException If the XPath cannot be evaluated
+	 * @throws JuRuntimeException If the XPath cannot be evaluated
 	 */
-	public boolean exists(String query) throws JuException {
+	public boolean exists(String query) throws JuRuntimeException {
 		return this.evaluateNodeSet(query).getLength() > 0;
 	}
 	
@@ -192,9 +192,9 @@ public class XPathGetter {
 	 * actually returns more than one Node, only the first one is returned.
 	 * @param query XPath expression
 	 * @return XPath result as Node
-	 * @throws JuException If the XPath cannot be evaluated
+	 * @throws JuRuntimeException If the XPath cannot be evaluated
 	 */
-	public Node getNode(String query) throws JuException {
+	public Node getNode(String query) throws JuRuntimeException {
 		NodeList list = this.getNodeList(query);
 		
 		if (list.getLength() == 0) return null;
@@ -205,9 +205,9 @@ public class XPathGetter {
 	 * Evaluates the specified XPath expression and returns an array of Nodes.
 	 * @param query XPath expression
 	 * @return XPath result as an array of Nodes
-	 * @throws JuException If the XPath cannot be evaluated
+	 * @throws JuRuntimeException If the XPath cannot be evaluated
 	 */
-	public Node[] getNodes(String query) throws JuException {
+	public Node[] getNodes(String query) throws JuRuntimeException {
 		NodeList list = this.getNodeList(query);
 		
 		Node nodes[] = new Node[list.getLength()];
@@ -223,9 +223,9 @@ public class XPathGetter {
 	 * XPathGetters relative to the corresponding result nodes of the query.
 	 * @param query XPath expression
 	 * @return Array of XPathGetters
-	 * @throws JuException If the XPath cannot be evaluated
+	 * @throws JuRuntimeException If the XPath cannot be evaluated
 	 */
-	public XPathGetter[] getGetters(String query) throws JuException {
+	public XPathGetter[] getGetters(String query) throws JuRuntimeException {
 		NodeList list = this.getNodeList(query);
 		
 		XPathGetter getters[] = new XPathGetter[list.getLength()];
@@ -242,9 +242,9 @@ public class XPathGetter {
 	 * XPathGetter relative to the corresponding result node of the query.
 	 * @param query XPath expression
 	 * @return XPathGetter
-	 * @throws JuException If the XPath cannot be evaluated
+	 * @throws JuRuntimeException If the XPath cannot be evaluated
 	 */
-	public XPathGetter getGetter(String query) throws JuException {
+	public XPathGetter getGetter(String query) throws JuRuntimeException {
 		XPathGetter getters[] = this.getGetters(query);
 		
 		if (getters.length == 0) return null;
@@ -256,9 +256,9 @@ public class XPathGetter {
 	 * contains only distinct values, duplicate values are discarded.
 	 * @param query XPath expression
 	 * @return XPath result as String array containing only distinct values
-	 * @throws JuException If the XPath cannot be evaluated
+	 * @throws JuRuntimeException If the XPath cannot be evaluated
 	 */
-	public String[] getDistinctArray(String query) throws JuException {
+	public String[] getDistinctArray(String query) throws JuRuntimeException {
 		String[] values = this.getArray(query);
 		List<String> distinctValues = new ArrayList<String>();
 		
@@ -274,10 +274,10 @@ public class XPathGetter {
 	 * contains only distinct values, duplicate values are discarded.
 	 * @param query XPath expression
 	 * @return XPath result as Long array containing only distinct values
-	 * @throws JuException If the XPath cannot be evaluated or if a value cannot
+	 * @throws JuRuntimeException If the XPath cannot be evaluated or if a value cannot
 	 * be converted to Long
 	 */
-	public Long[] getDistinctArrayLong(String query) throws JuException {
+	public Long[] getDistinctArrayLong(String query) throws JuRuntimeException {
 		String distinctValues[] = this.getDistinctArray(query);
 		Long distinctValuesLong[] = new Long[distinctValues.length];
 		
@@ -285,7 +285,7 @@ public class XPathGetter {
 			try {
 				distinctValuesLong[i] = Long.parseLong(distinctValues[i]);
 			} catch (Exception ex) {
-				throw new JuException("Couldn't convert " + distinctValues[i] + " to Long", ex);
+				throw new JuRuntimeException("Couldn't convert " + distinctValues[i] + " to Long", ex);
 			}
 		}
 		

@@ -4,12 +4,14 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.net.URL;
 import java.nio.charset.Charset;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -96,7 +98,7 @@ public final class IOUtil {
 	 */
 	public static void close(Reader reader) {
 		try {
-			log.debug("Closing Reader: " + reader);
+			log.debug("Closing Reader: " + ObjectUtils.identityToString(reader));
 			if (reader != null) reader.close();
 		} catch (IOException ex) {
 			log.warn("Could not close Reader instance: " + ex.getMessage());
@@ -104,16 +106,30 @@ public final class IOUtil {
 	}
 	
 	/**
-	 * Closes the specified Reader and consumes any exception that
+	 * Closes the specified InputStream and consumes any exception that
 	 * might be raised.
-	 * @param reader Reader instance
+	 * @param stream InputStream instance
 	 */
 	public static void close(InputStream stream) {
 		try {
-			log.debug("Closing InputStream: " + stream);
+			log.debug("Closing InputStream: " + ObjectUtils.identityToString(stream));
 			if (stream != null) stream.close();
 		} catch (IOException ex) {
 			log.warn("Could not close InputStream instance: " + ex.getMessage());
+		}
+	}
+	
+	/**
+	 * Closes the specified OutputStream and consumes any exception that
+	 * might be raised.
+	 * @param stream OutputStream instance
+	 */
+	public static void close(OutputStream stream) {
+		try {
+			log.debug("Closing OutputStream: " + ObjectUtils.identityToString(stream));
+			if (stream != null) stream.close();
+		} catch (IOException ex) {
+			log.warn("Could not close OutputStream instance: " + ex.getMessage());
 		}
 	}
 	

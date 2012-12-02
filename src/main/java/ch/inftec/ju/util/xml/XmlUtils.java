@@ -75,6 +75,28 @@ public class XmlUtils {
 	}
 
 	/**
+	 * Loads and parses an XML from an InputStream into a DOM structure.
+	 * <p>
+	 * The input stream will be wrapped in a BufferedInputStream and closed at the end.
+	 * @param inputStream InputStream of the XML
+	 * @param schema Optional Schema. If null, no validation is performed
+	 * @return Document instance
+	 * @throws JuException If the XML cannot be loaded or fails validation
+	 */
+	public static Document loadXml(InputStream inputStream, Schema schema) throws JuException {
+		InputStream xmlStream = null;
+		
+		try {
+			xmlStream = new BufferedInputStream(inputStream);			
+			return XmlUtils.loadXml(new InputSource(xmlStream), schema);
+		} catch (Exception ex) {
+			throw new JuException("Couldn't load XML from InputStream", ex);
+		} finally {
+			IOUtil.close(xmlStream);
+		}
+	}
+	
+	/**
 	 * Loads and parses an XML into a DOM structure.
 	 * @param xmlStream InputStream of the XML
 	 * @param schema Optional Schema. If null, no validation is performed

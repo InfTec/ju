@@ -3,6 +3,9 @@ package ch.inftec.ju.util.xml;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
+import java.io.StringReader;
+
+import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.w3c.dom.Document;
@@ -154,6 +157,27 @@ public class XmlTest {
 		} catch (AssertionError e) {
 			// Expected
 		}
+	}
+	
+	/**
+	 * Tests the XmlOutputConverter class.
+	 */
+	@Test
+	public void xmlOutputConverter() throws Exception {
+		Document doc1 = XmlUtils.loadXml(IOUtil.getResourceURL("simpleSpecialChars.xml"));
+		String xml1 = XmlUtils.toString(doc1, true, true);
+		
+		StringReader reader1 = new StringReader(xml1);
+		XmlOutputConverter xmlConv1 = new XmlOutputConverter();
+		IOUtils.copy(reader1, xmlConv1.getOutputStream());
+		
+		Document doc2 = xmlConv1.getDocument();
+		
+		TestUtils.assertEqualsXml(doc1, doc2);
+		
+		// Make sure special characters were handled correctly
+		XPathGetter xg = new XPathGetter(doc1);
+		Assert.assertEquals("This is a little text: äöü°+\"*ç%&/()=?`è!éà£><;:_,.-", xg.getSingle("//textElement"));
 	}
 }
 
