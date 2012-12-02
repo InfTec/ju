@@ -10,8 +10,8 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 
-import ch.inftec.ju.db.data.entity.Player;
-import ch.inftec.ju.db.data.entity.Team;
+import ch.inftec.ju.testing.db.data.entity.Player;
+import ch.inftec.ju.testing.db.data.entity.Team;
 
 /**
  * Test class for JPA related tests.

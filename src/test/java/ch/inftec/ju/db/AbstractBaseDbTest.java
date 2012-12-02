@@ -10,7 +10,7 @@ import org.apache.commons.logging.LogFactory;
 import org.junit.After;
 import org.junit.Before;
 
-import ch.inftec.ju.db.data.TestDb;
+import ch.inftec.ju.testing.db.data.TestDb;
 import ch.inftec.ju.util.JuCollectionUtils;
 import ch.inftec.ju.util.TestUtils;
 import ch.inftec.ju.util.comparison.ValueComparator;

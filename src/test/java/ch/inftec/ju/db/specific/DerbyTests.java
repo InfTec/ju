@@ -9,8 +9,8 @@ import ch.inftec.ju.db.JuDbException;
 import ch.inftec.ju.db.change.AbstractDbActionTest;
 import ch.inftec.ju.db.change.AbstractDbChangeSetTest;
 import ch.inftec.ju.db.data.AbstractTestDbTest;
-import ch.inftec.ju.db.data.TestDb;
-import ch.inftec.ju.db.data.TestDbUtils;
+import ch.inftec.ju.testing.db.data.TestDb;
+import ch.inftec.ju.testing.db.data.TestDbUtils;
 
 /**
  * Helper class that extends all abstract DB tests using a Derby Test DB.
