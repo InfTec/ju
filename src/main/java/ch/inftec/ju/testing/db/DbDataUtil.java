@@ -8,12 +8,14 @@ import org.dbunit.database.DatabaseConnection;
 import org.dbunit.database.IDatabaseConnection;
 import org.dbunit.database.QueryDataSet;
 import org.dbunit.dataset.xml.FlatXmlDataSet;
+import org.w3c.dom.Document;
 
 import ch.inftec.ju.db.DbConnection;
 import ch.inftec.ju.db.DbConnectionFactory;
 import ch.inftec.ju.db.DbConnectionFactoryLoader;
 import ch.inftec.ju.db.JuDbException;
 import ch.inftec.ju.util.JuRuntimeException;
+import ch.inftec.ju.util.xml.XmlOutputConverter;
 
 /**
  * Utility class containing methods to import and export data from a DB.
@@ -26,6 +28,10 @@ import ch.inftec.ju.util.JuRuntimeException;
 public class DbDataUtil {
 	private final DbConnection dbConnection;
 	
+	/**
+	 * Creates a new DbDataUtil instance using the specified DbConnection.
+	 * @param dbConnection DbConnection instance
+	 */
 	public DbDataUtil(DbConnection dbConnection) {
 		this.dbConnection = dbConnection;
 	}
@@ -44,11 +50,11 @@ public class DbDataUtil {
 	 *
 	 */
 	public static class ExportBuilder {
-		private final DbConnection dbConnection;
+		//private final DbConnection dbConnection;
 		private final QueryDataSet queryDataSet;
 		
 		private ExportBuilder(DbConnection dbConnection) {
-			this.dbConnection = dbConnection;
+			//this.dbConnection = dbConnection;
 			
 			try {
 				IDatabaseConnection connection = new DatabaseConnection(dbConnection.getConnection());
@@ -58,6 +64,15 @@ public class DbDataUtil {
 			}
 		}
 		
+		/**
+		 * Adds the specified table to the builder, exporting the table data.
+		 * <p>
+		 * If no query is specified, all table data is exported. Otherwise, only
+		 * the data returned by the query is exported.
+		 * @param tableName TableName
+		 * @param query Optional query to select sub data
+		 * @return ExportBuilder to allow for chaining
+		 */
 		public ExportBuilder addTable(String tableName, String query) {
 			try {
 				if (query == null) {
@@ -71,10 +86,29 @@ public class DbDataUtil {
 			}
 		}		
 
+		/**
+		 * Writes the DB data to an (in-memory) XML Document.
+		 * @return Xml Document instance
+		 */
+		public Document writeToXmlDocument() {
+			try {
+				XmlOutputConverter xmlConv = new XmlOutputConverter();
+				FlatXmlDataSet.write(this.queryDataSet, xmlConv.getOutputStream());
+				
+				return xmlConv.getDocument();
+			} catch (Exception ex) {
+				throw new JuDbException("Couldn't write DB data to XML document", ex);
+			}
+		}
+		
+		/**
+		 * Write the DB data to an XML file.
+		 * @param fileName Path of the file
+		 */
 		public void writeToXmlFile(String fileName) {
 			try (OutputStream stream = new BufferedOutputStream(
 							new FileOutputStream(fileName))) {
-			
+
 				FlatXmlDataSet.write(this.queryDataSet, stream);
 			} catch (Exception ex) {
 				throw new JuDbException("Couldn't write DB data to file " + fileName, ex);

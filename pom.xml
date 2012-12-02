@@ -25,8 +25,14 @@
 
 		<dependency>
 			<groupId>${project.groupId}</groupId>
+			<artifactId>ju-util</artifactId>
+			<version>1.2-SNAPSHOT</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>${project.groupId}</groupId>
 			<artifactId>ju-dbutil</artifactId>
-			<version>1.2-testData-SNAPSHOT</version>
+			<version>1.2-testing</version>
 		</dependency>
 
 		<dependency>
