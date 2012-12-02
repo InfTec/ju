@@ -4,9 +4,9 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 
-import ch.inftec.ju.db.AbstractBaseDbTest;
 import ch.inftec.ju.db.DbQueryRunner;
 import ch.inftec.ju.db.DbRow;
+import ch.inftec.ju.testing.db.AbstractBaseDbTest;
 import ch.inftec.ju.util.TestUtils;
 import ch.inftec.ju.util.change.ChangeItem;
 import ch.inftec.ju.util.change.DbAction;

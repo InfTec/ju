@@ -6,6 +6,7 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 
+import ch.inftec.ju.testing.db.AbstractBaseDbTest;
 import ch.inftec.ju.util.JuCollectionUtils;
 import ch.inftec.ju.util.JuStringUtils;
 
