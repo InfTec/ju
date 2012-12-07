@@ -68,13 +68,13 @@ class DerbyTestDb extends AbstractTestDb {
 	protected void resetPlatformSpecificData() throws JuDbException {
 		try (DbConnection dbConn = this.openDbConnection()) {
 			DbQueryRunner qr = dbConn.getQueryRunner();
-						
-			qr.update("DELETE FROM TEST_DATATYPES");
-			qr.update("INSERT INTO TEST_DATATYPES (ID, INTEGERNUMBER, VARCHARTEXT, CLOBTEXT, DATEFIELD) VALUES (1, 1, 'one', 'oneClob', '1980-12-03')");
-			qr.update("INSERT INTO TEST_DATATYPES (ID, INTEGERNUMBER, VARCHARTEXT, CLOBTEXT, DATEFIELD) VALUES (2, null, null, null, null)");
+//						
+//			qr.update("DELETE FROM TEST_DATATYPES");
+//			qr.update("INSERT INTO TEST_DATATYPES (ID, INTEGERNUMBER, VARCHARTEXT, CLOBTEXT, DATEFIELD) VALUES (1, 1, 'one', 'oneClob', '1980-12-03')");
+//			qr.update("INSERT INTO TEST_DATATYPES (ID, INTEGERNUMBER, VARCHARTEXT, CLOBTEXT, DATEFIELD) VALUES (2, null, null, null, null)");
 
 			// Reset sequence to guarantee predictable primary key values
-			qr.update("UPDATE SEQUENCE SET SEQ_COUNT=? WHERE SEQ_NAME=?", 0, "SEQ_GEN");
+			qr.update("UPDATE SEQUENCE SET SEQ_COUNT=? WHERE SEQ_NAME=?", 9, "SEQ_GEN");
 		}
 	}
 }

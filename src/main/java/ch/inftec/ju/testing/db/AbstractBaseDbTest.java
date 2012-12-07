@@ -1,5 +1,6 @@
 package ch.inftec.ju.testing.db;
 
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -16,6 +17,7 @@ import ch.inftec.ju.db.DbRow;
 import ch.inftec.ju.db.JuDbException;
 import ch.inftec.ju.testing.db.data.TestDb;
 import ch.inftec.ju.testing.db.data.TestDbUtils;
+import ch.inftec.ju.util.IOUtil;
 import ch.inftec.ju.util.JuCollectionUtils;
 import ch.inftec.ju.util.TestUtils;
 import ch.inftec.ju.util.comparison.ValueComparator;
@@ -23,6 +25,9 @@ import ch.inftec.ju.util.comparison.ValueComparator;
 /**
  * Base class for tests that use test database data and should be performed for different
  * database implementations.
+ * <p>
+ * By default, a FULL DataSet profile is loaded into the DB automatically before
+ * each test run. Use the protected constructor to provide another DefaultDataSet.
  * @author tgdmemae
  *
  */
@@ -47,9 +52,19 @@ public abstract class AbstractBaseDbTest {
 	 */
 	protected DbQueryRunner qr;
 	
+	private final URL dataSetFileUrl;
+	
+	protected AbstractBaseDbTest() {
+		this(DefaultDataSet.FULL);
+	}
+	
+	protected AbstractBaseDbTest(DefaultDataSet defaultDataSet) {
+		dataSetFileUrl = IOUtil.getResourceURL(defaultDataSet.fileName);
+	}
+	
 	@Before
 	public final void initConnection() throws Exception {
-		this.getTestDb().resetData();
+		this.getTestDb().resetData(dataSetFileUrl);
 		this.dbConn = this.openDbConnection();
 		this.em = this.dbConn.getEntityManager();
 		this.qr = this.dbConn.getQueryRunner();
@@ -109,5 +124,16 @@ public abstract class AbstractBaseDbTest {
 	 */
 	protected final void assertRowEquals(DbRow row, Object... keyValuePairs) {
 		this.assertRowEquals(row, JuCollectionUtils.stringMap(keyValuePairs));
+	}
+	
+	protected static enum DefaultDataSet {
+		NONE(null),
+		FULL("/datasets/fullData.xml");
+		
+		private final String fileName;
+		
+		private DefaultDataSet(String fileName) {
+			this.fileName = fileName;
+		}
 	}
 }

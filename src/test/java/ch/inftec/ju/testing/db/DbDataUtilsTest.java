@@ -6,8 +6,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.w3c.dom.Document;
 
-import ch.inftec.ju.testing.db.data.TestDbUtils;
-import ch.inftec.ju.testing.db.data.entity.TestingEntity;
 import ch.inftec.ju.util.IOUtil;
 import ch.inftec.ju.util.xml.XPathGetter;
 
@@ -50,7 +48,7 @@ public class DbDataUtilsTest extends AbstractBaseDbTest {
 			.writeToXmlDocument();
 		
 		XPathGetter xg = new XPathGetter(doc);
-		Assert.assertEquals(TestDbUtils.ENTITY_TEAM_COUNT, xg.getSingleLong("count(//Team)").intValue());
+		Assert.assertEquals(2, xg.getSingleLong("count(//Team)").intValue());
 	}
 	
 	/**
@@ -58,16 +56,12 @@ public class DbDataUtilsTest extends AbstractBaseDbTest {
 	 */
 	@Test
 	public void importDataFromXml() {
-		TestingEntity entity1 = new TestingEntity();
-		entity1.setName("Test");
-		em.persist(entity1);
-		
 		Assert.assertEquals(1, em.createQuery("Select t from TestingEntity t").getResultList().size());
 		
 		DbDataUtil du = new DbDataUtil(dbConn);
 		du.buildImport()
 			.from(IOUtil.getResourceURL("DbDataUtilsTest_importDataFromXml.xml"))
-			.cleanImport();
+			.executeCleanInsert();
 		
 		Assert.assertEquals(2, em.createQuery("Select t from TestingEntity t").getResultList().size());		
 	}
@@ -79,8 +73,8 @@ public class DbDataUtilsTest extends AbstractBaseDbTest {
 	public void massertEqualsAll() {
 		DbDataUtil du = new DbDataUtil(dbConn);
 		
-		// Can be used to create full export XML
-		du.buildExport().writeToXmlFile("completeExport.xml");
+//		// Can be used to create full export XML
+//		du.buildExport().writeToXmlFile("completeExport.xml");
 		
 		du.buildAssert()
 			.expected(IOUtil.getResourceURL("DbDataUtilsTest_assertEqualsAll.xml"))

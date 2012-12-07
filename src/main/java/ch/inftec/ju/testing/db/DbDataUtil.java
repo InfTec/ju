@@ -195,14 +195,37 @@ public class DbDataUtil {
 		 * Performs a clean import of the data into the DB, i.e. cleans any existing
 		 * data in affected tables and imports the rows specified in in this builder.
 		 */
-		public void cleanImport() {
+		public void executeCleanInsert() {
 			try {
 				DatabaseOperation.CLEAN_INSERT.execute(iConnection, flatXmlDataSet);
 			} catch (Exception ex) {
 				throw new JuDbException("Couldnt clean and insert data into DB", ex);
 			}
 		}
-	}
+		
+		/**
+		 * Truncates all tables included in the data set.
+		 */
+		public void executeDeleteAll() {
+			try {
+				DatabaseOperation.DELETE_ALL.execute(iConnection, flatXmlDataSet);
+			} catch (Exception ex) {
+				throw new JuDbException("Couldnt truncate data in DB", ex);
+			}
+		}
+		
+		/**
+		 * Performs an import of the data into the DB, without cleaning any data
+		 * previously.
+		 */
+		public void executeInsert() {
+			try {
+				DatabaseOperation.INSERT.execute(iConnection, flatXmlDataSet);
+			} catch (Exception ex) {
+				throw new JuDbException("Couldnt insert data into DB", ex);
+			}
+		}
+	}	
 	
 	/**
 	 * Builder class to configure and execute DB data asserts.

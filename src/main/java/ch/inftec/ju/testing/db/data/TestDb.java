@@ -1,5 +1,6 @@
 package ch.inftec.ju.testing.db.data;
 
+import java.net.URL;
 import java.sql.SQLException;
 
 import ch.inftec.ju.db.DbConnection;
@@ -25,8 +26,9 @@ public interface TestDb {
 	public DbConnection openDbConnection();
 
 	/**
-	 * Resets the test data in the test tables. 
+	 * Resets the test data in the test tables.
+	 * @param testDataFile Optional URL to a testDataFile to load initial values from 
 	 * @throws SQLException If the test data cannot be reset
 	 */
-	public void resetData() throws JuDbException;
+	public void resetData(URL testDataFile) throws JuDbException;
 }
