@@ -58,13 +58,18 @@ public abstract class AbstractBaseDbTest {
 		this(DefaultDataSet.FULL);
 	}
 	
+	protected final void loadDataSet(DefaultDataSet dataSet) {
+		this.getTestDb().loadTestData(dataSet.getUrl());
+	}
+	
 	protected AbstractBaseDbTest(DefaultDataSet defaultDataSet) {
-		dataSetFileUrl = IOUtil.getResourceURL(defaultDataSet.fileName);
+		dataSetFileUrl = defaultDataSet.getUrl();
 	}
 	
 	@Before
 	public final void initConnection() throws Exception {
-		this.getTestDb().resetData(dataSetFileUrl);
+		this.getTestDb().clearData();
+		this.getTestDb().loadTestData(dataSetFileUrl);
 		this.dbConn = this.openDbConnection();
 		this.em = this.dbConn.getEntityManager();
 		this.qr = this.dbConn.getQueryRunner();
@@ -126,14 +131,26 @@ public abstract class AbstractBaseDbTest {
 		this.assertRowEquals(row, JuCollectionUtils.stringMap(keyValuePairs));
 	}
 	
+	/**
+	 * Predefined DataSets that can be either set as default for a whole
+	 * test class using the AbstractBaseDbTest constructor or be loaded
+	 * as a clean insert using the method loadTestData.
+	 * @author Martin
+	 *
+	 */
 	protected static enum DefaultDataSet {
 		NONE(null),
+		SINGLE_TESTING_ENTITY("/datasets/singleTestingEntityData.xml"),
 		FULL("/datasets/fullData.xml");
 		
 		private final String fileName;
 		
 		private DefaultDataSet(String fileName) {
 			this.fileName = fileName;
+		}
+		
+		private URL getUrl() {
+			return IOUtil.getResourceURL(fileName);
 		}
 	}
 }

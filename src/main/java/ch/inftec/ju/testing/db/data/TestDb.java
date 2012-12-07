@@ -26,9 +26,18 @@ public interface TestDb {
 	public DbConnection openDbConnection();
 
 	/**
-	 * Resets the test data in the test tables.
-	 * @param testDataFile Optional URL to a testDataFile to load initial values from 
-	 * @throws SQLException If the test data cannot be reset
+	 * Clears all data in the Test DB.
+	 * @throws JuDbException If the data cannot be cleared
 	 */
-	public void resetData(URL testDataFile) throws JuDbException;
+	public void clearData() throws JuDbException;
+	
+	/**
+	 * Loads test data from an XML import data set into the test DB.
+	 * <p>
+	 * This will perform a clean insert in the related tables, but will leave
+	 * tables that are not part of the XML unaffected.
+	 * @param testDataFile URL to a testDataFile to load values from 
+	 * @throws SQLException If the test data cannot be loaded
+	 */
+	public void loadTestData(URL testDataFile) throws JuDbException;
 }

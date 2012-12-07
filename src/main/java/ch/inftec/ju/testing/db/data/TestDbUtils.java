@@ -109,25 +109,29 @@ public final class TestDbUtils {
 		protected abstract void cleanup() throws JuDbException;
 		
 		@Override
-		public final void resetData(URL testDataFile) throws JuDbException {
+		public void clearData() throws JuDbException {
 			try (DbConnection dbConn = this.openDbConnection()) {
-				// Reset the data in any case
+				// Reset the data
 				new DbDataUtil(dbConn).buildImport()
 					.from(IOUtil.getResourceURL("/datasets/noData.xml"))
-					.executeDeleteAll();
-				
-				if (testDataFile != null) {	
-					_log.debug("Initializing data from file: " + testDataFile);
-						
-					DbDataUtil du = new DbDataUtil(dbConn);
-					du.buildImport()
-						.from(testDataFile)
-						.executeInsert();
-				}
+					.executeDeleteAll();				
 			}
 			
 			this.resetPlatformSpecificData();
-//			this.resetEntityData();
+		}
+		
+		@Override
+		public final void loadTestData(URL testDataFile) throws JuDbException {
+			if (testDataFile == null) return;
+			
+			try (DbConnection dbConn = this.openDbConnection()) {
+				_log.debug("Loading data from file: " + testDataFile);
+					
+				DbDataUtil du = new DbDataUtil(dbConn);
+				du.buildImport()
+					.from(testDataFile)
+					.executeCleanInsert();
+			}
 		}
 		
 		/**
