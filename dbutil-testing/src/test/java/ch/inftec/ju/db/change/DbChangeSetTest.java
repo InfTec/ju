@@ -21,7 +21,7 @@ import ch.inftec.ju.util.persistable.MementoStorage;
  * @author tgdmemae
  *
  */
-public abstract class AbstractDbChangeSetTest extends AbstractBaseDbTest {
+public class DbChangeSetTest extends AbstractBaseDbTest {
 	@Test
 	public void emptySet() {
 		// Empty set
@@ -112,6 +112,6 @@ public abstract class AbstractDbChangeSetTest extends AbstractBaseDbTest {
 		MementoStorage stringStorage = GenericMementoUtils.newStringMementoStorage();
 		stringStorage.persistMemento(memento, "DbChangeSet");
 				
-		TestUtils.assertEqualsResource("AbstractDbChangeSetTest.createMemento.txt", stringStorage.toString());
+		TestUtils.assertEqualsResource("DbChangeSetTest.createMemento.txt", stringStorage.toString());
 	}
 }

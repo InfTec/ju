@@ -19,7 +19,7 @@ import ch.inftec.ju.testing.db.data.entity.Team;
  * @author tgdmemae
  *
  */
-public abstract class AbstractJpaTest extends AbstractBaseDbTest {
+public class JpaTest extends AbstractBaseDbTest {
 	/**
 	 * Test if the EntityManager returns the same instance for the same object
 	 */
@@ -97,6 +97,22 @@ public abstract class AbstractJpaTest extends AbstractBaseDbTest {
 		} catch (OptimisticLockException ex) {
 			// Update with version check failed
 		}
+	}
+	
+	/**
+	 * Test case for an EntityManager refreshing problem that is caused
+	 * by updating the data using DbUnit (JDBC) and then accessing it
+	 * via EntityManager.
+	 * <p>
+	 * When the EM cache is not evicted after a JDBC data import, concurrentChanges
+	 * test would fail after versioning test.
+	 */
+	@Test
+	public void entityManagerRefreshingProblem() throws Exception {
+		this.versioning();
+		this.closeConnection();
+		this.initConnection();		
+		this.concurrentChanges();
 	}
 	
 	/**

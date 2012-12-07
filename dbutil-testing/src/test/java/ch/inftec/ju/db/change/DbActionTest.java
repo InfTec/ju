@@ -17,7 +17,7 @@ import ch.inftec.ju.util.change.DbActionValue;
 import ch.inftec.ju.util.persistable.GenericMementoUtils;
 import ch.inftec.ju.util.persistable.GenericMementoX;
 
-public abstract class AbstractDbActionTest extends AbstractBaseDbTest {
+public class DbActionTest extends AbstractBaseDbTest {
 	@Test
 	public void updateAction() throws Exception {
 		DbQueryRunner qr = this.dbConn.getQueryRunner();

@@ -12,15 +12,14 @@ import ch.inftec.ju.util.JuStringUtils;
 
 
 /**
- * Test basic database interactions. This is an abstract class that must be extended
- * and provide a getTestDb implementation.
+ * Test basic database interactions. The default implementation uses a Derby DB.
  * <p>
  * Note that some tests might run succesfully, but output ERROR or WARN debug messages
  * that should be examined.
  * @author tgdmemae
  *
  */
-public abstract class AbstractBasicDbTest extends AbstractBaseDbTest {
+public class BasicDbTest extends AbstractBaseDbTest {
 	@Test
 	public void dbRowResultSetHandler() throws Exception {
 		DbQueryRunner qr = this.dbConn.getQueryRunner();

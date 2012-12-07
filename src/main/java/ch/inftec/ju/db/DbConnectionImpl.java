@@ -12,6 +12,8 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 
 import org.apache.commons.dbutils.QueryRunner;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import ch.inftec.ju.db.DbRowUtils.DbRowsImpl;
 import ch.inftec.ju.util.JuStringUtils;
@@ -25,7 +27,9 @@ import ch.inftec.ju.util.change.DbActionUtils;
  *
  */
 final class DbConnectionImpl implements DbConnection {
-	//private static Log log = LogFactory.getLog(DbConnectionImpl.class);
+	private static Log log = LogFactory.getLog(DbConnectionImpl.class);
+	private static int idCnt = 0;
+	private final int id;
 	
 	private String name;
 	private EntityManagerFactory entityManagerFactory;
@@ -42,6 +46,10 @@ final class DbConnectionImpl implements DbConnection {
 	protected DbConnectionImpl(String name, EntityManagerFactory entityManagerFactory) {
 		this.name = name;
 		this.entityManagerFactory = entityManagerFactory;
+		
+		synchronized(this) {
+			this.id = DbConnectionImpl.idCnt++;
+		}
 	}
 	
 	/**
@@ -51,6 +59,7 @@ final class DbConnectionImpl implements DbConnection {
 	 */
 	private EntityManager establishEntityManager() {
 		if (this.entityManager == null) {
+			log.debug("Establishing connection to EntityManager: " + this);
 			this.entityManager = this.entityManagerFactory.createEntityManager();
 			
 			try {
@@ -123,8 +132,10 @@ final class DbConnectionImpl implements DbConnection {
 		if (this.entityManager != null) {
 			// The transaction might have been marked for rollback (e.g. by an OptimisticLockException)
 			if (this.entityManager.getTransaction().getRollbackOnly()) {
+				log.debug("Rolling back transaction: " + this);
 				this.rollback();
 			} else {
+				log.debug("Committing transaction: " + this);
 				this.entityManager.getTransaction().commit();
 				this.entityManager.close();
 				this.entityManager = null;
@@ -220,7 +231,7 @@ final class DbConnectionImpl implements DbConnection {
 	
 	@Override
 	public String toString() {
-		return JuStringUtils.toString(this, "name", this.getName());
+		return JuStringUtils.toString(this, "name", this.getName(), "id", this.id);
 	}
 	
 	/**
