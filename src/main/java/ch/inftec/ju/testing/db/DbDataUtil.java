@@ -5,9 +5,11 @@ import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.net.URL;
 
+import org.dbunit.Assertion;
 import org.dbunit.database.DatabaseConnection;
 import org.dbunit.database.IDatabaseConnection;
 import org.dbunit.database.QueryDataSet;
+import org.dbunit.dataset.IDataSet;
 import org.dbunit.dataset.xml.FlatXmlDataSet;
 import org.dbunit.dataset.xml.FlatXmlDataSetBuilder;
 import org.dbunit.operation.DatabaseOperation;
@@ -25,12 +27,11 @@ import ch.inftec.ju.util.xml.XmlOutputConverter;
  * Utility class containing methods to import and export data from a DB.
  * <p>
  * The class needs a DbConnection instance to work with. Make sure the connection
- * is avaiable when using the util class.
+ * is available when using the util class.
  * @author Martin
  *
  */
 public class DbDataUtil {
-	private final DbConnection dbConnection;
 	private final IDatabaseConnection iConnection;
 	
 	/**
@@ -38,7 +39,6 @@ public class DbDataUtil {
 	 * @param dbConnection DbConnection instance
 	 */
 	public DbDataUtil(DbConnection dbConnection) {
-		this.dbConnection = dbConnection;
 		try {
 			this.iConnection = new DatabaseConnection(dbConnection.getConnection());
 		} catch (Exception ex) {
@@ -63,16 +63,25 @@ public class DbDataUtil {
 	}
 	
 	/**
+	 * Returns a new AssertBuilder to assert that table data equals expected data
+	 * specified in an XML file.
+	 * @return AssertBuilder instance
+	 */
+	public AssertBuilder buildAssert() {
+		return new AssertBuilder(iConnection);
+	}
+	
+	/**
 	 * Builder class to configure and execute DB data exports.
 	 * @author Martin
 	 *
 	 */
 	public static class ExportBuilder {
-		//private final DbConnection dbConnection;
-		private final QueryDataSet queryDataSet;
+		private final IDatabaseConnection iConnection;
+		private QueryDataSet queryDataSet;
 		
 		private ExportBuilder(IDatabaseConnection iConnection) {
-			this.queryDataSet = new QueryDataSet(iConnection);
+			this.iConnection = iConnection;			
 		}
 		
 		/**
@@ -86,10 +95,14 @@ public class DbDataUtil {
 		 */
 		public ExportBuilder addTable(String tableName, String query) {
 			try {
+				if (queryDataSet == null) {
+					queryDataSet = new QueryDataSet(iConnection);
+				}
+				
 				if (query == null) {
-					this.queryDataSet.addTable(tableName);
+					queryDataSet.addTable(tableName);
 				} else {
-					this.queryDataSet.addTable(tableName, query);
+					queryDataSet.addTable(tableName, query);
 				}
 				return this;
 			} catch (Exception ex) {
@@ -97,6 +110,18 @@ public class DbDataUtil {
 			}
 		}		
 
+		private IDataSet getExportSet() {
+			if (queryDataSet != null) {
+				return queryDataSet;
+			} else {
+				try {
+					return iConnection.createDataSet();
+				} catch (Exception ex) {
+					throw new JuDbException("Couldn't create DataSet from DB");
+				}
+			}
+		}
+		
 		/**
 		 * Writes the DB data to an (in-memory) XML Document.
 		 * @return Xml Document instance
@@ -104,7 +129,7 @@ public class DbDataUtil {
 		public Document writeToXmlDocument() {
 			try {
 				XmlOutputConverter xmlConv = new XmlOutputConverter();
-				FlatXmlDataSet.write(this.queryDataSet, xmlConv.getOutputStream());
+				FlatXmlDataSet.write(this.getExportSet(), xmlConv.getOutputStream());
 				
 				return xmlConv.getDocument();
 			} catch (Exception ex) {
@@ -120,7 +145,7 @@ public class DbDataUtil {
 			try (OutputStream stream = new BufferedOutputStream(
 							new FileOutputStream(fileName))) {
 
-				FlatXmlDataSet.write(this.queryDataSet, stream);
+				FlatXmlDataSet.write(this.getExportSet(), stream);
 			} catch (Exception ex) {
 				throw new JuDbException("Couldn't write DB data to file " + fileName, ex);
 			}
@@ -168,7 +193,7 @@ public class DbDataUtil {
 		
 		/**
 		 * Performs a clean import of the data into the DB, i.e. cleans any existing
-		 * data and imports the data.
+		 * data in affected tables and imports the rows specified in in this builder.
 		 */
 		public void cleanImport() {
 			try {
@@ -177,6 +202,64 @@ public class DbDataUtil {
 				throw new JuDbException("Couldnt clean and insert data into DB", ex);
 			}
 		}
+	}
+	
+	/**
+	 * Builder class to configure and execute DB data asserts.
+	 * @author Martin
+	 *
+	 */
+	public static class AssertBuilder {
+		private final IDatabaseConnection iConnection;
+		private FlatXmlDataSet flatXmlDataSet;
+		
+		private AssertBuilder(IDatabaseConnection iConnection) {
+			
+			this.iConnection = iConnection;
+		}
+		
+		/**
+		 * URL to XML of expected data.
+		 * @param xmlUrl URL to XML file location
+		 * @return This builder to allow for chaining
+		 */
+		public AssertBuilder expected(URL xmlUrl) {
+			try {
+				flatXmlDataSet = new FlatXmlDataSetBuilder().build(xmlUrl);
+				return this;
+			} catch (Exception ex) {
+				throw new JuDbException("Couldn't import data from XML: xmlUrl", ex);
+			}
+		}
+		
+		/**
+		 * Asserts that the whole data set in the DB equals the expected data.
+		 */
+		public void assertEqualsAll() {
+			try {
+				IDataSet  dbDataSet = iConnection.createDataSet();
+				Assertion.assertEquals(flatXmlDataSet, dbDataSet);
+			} catch (Exception ex) {
+				throw new JuDbException("Couldn't assert DB data", ex);
+			}
+		}
+		
+		/**
+		 * Asserts that the export from the specified table equals the expected data.
+		 * @param tableName Name of the table to assert
+		 * @param orderColumnName Name of the column to order data by for the export
+		 */
+		public void assertEqualsTable(String tableName, String orderColumnName) {
+			try {
+				QueryDataSet tableDataSet = new QueryDataSet(iConnection);
+				tableDataSet.addTable(tableName, String.format("select * from %s order by %s", tableName, orderColumnName));
+				
+				Assertion.assertEquals(flatXmlDataSet, tableDataSet);
+			} catch (Exception ex) {
+				throw new JuDbException("Couldn't assert DB data", ex);
+			}
+		}
+		
 	}
 	
 	public void exportDataToXml() {

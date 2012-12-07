@@ -71,4 +71,35 @@ public class DbDataUtilsTest extends AbstractBaseDbTest {
 		
 		Assert.assertEquals(2, em.createQuery("Select t from TestingEntity t").getResultList().size());		
 	}
+	
+	/**
+	 * Asserts that the complete DB export equals the data in an XML file. 
+	 */
+	@Test
+	public void massertEqualsAll() {
+		DbDataUtil du = new DbDataUtil(dbConn);
+		
+		// Can be used to create full export XML
+		du.buildExport().writeToXmlFile("completeExport.xml");
+		
+		du.buildAssert()
+			.expected(IOUtil.getResourceURL("DbDataUtilsTest_assertEqualsAll.xml"))
+			.assertEqualsAll();
+	}
+	
+	/**
+	 * Asserts that a specific table export equals the data in an XML file.
+	 */
+	@Test
+	public void assertEqualsTables() {
+		DbDataUtil du = new DbDataUtil(dbConn);
+		
+//		du.buildExport()
+//			.addTable("team", "select * from team order by name")
+//			.writeToXmlFile("teamExport.xml");
+		
+		du.buildAssert()
+			.expected(IOUtil.getResourceURL("DbDataUtilsTest_assertEqualsTables.xml"))
+			.assertEqualsTable("team", "name");
+	}
 }

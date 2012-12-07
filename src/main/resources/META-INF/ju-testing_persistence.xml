@@ -21,6 +21,9 @@
 			<property name="eclipselink.logging.level.sql" value="FINE"/>
  			<property name="eclipselink.logging.parameters" value="true"/>			
 
+			<!-- Use EclipseLink specific SessionCustomizer to set cache for sequence tables to 1 to be able to predict primary key IDs -->
+			<property name="eclipselink.session.customizer" value="ch.inftec.ju.testing.db.EclipseLinkSessionCustomizer"/>
+
 			<property name="javax.persistence.jdbc.url" value="jdbc:derby:memory:juPersTestDB;create=true" />
 			<property name="javax.persistence.jdbc.driver" value="org.apache.derby.jdbc.EmbeddedDriver" />
 			<property name="javax.persistence.jdbc.user" value="sa" />
