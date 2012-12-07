@@ -131,6 +131,10 @@ public final class TestDbUtils {
 				du.buildImport()
 					.from(testDataFile)
 					.executeCleanInsert();
+				
+				// Note: This will have inserted the data using plain JDBC, so we'll need
+				// to evict the EntityManager cache to avoid stale data
+				dbConn.getEntityManager().getEntityManagerFactory().getCache().evictAll();
 			}
 		}
 		
