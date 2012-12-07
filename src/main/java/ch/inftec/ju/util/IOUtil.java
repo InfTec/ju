@@ -12,8 +12,8 @@ import java.nio.charset.Charset;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ch.inftec.ju.util.io.NewLineReader;
 
@@ -28,7 +28,7 @@ import ch.inftec.ju.util.io.NewLineReader;
  *
  */
 public final class IOUtil {
-	private static Log log = LogFactory.getLog(IOUtil.class);
+	static final Logger log = LoggerFactory.getLogger(IOUtil.class);
 	
 	/**
 	 * The default charset that will be used to initialize an IOUtil instance
@@ -162,6 +162,8 @@ public final class IOUtil {
 	 * @return URL instance to the resource or null if no resource can be found
 	 */
 	public static URL getResourceURL(String resourcePath) {
+		if (resourcePath == null) return null;
+		
 		return IOUtil.getResourceURL(resourcePath, ReflectUtils.getCallingClass());
 	}
 	
@@ -173,6 +175,8 @@ public final class IOUtil {
 	 * @return URL instance to the resource or null if no resource can be found
 	 */
 	public static URL getResourceURL(String resourcePath, Class<?> relativeClass) {
+		if (resourcePath == null) return null;
+		
 		if (relativeClass == null) relativeClass = ReflectUtils.getCallingClass();
 		
 		URL url = relativeClass.getResource(resourcePath);

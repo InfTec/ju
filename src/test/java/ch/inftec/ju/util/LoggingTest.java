@@ -1,13 +1,13 @@
 package ch.inftec.ju.util;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class LoggingTest {
 	@Test
 	public void log() {
-		Log log = LogFactory.getLog(LoggingTest.class);
+		Logger log = LoggerFactory.getLogger(LoggingTest.class);
 		
 		log.trace("This is a TRACE log message");
 		log.debug("This is a DEBUG log message");
