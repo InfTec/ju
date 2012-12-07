@@ -12,8 +12,8 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 
 import org.apache.commons.dbutils.QueryRunner;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ch.inftec.ju.db.DbRowUtils.DbRowsImpl;
 import ch.inftec.ju.util.JuStringUtils;
@@ -27,7 +27,8 @@ import ch.inftec.ju.util.change.DbActionUtils;
  *
  */
 final class DbConnectionImpl implements DbConnection {
-	private static Log log = LogFactory.getLog(DbConnectionImpl.class);
+	Logger log = LoggerFactory.getLogger(DbConnectionImpl.class);
+
 	private static int idCnt = 0;
 	private final int id;
 	

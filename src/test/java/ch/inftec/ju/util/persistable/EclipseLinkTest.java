@@ -14,12 +14,12 @@ import junit.framework.Assert;
 
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.handlers.ScalarHandler;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ch.inftec.ju.db.DbConnection;
 import ch.inftec.ju.db.DbConnectionFactory;
@@ -29,7 +29,7 @@ import ch.inftec.ju.db.DbRows;
 import ch.inftec.ju.util.Timer;
 
 public class EclipseLinkTest {
-	private static Log _log = LogFactory.getLog(EclipseLinkTest.class);
+	Logger log = LoggerFactory.getLogger(EclipseLinkTest.class);
 	
 	private static DbConnectionFactory dcf = DbConnectionFactoryLoader.createInstance();
 	private static EntityManagerFactory emf;
@@ -293,7 +293,7 @@ public class EclipseLinkTest {
 		
 			em.close();
 		}
-		_log.info(insCount + " inserts using EntityManager:" + t1);
+		log.info(insCount + " inserts using EntityManager:" + t1);
 		
 		Timer t2 = new Timer();		
 		for (int i = 0; i < insCount; i++) {
@@ -310,7 +310,7 @@ public class EclipseLinkTest {
 		
 			em.close();
 		}
-		_log.info("1000 inserts using EntityManager's Connection:" + t2);
+		log.info("1000 inserts using EntityManager's Connection:" + t2);
 
 		Timer t3 = new Timer();		
 		for (int i = 0; i < insCount; i++) {
@@ -327,7 +327,7 @@ public class EclipseLinkTest {
 		
 			em.close();
 		}
-		_log.info("1000 selects using EntityManager's Connection:" + t3);
+		log.info("1000 selects using EntityManager's Connection:" + t3);
 		
 //		// Verify using JDBC access
 //		DbConnection dbConn = .getDbConnection("Derby juPersTestDb");

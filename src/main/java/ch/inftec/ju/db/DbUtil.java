@@ -7,8 +7,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.apache.commons.dbutils.DbUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ch.inftec.ju.util.IOUtil;
 import ch.inftec.ju.util.JuObjectUtils;
@@ -21,7 +21,7 @@ import ch.inftec.ju.util.JuObjectUtils;
  *
  */
 public class DbUtil {
-	private static Log log = LogFactory.getLog(DbUtil.class);
+	static Logger log = LoggerFactory.getLogger(DbConnectionImpl.class);
 	
 	/**
 	 * Commits and closes a connection.
