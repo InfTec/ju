@@ -171,7 +171,9 @@ public class DbDataUtil {
 		 */
 		public ImportBuilder from(URL xmlUrl) {
 			try {
-				flatXmlDataSet = new FlatXmlDataSetBuilder().build(xmlUrl);
+				flatXmlDataSet = new FlatXmlDataSetBuilder()
+					.setColumnSensing(true)
+					.build(xmlUrl);
 				return this;
 			} catch (Exception ex) {
 				throw new JuDbException("Couldn't import data from XML: xmlUrl", ex);
@@ -184,7 +186,9 @@ public class DbDataUtil {
 		 */
 		public ImportBuilder from(Document doc) {
 			try {
-				flatXmlDataSet = new FlatXmlDataSetBuilder().build(new DOMInputSource(doc));
+				flatXmlDataSet = new FlatXmlDataSetBuilder()
+					.setColumnSensing(true)
+					.build(new DOMInputSource(doc));
 				return this;
 			} catch (Exception ex) {
 				throw new JuDbException("Couldn't import data from XML Document", ex);

@@ -23,11 +23,14 @@ import ch.inftec.ju.util.TestUtils;
 import ch.inftec.ju.util.comparison.ValueComparator;
 
 /**
- * Base class for tests that use test database data and should be performed for different
- * database implementations.
+ * Base class for tests that use test database data.
  * <p>
- * By default, a FULL DataSet profile is loaded into the DB automatically before
- * each test run. Use the protected constructor to provide another DefaultDataSet.
+ * Different DB implementations can be testing by extending the implementing class
+ * and overriding the getTestDb method.
+ * <p>
+ * By default, no test data is loaded. Override the loadDefaultTestData method to
+ * load test data in each test setup.
+ * 
  * @author tgdmemae
  *
  */
@@ -52,24 +55,32 @@ public abstract class AbstractBaseDbTest {
 	 */
 	protected DbQueryRunner qr;
 	
-	private final URL dataSetFileUrl;
-	
-	protected AbstractBaseDbTest() {
-		this(DefaultDataSet.FULL);
-	}
-	
+	/**
+	 * Helper method to load the data of the provided DefaultDataSet.
+	 * <p>
+	 * This will perform a clean insert of the data contained in the set, but
+	 * leave tables not included in the set unaffected.
+	 * @param dataSet DataSet to load data of
+	 */
 	protected final void loadDataSet(DefaultDataSet dataSet) {
-		this.getTestDb().loadTestData(dataSet.getUrl());
+		this.loadDataSet(dataSet.getUrl());
 	}
 	
-	protected AbstractBaseDbTest(DefaultDataSet defaultDataSet) {
-		dataSetFileUrl = defaultDataSet.getUrl();
+	/**
+	 * Helper method to load the data of the provided import file.
+	 * <p>
+	 * This will perform a clean insert of the data contained in the set, but
+	 * leave tables not included in the set unaffected.
+	 * @param testDataFile URL to a test data file
+	 */
+	protected final void loadDataSet(URL testDataFile) {
+		this.getTestDb().loadTestData(testDataFile);
 	}
 	
 	@Before
 	public final void initConnection() throws Exception {
 		this.getTestDb().clearData();
-		this.getTestDb().loadTestData(dataSetFileUrl);
+		this.loadDefaultTestData();
 		this.dbConn = this.openDbConnection();
 		this.em = this.dbConn.getEntityManager();
 		this.qr = this.dbConn.getQueryRunner();
@@ -78,6 +89,21 @@ public abstract class AbstractBaseDbTest {
 	@After
 	public final void closeConnection() throws Exception {
 		if (this.dbConn != null) this.dbConn.close();
+	}
+	
+	/**
+	 * This method may be overrwriten by extending classes to load default test
+	 * data after each test initialization.
+	 * <p>
+	 * The default implementation does nothing, i.e. leaves the DB at the
+	 * state after TestDb.clearData().
+	 * <p>
+	 * The DefaultDataSet enum provides some predefined data sets that may be
+	 * loaded here.
+	 * <p>
+	 * Use the loadDataSet methods to load the data.
+	 */
+	protected void loadDefaultTestData() {
 	}
 	
 	/**
@@ -139,7 +165,6 @@ public abstract class AbstractBaseDbTest {
 	 *
 	 */
 	protected static enum DefaultDataSet {
-		NONE(null),
 		SINGLE_TESTING_ENTITY("/datasets/singleTestingEntityData.xml"),
 		FULL("/datasets/fullData.xml");
 		

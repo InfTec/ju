@@ -16,6 +16,11 @@ import ch.inftec.ju.util.xml.XPathGetter;
  *
  */
 public class DbDataUtilsTest extends AbstractBaseDbTest {
+	@Override
+	protected void loadDefaultTestData() {
+		this.loadDataSet(DefaultDataSet.FULL);
+	}
+	
 	/**
 	 * Tests the data export function writing DB data to an XML file.
 	 */
@@ -70,7 +75,7 @@ public class DbDataUtilsTest extends AbstractBaseDbTest {
 	 * Asserts that the complete DB export equals the data in an XML file. 
 	 */
 	@Test
-	public void massertEqualsAll() {
+	public void assertEqualsAll() {
 		DbDataUtil du = new DbDataUtil(dbConn);
 		
 //		// Can be used to create full export XML

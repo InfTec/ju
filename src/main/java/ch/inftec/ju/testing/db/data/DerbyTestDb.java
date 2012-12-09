@@ -13,6 +13,8 @@ import ch.inftec.ju.testing.db.data.TestDbUtils.AbstractTestDb;
 class DerbyTestDb extends AbstractTestDb {
 	DerbyTestDb() throws JuDbException {
 		super("Derby InMemory-DB");
+		
+		this.setNoDataXmlImportFile("/datasets/noData.xml");
 	}
 
 	@Override

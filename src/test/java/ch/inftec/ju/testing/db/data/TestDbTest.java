@@ -19,6 +19,11 @@ import ch.inftec.ju.util.JuCollectionUtils;
  *
  */
 public class TestDbTest extends AbstractBaseDbTest {
+	@Override
+	protected void loadDefaultTestData() {
+		this.loadDataSet(DefaultDataSet.FULL);
+	}
+	
 	/**
 	 * Tests if the table TEST_A has been created correctly.
 	 */

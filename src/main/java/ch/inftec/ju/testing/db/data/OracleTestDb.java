@@ -15,6 +15,8 @@ class OracleTestDb extends AbstractTestDb {
 	
 	public OracleTestDb() throws JuDbException {
 		super("ESW MyTTS");
+		
+		this.setNoDataXmlImportFile("/datasets/noData.xml");
 	}
 	
 	public static OracleTestDb getInstance() throws JuDbException {

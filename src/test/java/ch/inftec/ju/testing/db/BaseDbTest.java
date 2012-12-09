@@ -13,10 +13,6 @@ import ch.inftec.ju.util.IOUtil;
  *
  */
 public class BaseDbTest extends AbstractBaseDbTest {
-	public BaseDbTest() {
-		super(DefaultDataSet.NONE);
-	}
-	
 	/**
 	 * Test case to assert that primary key sequences will be reset to
 	 * produce predictable IDs.

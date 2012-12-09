@@ -7,6 +7,7 @@ import org.apache.log4j.Logger;
 import ch.inftec.ju.db.DbConnection;
 import ch.inftec.ju.db.DbConnectionFactory;
 import ch.inftec.ju.db.DbConnectionFactoryLoader;
+import ch.inftec.ju.db.DbQueryRunner;
 import ch.inftec.ju.db.JuDbException;
 import ch.inftec.ju.testing.db.DbDataUtil;
 import ch.inftec.ju.util.IOUtil;
@@ -47,6 +48,77 @@ public final class TestDbUtils {
 		return oracleTestDb;
 	}
 	
+	/**
+	 * Returns a new builder to build a generic TestDb instance.
+	 * @param connectionName Name of the connection in the persistene.xml file. The
+	 * persistence file can be changed using the persistenceFile method if necessary.
+	 * @return TestDbBuilder instance to build the TestDb instance
+	 */
+	public TestDbBuilder buildTestDb(String connectionName) {
+		return new TestDbBuilder(connectionName);
+	}
+	
+	public static class TestDbBuilder {
+		private final String connectionName;
+		private String persistenceXmlFileName = "/META-INF/ju-testing_persistence.xml";
+		private String noDataXmlImportFileName;
+		
+		private TestDbBuilder(String connectionName) {
+			this.connectionName = connectionName;
+		}
+		
+		/**
+		 * Uses the specified persistence XML file to load the connection.
+		 * <p>
+		 * If not set explicitly, the default persistence.xml file will be used
+		 * @param persistenceXmlFileName Path to the persistence file name
+		 * @return This builder to allow for chaining
+		 */
+		public TestDbBuilder persistenceFile(String persistenceXmlFileName) {
+			this.persistenceXmlFileName = persistenceXmlFileName;
+			return this;
+		}
+		
+		/**
+		 * Sets a noDataXmlImportFile that will be used to clear data in the
+		 * TestDb at the beginning of each test case.
+		 * @param noDataXmlImportFileName Path to the noDataXmlImportFile as used by
+		 * DbUnit to clear data
+		 * @return This builder to allow for chaining
+		 */
+		public TestDbBuilder noDataXmlImportFile(String noDataXmlImportFileName) {
+			this.noDataXmlImportFileName = noDataXmlImportFileName;
+			return this;
+		}
+		
+		/**
+		 * Creates the TestDb instance as configured by the builder.
+		 * @return TestDb instance
+		 */
+		public TestDb createDerbyDb() {
+			// TODO: Add support for non-derby-DBs
+			DefaultDerbyTestDb testDb = new DefaultDerbyTestDb(this.connectionName, this.persistenceXmlFileName);
+			testDb.setNoDataXmlImportFile(noDataXmlImportFileName);
+			
+			return testDb;				
+		}
+	}
+	
+	private static class DefaultDerbyTestDb extends AbstractTestDb {
+		public DefaultDerbyTestDb(String dbConnectionName, String persistenceXmlFileName) {
+			super(dbConnectionName, persistenceXmlFileName);
+		} 
+				
+		@Override
+		protected void resetPlatformSpecificData() throws JuDbException {
+			try (DbConnection dbConn = this.openDbConnection()) {
+				DbQueryRunner qr = dbConn.getQueryRunner();
+
+				// Reset sequence to guarantee predictable primary key values
+				qr.update("UPDATE SEQUENCE SET SEQ_COUNT=? WHERE SEQ_NAME=?", 9, "SEQ_GEN");
+			}
+		}
+	}
 	
 	/**
 	 * Base class for test databases.
@@ -56,6 +128,8 @@ public final class TestDbUtils {
 	abstract static class AbstractTestDb implements TestDb {
 		private final String persistenceXmlFileName;
 		private final String dbConnectionName;
+		
+		private String noDataXmlImportFile;
 		
 		/**
 		 * Creates a new TestDb instance using the specified DB connection.
@@ -82,6 +156,17 @@ public final class TestDbUtils {
 			this.createTables();			
 		}
 
+		/**
+		 * Extending classes can use this method to set a noDataXmlImportFile.
+		 * <p>
+		 * If specified, this data will be automatically be imported as deleteAll
+		 * at the beginning of the clearData invocation.
+		 * @param noDataXmlImportFile Path to the noDataXmlImportFile or null if none should be used
+		 */
+		protected final void setNoDataXmlImportFile(String noDataXmlImportFile) {
+			this.noDataXmlImportFile = noDataXmlImportFile;
+		}
+		
 		@Override
 		public final void close() throws JuDbException {		
 			this.cleanup();
@@ -95,23 +180,31 @@ public final class TestDbUtils {
 		
 		/**
 		 * Must create (and delete previously if necessary) the needed test tables.
+		 * <p>
+		 * The default implementation does nothing
 		 * @throws JuDbException If the creation fails
 		 */
-		protected abstract void createTables() throws JuDbException;
+		protected void createTables() throws JuDbException {			
+		}
 		
 		/**
 		 * Cleans up any data created in createTables.
+		 * <p>
+		 * The default implementation does nothing.
 		 * @throws JuDbException If cleanup fails
 		 */
-		protected abstract void cleanup() throws JuDbException;
+		protected void cleanup() throws JuDbException {
+		}
 		
 		@Override
 		public void clearData() throws JuDbException {
-			try (DbConnection dbConn = this.openDbConnection()) {
-				// Reset the data
-				new DbDataUtil(dbConn).buildImport()
-					.from(IOUtil.getResourceURL("/datasets/noData.xml"))
-					.executeDeleteAll();				
+			if (noDataXmlImportFile != null) {
+				try (DbConnection dbConn = this.openDbConnection()) {
+					// Reset the data
+					new DbDataUtil(dbConn).buildImport()
+						.from(IOUtil.getResourceURL(noDataXmlImportFile))
+						.executeDeleteAll();				
+				}
 			}
 			
 			this.resetPlatformSpecificData();
