@@ -22,9 +22,6 @@ public final class TestDbUtils {
 	private static TestDb derbyTestDb;
 	private static TestDb oracleTestDb;
 	
-	public static final int ENTITY_TEAM_COUNT = 5;
-	public static final int ENTITY_TEAM_PLAYER_COUNT = 5;
-	
 	/**
 	 * Gets an instance of a TestDB backed by a Derby DB. This returns
 	 * always the same instance.

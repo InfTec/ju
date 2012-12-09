@@ -10,7 +10,6 @@ import org.junit.Test;
 
 import ch.inftec.ju.db.DbRows;
 import ch.inftec.ju.testing.db.AbstractBaseDbTest;
-import ch.inftec.ju.testing.db.data.TestDbUtils;
 import ch.inftec.ju.testing.db.data.entity.Player;
 import ch.inftec.ju.util.JuCollectionUtils;
 
