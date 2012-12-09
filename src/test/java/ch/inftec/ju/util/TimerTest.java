@@ -5,6 +5,8 @@ import java.util.Date;
 import junit.framework.Assert;
 
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Tests for the Timer class.
@@ -12,6 +14,8 @@ import org.junit.Test;
  *
  */
 public class TimerTest {
+	final Logger log = LoggerFactory.getLogger(TimerTest.class);
+	
 	@Test
 	public void elapsedString() {
 		Timer t1 = new Timer(); t1.pause(); t1.setStartTime(new Date(t1.getCurrentTime().getTime() - 123));
@@ -23,5 +27,20 @@ public class TimerTest {
 		Assert.assertEquals(" 1.023s", t2.getElapsedString());
 		Assert.assertEquals(" 9m 32.003s", t3.getElapsedString());
 		Assert.assertEquals("32h 54m  6.987s", t4.getElapsedString());
+	}
+	
+	/**
+	 * Simple test making sure memoryUsage works on basic use cases.
+	 */
+	@Test	
+	public void memoryUsage() {
+		Timer t = new Timer(log, "memoryUsage");
+		t.memoryUsage("Started");
+		
+		t.pause();
+		t.memoryUsage("Paused");
+		
+		t.resume();
+		t.memoryUsage("Resumed");
 	}
 }

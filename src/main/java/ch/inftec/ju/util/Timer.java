@@ -2,6 +2,8 @@ package ch.inftec.ju.util;
 
 import java.util.Date;
 
+import org.slf4j.Logger;
+
 /**
  * Helper class to track time, i.e. for performance debugging needs.
  * <br>
@@ -11,13 +13,43 @@ import java.util.Date;
  */
 public final class Timer {
 	private Date startTime;
+	private long startMemory;
+	
 	private Date pauseTime;
+	private Long pauseMemory;
+	
+	private final Logger logger;	
+	
+	/**
+	 * Creates a new time stopper using the current time and outputs a start message
+	 * to the Logger.
+	 * @param logger Logger If null, no output will be made
+	 * @param description Description that will be output through the logger. If null, no
+	 * output will be made
+	 */
+	public Timer(Logger logger, String description) {
+		this(logger, description, null);
+	}
+	
+	/**
+	 * Creates a new time stopper and outputs a start message
+	 * to the Logger.
+	 * @param logger Logger If null, no output will be made
+	 * @param description Description that will be output through the logger. If null, no
+	 * output will be made
+	 * @param startTime Start time of the timer. If null, the current time is used.
+	 */
+	public Timer(Logger logger, String description, Date startTime) {
+		this.logger = logger;
+		this.startTime = startTime == null ? new Date() : startTime;
+		this.start(description);
+	}
 	
 	/**
 	 * Creates a new timer with the current time as start time.
 	 */
 	public Timer() {
-		this.startTime = new Date();
+		this(null, null, null);
 	}
 	
 	/**
@@ -25,7 +57,34 @@ public final class Timer {
 	 * @param startTime Start time
 	 */
 	public Timer(Date startTime) {
-		this.startTime = new Date(startTime.getTime());
+		this(null, null, startTime);
+	}
+	
+	private void log(String msg) {
+		if (logger != null) logger.info(msg);
+	}
+	
+	private void start(String description) {
+		this.log(description + ": Started");
+		this.startMemory = Runtime.getRuntime().freeMemory();
+	}
+	
+	/**
+	 * (Re)starts the time stopper.
+	 * @param description Description to be output (if a logger was defined)
+	 */
+	public void restart(String description) {
+		this.startTime = new Date();
+		this.start(description);
+	}
+	
+	/**
+	 * Outputs the specified description with the elapsed time through
+	 * the logger.
+	 * @param description Description of the event
+	 */
+	public void stop(String description) {
+		if(logger != null) logger.info(description + ": " + this.getElapsedString());
 	}
 	
 	/**
@@ -34,7 +93,7 @@ public final class Timer {
 	 * @param startTime Start time
 	 */
 	void setStartTime(Date startTime) {
-		// TODO: Make startTime final, remote setStartTime
+		// TODO: Make startTime final, remove setStartTime
 		this.startTime = startTime;
 	}
 	
@@ -62,6 +121,7 @@ public final class Timer {
 	 */
 	public void pause() {
 		this.pauseTime = new Date();
+		this.pauseMemory = Runtime.getRuntime().freeMemory();
 	}
 	
 	/**
@@ -70,6 +130,7 @@ public final class Timer {
 	 */
 	public void resume() {
 		this.pauseTime = null;
+		this.pauseMemory = null;
 	}
 	
 	/**
@@ -122,6 +183,25 @@ public final class Timer {
 		return s.toString();
 	}
 
+	/**
+	 * Outputs the memory usage since the creation of the TimeStopper
+	 * through the logger.
+	 * @param description Description for the event
+	 */
+	public void memoryUsage(String description) {
+		if (this.logger == null) return;
+		
+		long memory = this.pauseMemory == null ? Runtime.getRuntime().freeMemory() : this.pauseMemory;
+		long usedMemory = memory - this.startMemory;
+		
+		String usedMemoryString = null;
+		if (usedMemory > 1000000) usedMemoryString = (usedMemory / 1000000f) + " MBytes";
+		else if (usedMemory > 1000) usedMemoryString = (usedMemory / 1000f) + " KBytes";
+		else usedMemoryString = usedMemory + " Bytes";
+		
+		this.logger.info(description + ": " + usedMemoryString);
+	}
+	
 	/**
 	 * Returns the elapsed time as a String, i.e. the same that getElapsedString returns.
 	 * @return Elapsed time String
