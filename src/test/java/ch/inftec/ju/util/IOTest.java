@@ -3,6 +3,9 @@ package ch.inftec.ju.util;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+
+import java.io.File;
+
 import junit.framework.Assert;
 import junit.framework.ComparisonFailure;
 
@@ -81,5 +84,20 @@ public class IOTest {
 		Assert.assertEquals(targetString, IOUtil.toNewLineUnix(targetString));
 		Assert.assertEquals(targetString, IOUtil.toNewLineUnix("line1\r\nline2"));
 		Assert.assertEquals(targetString, IOUtil.toNewLineUnix("line1\rline2"));
+	}
+	
+	@Test
+	public void writeTextToFile() throws Exception {
+		String text = "First line\n";
+		text += "Second line\n";
+		text += "äöüéèãâ";
+		
+		File tmpFile = IOUtil.getTemporaryFile();
+		
+		new IOUtil().writeTextToFile(text, tmpFile, true);
+		
+		String loadedText = new IOUtil().loadTextFromFile(tmpFile);
+		
+		TestUtils.assertEqualsResource("testResource.txt", loadedText);
 	}
 }

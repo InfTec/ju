@@ -1,6 +1,7 @@
 package ch.inftec.ju.util;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -10,6 +11,7 @@ import java.io.StringReader;
 import java.net.URL;
 import java.nio.charset.Charset;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.slf4j.Logger;
@@ -35,6 +37,8 @@ public final class IOUtil {
 	 * if no explizit charset is specified.
 	 */
 	private static String defaultCharset = null;
+	
+	private static int tempFileCounter = 0;
 	
 	/**
 	 * The Charset used by the IOUtil instance. If not submitted with the constructor, the
@@ -185,6 +189,28 @@ public final class IOUtil {
 	}
 	
 	/**
+	 * Creates a new temporary file in the default temporary directory.
+	 * <p>
+	 * The file will be new/empty and deleted automatically when the JVM is exited.
+	 * @return New temporary file
+	 */
+	public static synchronized File getTemporaryFile() throws JuException {
+		try {
+			File tempFile = File.createTempFile(String.format("%s_%s_%s", 
+					IOUtil.class.getName(),
+					IOUtil.tempFileCounter++,
+					System.currentTimeMillis()),
+					"tmp");
+			
+			tempFile.deleteOnExit();
+			
+			return tempFile;
+		} catch (Exception ex) {
+			throw new JuException("Couldn't create temporary file", ex);
+		}
+	}
+	
+	/**
 	 * Loads the specified text resource into a string. This method uses the charset of the
 	 * IOUtil instance.
 	 * @param resourcePath Resource path, either absolute or relative to the calling class
@@ -193,6 +219,51 @@ public final class IOUtil {
 	 */
 	public String loadTextResource(String resourcePath) throws JuException {
 		return this.loadTextResource(resourcePath, ReflectUtils.getCallingClass());
+	}
+	
+	/**
+	 * Loads the text from the specified file into a string. This method uses the charset of the
+	 * IOUtil instance.
+	 * @param File File to load from
+	 * @param replacements Optional 'key, value' strings to replace %key% tags in the resource with the specified value
+	 * @return Loaded resource as string
+	 * @throws JuException If the resource cannot be loaded
+	 */
+	public String loadTextFromFile(File file, String... replacements) throws JuException {
+		if (!file.exists()) throw new JuException("File doesn't exist: " + file);
+		if (!file.isFile()) throw new JuException("Not a file: " + file);
+		
+		URL url = null;
+		try {
+			url = file.toURI().toURL();
+		} catch (Exception ex) {
+			throw new JuException("Couldn't convert file to URL: " + file, ex);
+		}
+		
+		return loadTextFromUrl(url, replacements);
+	}
+	
+	/**
+	 * Loads the text from the specified file into a string. This method uses the charset of the
+	 * IOUtil instance.
+	 * @param filePath File path
+	 * @param replacements Optional 'key, value' strings to replace %key% tags in the resource with the specified value
+	 * @return Loaded resource as string
+	 * @throws JuException If the resource cannot be loaded
+	 */
+	public String loadTextFromFile(String filePath, String... replacements) throws JuException {
+		File file = new File(filePath);
+		if (!file.exists()) throw new JuException("File doesn't exist: " + file);
+		if (!file.isFile()) throw new JuException("Not a file: " + file);
+		
+		URL url = null;
+		try {
+			url = file.toURI().toURL();
+		} catch (Exception ex) {
+			throw new JuException("Couldn't convert file to URL: " + filePath, ex);
+		}
+		
+		return loadTextFromUrl(url, replacements);
 	}
 	
 	/**
@@ -206,10 +277,22 @@ public final class IOUtil {
 	 * @throws JuException If the resource cannot be loaded
 	 */
 	public String loadTextResource(String resourcePath, Class<?> relativeClass, String... replacements) throws JuException {
+		URL url = IOUtil.getResourceURL(resourcePath, relativeClass == null ? ReflectUtils.getCallingClass() : relativeClass);
+		return this.loadTextFromUrl(url, replacements);
+	}
+	
+	/**
+	 * Loads the specified URL resource into a string. This method uses the charset of the
+	 * IOUtil instance.
+	 * @param url URL to resource
+	 * @param replacements Optional 'key, value' strings to replace %key% tags in the resource with the specified value
+	 * @return Loaded resource as string
+	 * @throws JuException If the resource cannot be loaded
+	 */
+	public String loadTextFromUrl(URL url, String... replacements) throws JuException {
 		try {
-			URL url = IOUtil.getResourceURL(resourcePath, relativeClass == null ? ReflectUtils.getCallingClass() : relativeClass);
 			if (url == null) {
-				throw new JuException("Resource not found: " + resourcePath);
+				throw new JuException("Resource not found: " + url);
 			}
 			
 			try (BufferedReader reader = new BufferedReader(
@@ -227,8 +310,41 @@ public final class IOUtil {
 				return JuStringUtils.replaceAll(sb.toString(), replacements);
 			}
 		} catch (Exception ex) {
-			throw new JuException("Couldn't load text resource", ex);
+			throw new JuException("Couldn't load text from URL", ex);
 		}
+	}
+	
+	/**
+	 * Writes the specified text to a file.
+	 * @param text Text
+	 * @param file File to write to
+	 * @param overwrite If true, an existing file will be overwritten. If false, it will be preserved.
+	 * @throws JuException If the file cannot be written
+	 */
+	public void writeTextToFile(String text, File file, boolean overwrite) throws JuException {
+		try {
+			if (file.exists()) {
+				if (file.isDirectory()) throw new JuException("Directory with file name exists: " + file);
+				else if (!overwrite) throw new JuException("File exists: " + file);
+			}		
+			
+			FileUtils.writeStringToFile(file, text, charset);
+		} catch (JuException ex) {
+			throw ex;
+		} catch (Exception ex) {
+			throw new JuException("Couldn't write text to file: " + file, ex);
+		}
+	}
+	
+	/**
+	 * Writes the specified text to a file.
+	 * @param text Text
+	 * @param filePath File path
+	 * @param overwrite If true, an existing file will be overwritten. If false, it will be preserved.
+	 * @throws JuException If the file cannot be written
+	 */
+	public void writeTextToFile(String text, String filePath, boolean overwrite) throws JuException {
+		this.writeTextToFile(text, new File(filePath), overwrite);
 	}
 	
 	@Override
