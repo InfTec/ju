@@ -37,10 +37,24 @@ public final class JuStringUtils {
 	 */
 	public static final String CRLF = "\r\n";
 	
+	/**
+	 * Date of format dd.MM.yyyy.
+	 */
 	public final static SimpleDateFormat DATE_FORMAT_DAYS = new SimpleDateFormat("dd.MM.yyyy");
+	
+	/**
+	 * Date of format dd.MM.yyyy HH:mm
+	 */
 	public final static SimpleDateFormat DATE_FORMAT_HOURS = new SimpleDateFormat("dd.MM.yyyy HH:mm");
+	
+	/**
+	 * Date of format dd.MM.yyyy HH:mm:ss
+	 */
 	public static final SimpleDateFormat DATE_FORMAT_SECONDS = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
 	
+	/**
+	 * Zulu date format, as used by XML: yyyy-MM-dd'T'HH:mm:ss.SSS'Z'
+	 */
 	private static final SimpleDateFormat DATE_FORMAT_ZULU = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 	
 	/**
