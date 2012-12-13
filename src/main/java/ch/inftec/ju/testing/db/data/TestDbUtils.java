@@ -2,7 +2,8 @@ package ch.inftec.ju.testing.db.data;
 
 import java.net.URL;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ch.inftec.ju.db.DbConnection;
 import ch.inftec.ju.db.DbConnectionFactory;
@@ -18,7 +19,7 @@ import ch.inftec.ju.util.IOUtil;
  *
  */
 public final class TestDbUtils {
-	private static final Logger _log = Logger.getLogger(TestDbUtils.class);
+	final Logger _log = LoggerFactory.getLogger(TestDbUtils.class);
 	
 	private static TestDb derbyTestDb;
 	private static TestDb oracleTestDb;
@@ -126,6 +127,8 @@ public final class TestDbUtils {
 	 *
 	 */
 	abstract static class AbstractTestDb implements TestDb {
+		final Logger log = LoggerFactory.getLogger(AbstractTestDb.class);
+		
 		private final String persistenceXmlFileName;
 		private final String dbConnectionName;
 		
@@ -161,6 +164,8 @@ public final class TestDbUtils {
 		 * <p>
 		 * If specified, this data will be automatically be imported as deleteAll
 		 * at the beginning of the clearData invocation.
+		 * <p>
+		 * If not set, this implementation will also not call resetPlatformSpecificData.
 		 * @param noDataXmlImportFile Path to the noDataXmlImportFile or null if none should be used
 		 */
 		protected final void setNoDataXmlImportFile(String noDataXmlImportFile) {
@@ -199,15 +204,16 @@ public final class TestDbUtils {
 		@Override
 		public void clearData() throws JuDbException {
 			if (noDataXmlImportFile != null) {
+				log.debug("Clearing data using file {} ", noDataXmlImportFile);
 				try (DbConnection dbConn = this.openDbConnection()) {
 					// Reset the data
 					new DbDataUtil(dbConn).buildImport()
 						.from(IOUtil.getResourceURL(noDataXmlImportFile))
 						.executeDeleteAll();				
 				}
+				
+				this.resetPlatformSpecificData();
 			}
-			
-			this.resetPlatformSpecificData();
 		}
 		
 		@Override
@@ -215,7 +221,7 @@ public final class TestDbUtils {
 			if (testDataFile == null) return;
 			
 			try (DbConnection dbConn = this.openDbConnection()) {
-				_log.debug("Loading data from file: " + testDataFile);
+				log.debug("Loading data from file: " + testDataFile);
 					
 				DbDataUtil du = new DbDataUtil(dbConn);
 				du.buildImport()

@@ -6,10 +6,10 @@ import java.util.Map;
 
 import javax.persistence.EntityManager;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.junit.After;
 import org.junit.Before;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ch.inftec.ju.db.DbConnection;
 import ch.inftec.ju.db.DbQueryRunner;
@@ -35,7 +35,7 @@ import ch.inftec.ju.util.comparison.ValueComparator;
  *
  */
 public abstract class AbstractBaseDbTest {
-	protected final Log log = LogFactory.getLog(this.getClass());
+	protected final Logger log = LoggerFactory.getLogger(this.getClass());
 	
 	/**
 	 * Extending classes can use this DbConnection instance in their test methods. It will be
