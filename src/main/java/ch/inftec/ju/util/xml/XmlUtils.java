@@ -176,6 +176,17 @@ public class XmlUtils {
 	}
 	
 	/**
+	 * Indents the specified XML.
+	 * @param xmlString XML string to be indented
+	 * @param includeXmlDeclaration If true, the &lt;?xml ... ?> declaration is included.
+	 * @return Indented XML
+	 */
+	public static String indentXml(String xmlString, boolean includeXmlDeclaration) throws JuException {
+		Document doc = XmlUtils.loadXml(xmlString, null);
+		return XmlUtils.toString(doc, includeXmlDeclaration, true);
+	}
+	
+	/**
 	 * Converts an XML to a String.
 	 * <p>
 	 * This will create an XML string with encoding="UTF-8" and a standalone declaration,
