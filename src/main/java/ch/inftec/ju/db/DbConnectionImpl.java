@@ -32,8 +32,9 @@ final class DbConnectionImpl implements DbConnection {
 	private static int idCnt = 0;
 	private final int id;
 	
-	private String name;
-	private EntityManagerFactory entityManagerFactory;
+	private final String name;
+	private final String schemaName;
+	private final EntityManagerFactory entityManagerFactory;
 	
 	private EntityManager entityManager;
 	private Connection connection;
@@ -44,8 +45,9 @@ final class DbConnectionImpl implements DbConnection {
 	 * @param entityManagerFactory Factory used to created an EntityManager that will back
 	 * up the connection
 	 */
-	protected DbConnectionImpl(String name, EntityManagerFactory entityManagerFactory) {
+	protected DbConnectionImpl(String name, String schemaName, EntityManagerFactory entityManagerFactory) {
 		this.name = name;
+		this.schemaName = schemaName;
 		this.entityManagerFactory = entityManagerFactory;
 		
 		synchronized(this) {
@@ -90,6 +92,11 @@ final class DbConnectionImpl implements DbConnection {
 	@Override
 	public String getName() {
 		return this.name;
+	}
+	
+	@Override
+	public String getSchemaName() {
+		return this.schemaName;
 	}
 
 	@Override

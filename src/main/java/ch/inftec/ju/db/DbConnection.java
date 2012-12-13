@@ -24,6 +24,12 @@ public interface DbConnection extends AutoCloseable {
 	 */
 	public String getName();
 	
+	/**
+	 * Gets the Schema name used by this connection.
+	 * @return Schema name or null if no Schema name is specified
+	 */
+	public String getSchemaName();
+	
 //	/**
 //	 * Creates a connection to the DB.
 //	 * @return Connection instance
