@@ -11,11 +11,11 @@ import ch.inftec.ju.util.xml.XPathGetter;
 
 
 /**
- * Test cases for the DbDataUtils methods.
+ * Test cases for the DbDataUtil methods.
  * @author Martin
  *
  */
-public class DbDataUtilsTest extends AbstractBaseDbTest {
+public class DbDataUtilTest extends AbstractBaseDbTest {
 	@Override
 	protected void loadDefaultTestData() {
 		this.loadDataSet(DefaultDataSet.FULL);
@@ -54,6 +54,33 @@ public class DbDataUtilsTest extends AbstractBaseDbTest {
 		
 		XPathGetter xg = new XPathGetter(doc);
 		Assert.assertEquals(2, xg.getSingleLong("count(//Team)").intValue());
+	}
+	
+	@Test
+	public void writeToDocument_query() {
+		this.loadDataSet(IOUtil.getResourceURL("/datasets/testingEntityUnsortedData.xml"));
+		
+		Document doc = new DbDataUtil(dbConn).buildExport()
+			.addTable("TestingEntity", "SELECT * FROM TESTINGENTITY WHERE ID=2")
+			.writeToXmlDocument();
+		
+		XPathGetter xg = new XPathGetter(doc);
+		Assert.assertEquals(1, xg.getSingleLong("count(//TestingEntity)").intValue());
+		Assert.assertEquals(2, xg.getSingleLong("//TestingEntity/@ID").intValue());
+	}
+	
+	@Test
+	public void writeToDocument_order() {
+		this.loadDataSet(IOUtil.getResourceURL("/datasets/testingEntityUnsortedData.xml"));
+		
+		Document doc = new DbDataUtil(dbConn).buildExport()
+			.addTableSorted("TestingEntity", "ID")
+			.writeToXmlDocument();
+		
+		XPathGetter xg = new XPathGetter(doc);
+		Assert.assertEquals(1, xg.getSingleLong("//TestingEntity[1]/@ID").intValue());
+		Assert.assertEquals(2, xg.getSingleLong("//TestingEntity[2]/@ID").intValue());
+		Assert.assertEquals(3, xg.getSingleLong("//TestingEntity[3]/@ID").intValue());
 	}
 	
 	/**

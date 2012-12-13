@@ -17,10 +17,8 @@ import org.eclipse.persistence.internal.oxm.record.DOMInputSource;
 import org.w3c.dom.Document;
 
 import ch.inftec.ju.db.DbConnection;
-import ch.inftec.ju.db.DbConnectionFactory;
-import ch.inftec.ju.db.DbConnectionFactoryLoader;
 import ch.inftec.ju.db.JuDbException;
-import ch.inftec.ju.util.JuRuntimeException;
+import ch.inftec.ju.util.XString;
 import ch.inftec.ju.util.xml.XmlOutputConverter;
 
 /**
@@ -40,7 +38,7 @@ public class DbDataUtil {
 	 */
 	public DbDataUtil(DbConnection dbConnection) {
 		try {
-			this.iConnection = new DatabaseConnection(dbConnection.getConnection());
+			this.iConnection = new DatabaseConnection(dbConnection.getConnection(), dbConnection.getSchemaName());
 		} catch (Exception ex) {
 			throw new JuDbException("Couldn't initialize DatabaseConnection", ex);
 		}
@@ -85,6 +83,15 @@ public class DbDataUtil {
 		}
 		
 		/**
+		 * Adds the specific table to the builder, exporting the table data.
+		 * @param tableName Table name
+		 * @return ExportBuilder to allow for chaining
+		 */
+		public ExportBuilder addTable(String tableName) {
+			return this.addTable(tableName, null);
+		}
+		
+		/**
 		 * Adds the specified table to the builder, exporting the table data.
 		 * <p>
 		 * If no query is specified, all table data is exported. Otherwise, only
@@ -108,7 +115,28 @@ public class DbDataUtil {
 			} catch (Exception ex) {
 				throw new JuDbException("Couldn't add table", ex);
 			}
-		}		
+		}
+		
+		/**
+		 * Adds the data of the specified table, ordering by the specified columns.
+		 * @param tableName Table names
+		 * @param orderColumns List of columns to order by
+		 * @return ExportBuilder to allow for chaining
+		 */
+		public ExportBuilder addTableSorted(String tableName, String... orderColumns) {
+			if (orderColumns.length == 0) {
+				return this.addTable(tableName);
+			} else {
+				XString xs = new XString();
+				xs.addFormatted("SELECT * FROM %s ORDER BY ", tableName);
+				for (String orderColumn : orderColumns) {
+					xs.assertText("ORDER BY ", ", ");
+					xs.addText(orderColumn);
+				}
+				
+				return this.addTable(tableName, xs.toString());
+			}
+		}
 
 		private IDataSet getExportSet() {
 			if (queryDataSet != null) {
@@ -287,22 +315,5 @@ public class DbDataUtil {
 			}
 		}
 		
-	}
-	
-	public void exportDataToXml() {
-		DbConnectionFactory factory = DbConnectionFactoryLoader.createInstance();
-		try (DbConnection dbConn = factory.openDbConnection("ESW Localdev")) {
-			IDatabaseConnection connection = new DatabaseConnection(dbConn.getConnection());
-			
-			// partial database export
-	        QueryDataSet partialDataSet = new QueryDataSet(connection);
-	        //partialDataSet.addTable("FOO", "SELECT * FROM TABLE WHERE COL='VALUE'");
-	        partialDataSet.addTable("CONTACTROLE");
-	        partialDataSet.addTable("ATTRIBUTEVALUE");
-	        partialDataSet.addTable("ATTRIBUTETYPE");
-	        FlatXmlDataSet.write(partialDataSet, new FileOutputStream("esw.xml"));
-		} catch (Exception ex) {
-			throw new JuRuntimeException("Couldn't export database contents", ex);
-		}
 	}
 }
