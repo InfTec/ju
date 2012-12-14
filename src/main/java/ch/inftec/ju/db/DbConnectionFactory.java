@@ -2,6 +2,8 @@ package ch.inftec.ju.db;
 
 import java.util.List;
 
+import javax.persistence.EntityManagerFactory;
+
 /**
  * Interface that gets a ConnectionCreator instance for a specific connection name.
  * Implementations might provide methods to register connections by name in a 
@@ -26,6 +28,15 @@ public interface DbConnectionFactory {
 	 * @return DbConnection instance
 	 */
 	public DbConnection openDbConnection(String name);
+	
+	/**
+	 * Gets an EntityManagerFactory instance for the specified connection name.
+	 * <p>
+	 * This can be used if we want a third party frameword to handle EntityManager instances.
+	 * @param name Connection name
+	 * @return EntityManagerFactory for the specified connection
+	 */
+	public EntityManagerFactory getEntityManagerFactory(String name);
 	
 	/**
 	 * Closes the factory. Should be called when the resource isn't needed anymore.

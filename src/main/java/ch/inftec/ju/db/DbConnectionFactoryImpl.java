@@ -47,12 +47,8 @@ class DbConnectionFactoryImpl implements DbConnectionFactory {
 		
 	}
 	
-	/**
-	 * Gets the EntityManagerFactory for the specified connection.
-	 * @param name Connection name
-	 * @return EntityManagerFactory
-	 */
-	private EntityManagerFactory getEntityManagerFactory(String name) {
+	@Override
+	public EntityManagerFactory getEntityManagerFactory(String name) {
 		if (!this.factories.containsKey(name)) {
 			Properties props = new Properties();
 			
