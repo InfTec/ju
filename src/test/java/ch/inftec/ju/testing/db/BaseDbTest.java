@@ -34,7 +34,7 @@ public class BaseDbTest extends AbstractBaseDbTest {
 		TestingEntity te = new TestingEntity();
 		em.persist(te);
 		
-		Assert.assertEquals(10, te.getId());
+		Assert.assertEquals(10L, te.getId().longValue());
 	}
 	
 	/**
