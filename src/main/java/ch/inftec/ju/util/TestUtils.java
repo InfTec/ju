@@ -1,6 +1,7 @@
 package ch.inftec.ju.util;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 
@@ -116,6 +117,16 @@ public final class TestUtils {
 		if (!JuCollectionUtils.collectionEquals(cExpected, cActual)) {
 			Assert.fail("Collections are not equal. Expected: " + cExpected + "; Actual: " + cActual);
 		}
+	}
+	
+	/**
+	 * Convenience method to assert collection using variable parameter list.
+	 * @param cActual Actual collection
+	 * @param expectedObjects List of expected elements
+	 */
+	@SafeVarargs
+	public static <T> void assertCollectionEquals(Collection<T> cActual, T... expectedObjects) {
+		TestUtils.assertCollectionEquals(Arrays.asList(expectedObjects), cActual);
 	}
 	
 	/**

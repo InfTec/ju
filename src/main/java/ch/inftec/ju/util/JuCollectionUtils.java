@@ -13,7 +13,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
+import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.collections15.ListUtils;
+import org.apache.commons.collections15.Predicate;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ObjectUtils;
 
@@ -175,6 +177,39 @@ public final class JuCollectionUtils {
 		} else {
 			return false;
 		}
+	}
+	
+	/**
+	 * Selects all items of the collection that start with the specified start string and returns them as a new collection.
+	 * @param inputCollection Input collection
+	 * @param startString Start string. If null, null elements are returned
+	 * @param caseSensitive Whether the comparison should be case sensitive
+	 * @return Collection of strings starting with the specified start strings
+	 */
+	public static Collection<String> selectStartingWith(Collection<String> inputCollection, String startString, final boolean caseSensitive) {
+		final String startStringConv = startString == null ? null : (caseSensitive ? startString.toUpperCase() : startString);
+		
+		return CollectionUtils.select(inputCollection, new Predicate<String>() {
+			@Override
+			public boolean evaluate(String object) {
+				if (object == null || startStringConv == null) return object == startStringConv;
+				
+				String str = caseSensitive ? object.toUpperCase() : object;
+				return str.startsWith(startStringConv);
+			}
+		});
+	}
+	
+	/**
+	 * Converts the specified collection to a list.
+	 * <p>
+	 * If the collection already is a list, it is casted. Otherwise, a new ArrayList is created.
+	 * @param collection Collection
+	 * @return Collection as List
+	 */
+	public static <T> List<T> asList(Collection<T> collection) {
+		if (collection instanceof List) return (List<T>)collection;
+		else return new ArrayList<T>(collection);
 	}
 	
 	/**

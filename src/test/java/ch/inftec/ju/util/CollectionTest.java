@@ -2,6 +2,8 @@ package ch.inftec.ju.util;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -135,6 +137,26 @@ public class CollectionTest {
 		
 		Assert.assertTrue(JuCollectionUtils.arrayEquals(new Long[] {1L, 2L, 3L}, new Long[] {1L, 2L, 3L}));
 		Assert.assertFalse(JuCollectionUtils.arrayEquals(new Long[] {1L, 2L, 3L}, new Long[] {1L, 2L, 4L}));
+	}
+	
+	public void selectStartingWith() {
+		Collection<String> col = Arrays.asList("a1", "A2", "b1", null);
+		
+		// Case sensitive
+		Collection<String> c1 = JuCollectionUtils.selectStartingWith(col, "a", true);
+		TestUtils.assertCollectionEquals(c1, "a1");
+		
+		// Case insensitive
+		Collection<String> c2 = JuCollectionUtils.selectStartingWith(col, "a", false);
+		TestUtils.assertCollectionEquals(c2, "a1", "A2");
+		
+		// Empty String
+		Collection<String> c3 = JuCollectionUtils.selectStartingWith(col, "", false);
+		TestUtils.assertCollectionEquals(c3, "a1", "A2", "b1");
+		
+		// Empty String
+		Collection<String> c4 = JuCollectionUtils.selectStartingWith(col, "", false);
+		TestUtils.assertCollectionEquals(c4, (String)null);
 	}
 	
 	/**
