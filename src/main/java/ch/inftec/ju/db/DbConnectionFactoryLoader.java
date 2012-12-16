@@ -36,12 +36,12 @@ public class DbConnectionFactoryLoader {
 	
 	/**
 	 * Creates a new instance of a DbConnectionFactory using the specified resource.xml file
-	 * @param resourceXmlPath Path to resource.xml file, e.g. /META-INF/persistence.xml
+	 * @param persistenceXmlPath Path to resource.xml file, e.g. /META-INF/persistence.xml
 	 * @return DbConnectionFactory intance
 	 */
-	public static DbConnectionFactory createInstance(String resourceXmlPath) {
+	public static DbConnectionFactory createInstance(String persistenceXmlPath) {
 		try {
-			return new DbConnectionFactoryLoader().loadFromXml(resourceXmlPath);
+			return new DbConnectionFactoryLoader().loadFromXml(persistenceXmlPath);
 		} catch (Exception ex) {
 			throw new JuRuntimeException("Couldn't create DbConnectionFactory instance", ex);
 		}

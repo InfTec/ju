@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -100,6 +101,12 @@ final class DbConnectionImpl implements DbConnection {
 	}
 
 	@Override
+	public List<String> getTableNames() throws JuDbException {
+		DbMetaData md = new DbMetaData();
+		return md.getTableNames();
+	}
+	
+	@Override
 	public String getPrimaryColumnName(String tableName) throws JuDbException {
 		DbMetaData md = new DbMetaData();
 		return md.getPrimaryColumnName(tableName);
@@ -110,7 +117,7 @@ final class DbConnectionImpl implements DbConnection {
 		DbMetaData md = new DbMetaData();
 		return Arrays.asList(md.getColumnNames(tableName));			
 	}
-
+	
 	@Override
 	public DbQueryRunner getQueryRunner() {
 		return new DbQueryRunnerImpl(this);
@@ -171,6 +178,29 @@ final class DbConnectionImpl implements DbConnection {
 				this.metaData = DbConnectionImpl.this.establishConnection().getMetaData();
 			} catch (SQLException ex) {
 				throw new JuDbException("Couldn't access DatabaseMetaData", ex);
+			}
+		}
+		
+		public List<String> getTableNames() throws JuDbException {
+			try {
+				this.rs = this.metaData.getTables(getSchemaName(), null, null, new String[]{"TABLE"});
+				
+				List<String> tableNames = new ArrayList<>();
+				while (rs.next()) {
+					String tableName = rs.getString("TABLE_NAME");
+					tableNames.add(tableName.toUpperCase());
+				}
+				
+				Collections.sort(tableNames);
+				
+				return tableNames;
+			} catch (JuDbException ex) {
+				throw ex;
+			} catch (SQLException ex) {
+				throw new JuDbException("Couldn't evaluate table names", ex);
+			} finally {
+				DbUtil.closeQuietly(this.rs);
+				this.rs = null;
 			}
 		}
 		

@@ -1,6 +1,7 @@
 package ch.inftec.ju.db;
 
 import java.util.Date;
+import java.util.List;
 
 import junit.framework.Assert;
 
@@ -41,6 +42,14 @@ public class BasicDbTest extends AbstractBaseDbTest {
 		Assert.assertEquals(dbRows.getRowCount(), 0);
 		Assert.assertEquals(dbRows.getColumnCount(), 3);
 		Assert.assertEquals(dbRows.getColumnName(0), "AID");
+	}
+	
+	@Test
+	public void getTableNames() throws Exception {
+		List<String> tableNames = this.dbConn.getTableNames();
+		
+		Assert.assertTrue(tableNames.contains("PLAYER"));
+		Assert.assertTrue(tableNames.contains("TESTINGENTITY"));
 	}
 	
 	@Test
