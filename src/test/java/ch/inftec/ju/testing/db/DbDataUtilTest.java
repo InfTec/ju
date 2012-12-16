@@ -58,7 +58,7 @@ public class DbDataUtilTest extends AbstractBaseDbTest {
 	
 	@Test
 	public void writeToDocument_query() {
-		this.loadDataSet(IOUtil.getResourceURL("/datasets/testingEntityUnsortedData.xml"));
+		this.loadDataSet("/datasets/testingEntityUnsortedData.xml");
 		
 		Document doc = new DbDataUtil(dbConn).buildExport()
 			.addTable("TestingEntity", "SELECT * FROM TESTINGENTITY WHERE ID=2")
@@ -71,7 +71,7 @@ public class DbDataUtilTest extends AbstractBaseDbTest {
 	
 	@Test
 	public void writeToDocument_order() {
-		this.loadDataSet(IOUtil.getResourceURL("/datasets/testingEntityUnsortedData.xml"));
+		this.loadDataSet("/datasets/testingEntityUnsortedData.xml");
 		
 		Document doc = new DbDataUtil(dbConn).buildExport()
 			.addTableSorted("TestingEntity", "ID")

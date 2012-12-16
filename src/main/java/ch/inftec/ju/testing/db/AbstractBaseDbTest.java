@@ -77,6 +77,14 @@ public abstract class AbstractBaseDbTest {
 		this.getTestDb().loadTestData(testDataFile);
 	}
 	
+	/**
+	 * Helper method to load the data from the provided import file.
+	 * @param testDataFile Path to a test data file on the classpath
+	 */
+	protected final void loadDataSet(String testDataFile) {
+		this.loadDataSet(IOUtil.getResourceURL(testDataFile));
+	}
+	
 	@Before
 	public final void initConnection() throws Exception {
 		this.getTestDb().clearData();
@@ -89,6 +97,35 @@ public abstract class AbstractBaseDbTest {
 	@After
 	public final void closeConnection() throws Exception {
 		if (this.dbConn != null) this.dbConn.close();
+	}
+	
+	/**
+	 * Reinitializes the connection (i.e. dbConn, em and qr) of the test case.
+	 * <p>
+	 * This will implicitly commit all transactions and can be done to make sure changed
+	 * data can be seen by other transactions.
+	 * @param evictCache If true, the EntityManager cache will be evicted. Use this if data
+	 * has been modified outside the EntityManager.
+	 */
+	protected final void reInitConnection(boolean evictCache) {
+		try {
+			this.closeConnection();
+			this.dbConn = this.openDbConnection();
+			this.em = this.dbConn.getEntityManager();
+			this.qr = this.dbConn.getQueryRunner();
+			
+			if (evictCache) this.em.getEntityManagerFactory().getCache().evictAll();
+			
+			this.doReInitConnection();
+		} catch (Exception ex) {
+			throw new JuDbException("Couldn't reinit connection", ex);
+		}
+	}
+	
+	/**
+	 * Extending classes can override this method to perform custom reinitialization.
+	 */
+	protected void doReInitConnection() {		
 	}
 	
 	/**
