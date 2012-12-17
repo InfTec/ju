@@ -10,6 +10,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.util.Properties;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -312,6 +313,37 @@ public final class IOUtil {
 		} catch (Exception ex) {
 			throw new JuException("Couldn't load text from URL", ex);
 		}
+	}
+
+	/**
+	 * Loads Properties from the specified resource.
+	 * @param resourcePath Resource path, either absolute or relative to the calling class
+	 * return Properties instance
+	 * @throws JuException If the resource cannot be loaded
+	 */
+	public Properties loadPropertiesFromResource(String resourcePath) throws JuException {
+		return this.loadPropertiesFromResource(resourcePath, ReflectUtils.getCallingClass());
+	}
+	
+	/**
+	 * Loads Properties from the specified resource.	
+	 * @param resourcePath Resource path
+	 * @param relativeClass If not null, the path is used relative to this classes package. If null,
+	 * the path is used relative to the calling's class' package.
+	 * @return Properties instance
+	 * @throws JuException If the properties cannot be loaded
+	 */
+	public Properties loadPropertiesFromResource(String resourcePath, Class<?> relativeClass) throws JuException {
+		URL url = IOUtil.getResourceURL(resourcePath, relativeClass == null ? ReflectUtils.getCallingClass() : relativeClass);
+		
+		try (BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream(), this.charset))) {
+			Properties props = new Properties();
+			props.load(reader);
+			
+			return props;
+		} catch (Exception ex) {
+			throw new JuException("Couldn't load properties from resource: " + resourcePath);
+		}		
 	}
 	
 	/**

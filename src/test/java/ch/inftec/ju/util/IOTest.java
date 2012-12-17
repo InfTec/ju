@@ -5,6 +5,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import java.io.File;
+import java.util.Properties;
 
 import junit.framework.Assert;
 import junit.framework.ComparisonFailure;
@@ -99,5 +100,15 @@ public class IOTest {
 		String loadedText = new IOUtil().loadTextFromFile(tmpFile);
 		
 		TestUtils.assertEqualsResource("testResource.txt", loadedText);
+	}
+	
+	/**
+	 * Tests the loading of properties from a resource.
+	 */
+	@Test
+	public void loadProperties() throws Exception {
+		Properties props = new IOUtil("UTF-8").loadPropertiesFromResource("test.properties");
+		Assert.assertEquals("First line", props.getProperty("prop1"));
+		Assert.assertEquals("äöüéèãâ", props.getProperty("prop2"));
 	}
 }
