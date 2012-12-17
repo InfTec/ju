@@ -3,7 +3,7 @@ package ch.inftec.ju.util.xml;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
-import java.io.StringReader;
+import java.io.ByteArrayInputStream;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
@@ -167,9 +167,10 @@ public class XmlTest {
 		Document doc1 = XmlUtils.loadXml(IOUtil.getResourceURL("simpleSpecialChars.xml"));
 		String xml1 = XmlUtils.toString(doc1, true, true);
 		
-		StringReader reader1 = new StringReader(xml1);
+		// We need to work with input streams and bytes to make sure the encoding is not messed with
+		ByteArrayInputStream is = new ByteArrayInputStream(xml1.getBytes("UTF-8"));
 		XmlOutputConverter xmlConv1 = new XmlOutputConverter();
-		IOUtils.copy(reader1, xmlConv1.getOutputStream());
+		IOUtils.copy(is, xmlConv1.getOutputStream());
 		
 		Document doc2 = xmlConv1.getDocument();
 		

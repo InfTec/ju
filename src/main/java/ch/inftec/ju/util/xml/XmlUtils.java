@@ -1,9 +1,9 @@
 package ch.inftec.ju.util.xml;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.StringReader;
-import java.io.StringWriter;
 import java.net.URL;
 
 import javax.xml.XMLConstants;
@@ -213,9 +213,9 @@ public class XmlUtils {
 				transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
 			}
 			
-			try (StringWriter writer = new StringWriter()) {
-				transformer.transform(new DOMSource(document), new StreamResult(writer));
-				return writer.toString();
+			try (ByteArrayOutputStream os = new ByteArrayOutputStream();) {
+				transformer.transform(new DOMSource(document), new StreamResult(os));
+				return new String(os.toByteArray(), "UTF-8");
 			}			
 		} catch (Exception ex) {
 			throw new JuRuntimeException("Couldn't convert XML to String", ex);
