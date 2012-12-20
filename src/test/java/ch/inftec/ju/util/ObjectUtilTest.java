@@ -21,4 +21,17 @@ public class ObjectUtilTest {
 		Object o3 = new Object();
 		Assert.assertFalse(JuObjectUtils.getIdentityString(o1).equals(JuObjectUtils.getIdentityString(o3)));
 	}
+	
+	/**
+	 * Test as-operator implementation.
+	 */
+	@Test
+	public void as() {
+		Object obj = new String("test");
+		Assert.assertEquals("test", JuObjectUtils.as(obj, String.class));
+		Assert.assertNull(JuObjectUtils.as(obj, Integer.class));
+		
+		// Null
+		Assert.assertNull(JuObjectUtils.as(null, String.class));
+	}
 }

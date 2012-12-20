@@ -27,4 +27,29 @@ public final class JuObjectUtils {
 		return Integer.toHexString(System.identityHashCode(obj));	
 	}
 	
+	/**
+	 * Implementation of the .NET style as-operator.
+	 * <p>
+	 * If the object is of type clazz, it is converted and returned. Otherwise, null is
+	 * returned.
+	 * <p>
+	 * Example:<br>
+	 * <code>
+	 *   Object obj = new String("test");<br>
+	 *   String s = JuObjectUtils.as(obj, String.class);<br>
+	 * </code>
+	 * @param obj
+	 * @param clazz
+	 * @return
+	 */
+	public static <T> T as(Object obj, Class<T> clazz) {
+		if (clazz.isInstance(obj)) {
+			@SuppressWarnings("unchecked")
+			T t = (T)obj;
+			return t;
+		} else {
+			return null;
+		}
+	}
+	
 }
