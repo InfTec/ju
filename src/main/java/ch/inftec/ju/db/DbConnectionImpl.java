@@ -149,6 +149,8 @@ final class DbConnectionImpl implements DbConnection {
 			if (this.entityManager.getTransaction().getRollbackOnly()) {
 				log.debug("Rolling back transaction: " + this);
 				this.rollback();
+				
+				throw new JuDbException("Transaction was rolled back");
 			} else {
 				log.debug("Committing transaction: " + this);
 				this.entityManager.getTransaction().commit();
@@ -199,7 +201,7 @@ final class DbConnectionImpl implements DbConnection {
 			} catch (SQLException ex) {
 				throw new JuDbException("Couldn't evaluate table names", ex);
 			} finally {
-				DbUtil.closeQuietly(this.rs);
+				JuDbUtils.closeQuietly(this.rs);
 				this.rs = null;
 			}
 		}
@@ -228,7 +230,7 @@ final class DbConnectionImpl implements DbConnection {
 			} catch (SQLException ex) {
 				throw new JuDbException("Couldn't evaluate primary key for table " + tableName, ex);
 			} finally {
-				DbUtil.closeQuietly(this.rs);
+				JuDbUtils.closeQuietly(this.rs);
 				this.rs = null;
 			}
 		}
@@ -261,7 +263,7 @@ final class DbConnectionImpl implements DbConnection {
 			} catch (SQLException ex) {
 				throw new JuDbException("Couldn't evaluate primary key for table " + tableName, ex);
 			} finally {
-				DbUtil.closeQuietly(this.rs);
+				JuDbUtils.closeQuietly(this.rs);
 				this.rs = null;
 			}
 		}

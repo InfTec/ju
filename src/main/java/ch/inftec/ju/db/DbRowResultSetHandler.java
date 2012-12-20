@@ -56,7 +56,7 @@ class DbRowResultSetHandler implements ResultSetHandler<DbRowsImpl> {
 	private Object processValue(Object obj) {
 		if (obj instanceof Clob) {
 			Clob clob = (Clob)obj;
-			return DbUtil.getClobString(clob);			
+			return JuDbUtils.getClobString(clob);			
 		} else {
 			return obj;
 		}

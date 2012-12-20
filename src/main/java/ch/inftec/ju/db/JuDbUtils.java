@@ -6,9 +6,12 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import javax.persistence.EntityManager;
+
 import org.apache.commons.dbutils.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
 
 import ch.inftec.ju.util.IOUtil;
 import ch.inftec.ju.util.JuObjectUtils;
@@ -20,8 +23,8 @@ import ch.inftec.ju.util.JuObjectUtils;
  * @author tgdmemae
  *
  */
-public class DbUtil {
-	static Logger log = LoggerFactory.getLogger(DbConnectionImpl.class);
+public class JuDbUtils {
+	static Logger log = LoggerFactory.getLogger(JuDbUtils.class);
 	
 	/**
 	 * Commits and closes a connection.
@@ -99,5 +102,16 @@ public class DbUtil {
 		}
 		
 		return sb.toString();
+	}
+	
+	/**
+	 * Gets the specified JpaRepository interface.
+	 * @param em Backing EntityManager
+	 * @param repositoryClass Repository interface class
+	 * @return JPA repository interface
+	 */
+	public static <T> T getJpaRepository(EntityManager em, Class<T> repositoryClass) {
+		JpaRepositoryFactory repositoryFactory = new JpaRepositoryFactory(em);
+		return repositoryFactory.getRepository(repositoryClass);
 	}
 }
