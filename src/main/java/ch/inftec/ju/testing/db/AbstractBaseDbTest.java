@@ -55,6 +55,8 @@ public abstract class AbstractBaseDbTest {
 	 */
 	protected DbQueryRunner qr;
 	
+	private TestDb testDb;
+	
 	/**
 	 * Helper method to load the data of the provided DefaultDataSet.
 	 * <p>
@@ -146,14 +148,30 @@ public abstract class AbstractBaseDbTest {
 	/**
 	 * Gets the TestDb instance to run the tests on.
 	 * <p>
-	 * Extending classes can override this method to provide a custom implementation. 
-	 * This should always return the same instance.
+	 * Extending classes can override the method createTestDb to return a custom
+	 * implementation.
 	 * <p>
 	 * The basic implementation returns a Derby In-Memory implementation
 	 * @return TestDb instance to run the tests.
 	 * @throws JuDbException If the connection to the TestDb cannot be established
 	 */
-	protected TestDb getTestDb() {
+	protected final TestDb getTestDb() {
+		if (this.testDb == null) {
+			this.testDb = this.createTestDb();
+		}
+		return this.testDb;
+	}
+	
+	/**
+	 * Creates the TestDb instance to run the tests on.
+	 * <p>
+	 * Extending classes can override this method to provide a custom implementation. 
+	 * <p>
+	 * The basic implementation returns a Derby In-Memory implementation
+	 * @return TestDb instance to run the tests.
+	 * @throws JuDbException If the connection to the TestDb cannot be established
+	 */
+	protected TestDb createTestDb() {
 		return TestDbUtils.getDerbyInMemoryTestDb();
 	}
 	
