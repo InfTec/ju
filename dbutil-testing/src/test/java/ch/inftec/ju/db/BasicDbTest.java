@@ -21,6 +21,11 @@ import ch.inftec.ju.util.JuStringUtils;
  *
  */
 public class BasicDbTest extends AbstractBaseDbTest {
+	@Override
+	protected void loadDefaultTestData() {
+		this.loadDataSet(DefaultDataSet.FULL);
+	}
+	
 	@Test
 	public void dbRowResultSetHandler() throws Exception {
 		DbQueryRunner qr = this.dbConn.getQueryRunner();

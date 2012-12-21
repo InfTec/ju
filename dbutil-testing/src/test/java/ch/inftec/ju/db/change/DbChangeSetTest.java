@@ -22,6 +22,11 @@ import ch.inftec.ju.util.persistable.MementoStorage;
  *
  */
 public class DbChangeSetTest extends AbstractBaseDbTest {
+	@Override
+	protected void loadDefaultTestData() {
+		this.loadDataSet(DefaultDataSet.FULL);
+	}
+	
 	@Test
 	public void emptySet() {
 		// Empty set

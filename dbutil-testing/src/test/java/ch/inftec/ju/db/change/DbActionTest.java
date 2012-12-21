@@ -18,6 +18,11 @@ import ch.inftec.ju.util.persistable.GenericMementoUtils;
 import ch.inftec.ju.util.persistable.GenericMementoX;
 
 public class DbActionTest extends AbstractBaseDbTest {
+	@Override
+	protected void loadDefaultTestData() {
+		this.loadDataSet(DefaultDataSet.FULL);
+	}
+	
 	@Test
 	public void updateAction() throws Exception {
 		DbQueryRunner qr = this.dbConn.getQueryRunner();

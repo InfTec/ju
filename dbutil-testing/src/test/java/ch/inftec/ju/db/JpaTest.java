@@ -21,6 +21,11 @@ import ch.inftec.ju.testing.db.data.entity.Team;
  *
  */
 public class JpaTest extends AbstractBaseDbTest {
+	@Override
+	protected void loadDefaultTestData() {
+		this.loadDataSet(DefaultDataSet.FULL);
+	}
+	
 	/**
 	 * Test if the EntityManager returns the same instance for the same object
 	 */
@@ -98,6 +103,9 @@ public class JpaTest extends AbstractBaseDbTest {
 		} catch (OptimisticLockException ex) {
 			// Update with version check failed
 		}
+		
+		// Make a rollback, otherwise we get an exception when we close the DbConn
+		this.dbConn.rollback();
 	}
 	
 	/**
@@ -150,8 +158,6 @@ public class JpaTest extends AbstractBaseDbTest {
 	 */
 	@Test
 	public void jpaQueries() {
-		this.loadDataSet(DefaultDataSet.FULL);
-		
 		TypedQuery<Player> q1 = this.em.createQuery("select p from Player p where p.id=?1", Player.class);
 		q1.setParameter(1, 1L);
 		Assert.assertEquals(1, q1.getResultList().size());
