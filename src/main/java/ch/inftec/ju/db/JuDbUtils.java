@@ -114,4 +114,15 @@ public class JuDbUtils {
 		JpaRepositoryFactory repositoryFactory = new JpaRepositoryFactory(em);
 		return repositoryFactory.getRepository(repositoryClass);
 	}
+
+	/**
+	 * Opens a DbConnection using the specified persistence.xml path and
+	 * connection name.
+	 * @param persistenceXmlPath Path to the persistence.xml configuration file
+	 * @param connectionName Name of the connection in the persistence.xml file
+	 * @return DbConnection instance
+	 */
+	public static DbConnection openDbConnection(String persistenceXmlPath, String connectionName) {
+		return DbConnectionFactoryLoader.createInstance(persistenceXmlPath).openDbConnection(connectionName);
+	}
 }

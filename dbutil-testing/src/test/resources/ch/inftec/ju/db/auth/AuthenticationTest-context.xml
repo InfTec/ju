@@ -27,18 +27,12 @@
 		class="ch.inftec.ju.db.auth.MyUnknownUserHandler"/>
 	
 	<!-- Define DbConnection hooks -->	
-	
-	<beans:bean
-		id="dbConnectionFactory"
-		class="ch.inftec.ju.db.DbConnectionFactoryLoader"
-		factory-method="createInstance">
-		<beans:constructor-arg><beans:value>/META-INF/authPersistence.xml</beans:value></beans:constructor-arg>	
-	</beans:bean>
-	
+		
 	<beans:bean
 		id="dbConnection"
-		factory-bean="dbConnectionFactory"
+		class="ch.inftec.ju.db.JuDbUtils"
 		factory-method="openDbConnection">
+		<beans:constructor-arg><beans:value>/META-INF/authPersistence.xml</beans:value></beans:constructor-arg>
 		<beans:constructor-arg><beans:value>Derby InMemory-DB</beans:value></beans:constructor-arg>
 	</beans:bean>
 </beans:beans>
