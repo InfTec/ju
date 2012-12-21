@@ -213,6 +213,31 @@ public final class JuCollectionUtils {
 	}
 	
 	/**
+	 * Converts the specified collection to an ArrayList.
+	 * <p>
+	 * If the collection already is an ArrayList, it is casted. Otherwise, a new ArrayList is created.
+	 * @param collection Collection
+	 * @return Collection as List
+	 */
+	public static <T> ArrayList<T> asArrayList(Collection<T> collection) {
+		if (collection instanceof ArrayList) return (ArrayList<T>)collection;
+		else return new ArrayList<T>(collection);
+	}
+	
+	/**
+	 * Converts the specified values to an ArrayList.
+	 * @param values List of values / array
+	 * @return ArrayList
+	 */
+	@SafeVarargs
+	public static <T> ArrayList<T> asArrayList(T... values) {
+		ArrayList<T> list = new ArrayList<>();
+		for (T value : values) list.add(value);
+		
+		return list;
+	}
+	
+	/**
 	 * Creates a new instance of a WeakReferenceIterable.
 	 * @return
 	 */
