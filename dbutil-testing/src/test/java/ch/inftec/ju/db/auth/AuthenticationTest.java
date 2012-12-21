@@ -25,6 +25,19 @@ public class AuthenticationTest extends AbstractAuthBaseDbTest {
 	private JuUserDetailsService service;
 	
 	@Test
+	public void authRepositoryTest() {
+		this.loadDataSet("/datasets/auth/singleUser.xml");
+		
+		AuthUserRepo userRepo = JuDbUtils.getJpaRepository(this.em, AuthUserRepo.class);
+		Assert.assertNotNull(userRepo);
+		Assert.assertTrue(userRepo.exists(1L));
+		
+		AuthRoleRepo roleRepo = JuDbUtils.getJpaRepository(this.em, AuthRoleRepo.class);
+		Assert.assertEquals(1L, roleRepo.getByNameAndUsersId("role1", 1L).getId().longValue());
+		Assert.assertNull(roleRepo.getByNameAndUsersId("unassignedRole", 1L));
+	}
+	
+	@Test
 	public void juUserDetailsService() {
 		this.loadDataSet("/datasets/auth/singleUser.xml");
 		

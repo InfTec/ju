@@ -4,30 +4,29 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 
-import ch.inftec.ju.db.auth.AbstractAuthBaseDbTest;
-import ch.inftec.ju.db.auth.repo.AuthRoleRepo;
-import ch.inftec.ju.db.auth.repo.AuthUserRepo;
+import ch.inftec.ju.testing.db.AbstractBaseDbTest;
+import ch.inftec.ju.testing.db.data.repo.TestingEntityRepo;
 
 /**
  * Tests for the JuDbUtils utility class.
  * @author Martin
  *
  */
-public class JuDbUtilsTest extends AbstractAuthBaseDbTest {
+public class JuDbUtilsTest extends AbstractBaseDbTest {
 	/**
 	 * Tests the lookup of a Spring JPA repository.
 	 */
 	@Test
 	public void getJpaRepository() {
-		this.loadDataSet("/datasets/auth/singleUser.xml");
+		this.loadDataSet(DefaultDataSet.SINGLE_TESTING_ENTITY);
 		
-		AuthUserRepo userRepo = JuDbUtils.getJpaRepository(this.em, AuthUserRepo.class);
-		Assert.assertNotNull(userRepo);
-		Assert.assertTrue(userRepo.exists(1L));
+		TestingEntityRepo testingEntityRepo = JuDbUtils.getJpaRepository(this.em, TestingEntityRepo.class);
+		Assert.assertNotNull(testingEntityRepo);
+		Assert.assertTrue(testingEntityRepo.exists(1L));		
+		
+		// There was a problem using dynamic queries where EclipseLink wouldn't create
+		// the associated NamedQuery and set the transaction to rollback.
+		Assert.assertEquals(1L, testingEntityRepo.getByName("Test1").getId().longValue());
 		Assert.assertFalse(this.em.getTransaction().getRollbackOnly());
-		
-		AuthRoleRepo roleRepo = JuDbUtils.getJpaRepository(this.em, AuthRoleRepo.class);
-		Assert.assertEquals(1L, roleRepo.getByNameAndUsersId("role1", 1L).getId().longValue());
-		Assert.assertNull(roleRepo.getByNameAndUsersId("unassignedRole", 1L));
 	}
 }

@@ -5,6 +5,7 @@ import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.OptimisticLockException;
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 
 import junit.framework.Assert;
 
@@ -142,6 +143,24 @@ public class JpaTest extends AbstractBaseDbTest {
 		Assert.assertEquals(1, q3.executeUpdate());
 		
 		Assert.assertEquals("NewA1", this.em.createNativeQuery("select text from TEST_A where aid=1").getSingleResult().toString());
+	}
+	
+	/**
+	 * Test JPA queries.
+	 */
+	@Test
+	public void jpaQueries() {
+		this.loadDataSet(DefaultDataSet.FULL);
+		
+		TypedQuery<Player> q1 = this.em.createQuery("select p from Player p where p.id=?1", Player.class);
+		q1.setParameter(1, 1L);
+		Assert.assertEquals(1, q1.getResultList().size());
+		Assert.assertEquals("Star", q1.getResultList().get(0).getLastName());
+		
+		TypedQuery<Player> q2 = this.em.createQuery("select p from Player p join Team t where p.id=?1 and t.name=?2", Player.class);
+		q2.setParameter(1, 1L);
+		q2.setParameter(2, "Team1");
+		Assert.assertEquals(1, q2.getResultList().size());
 	}
 	
 	public void objectCopiesAndMerge() {
