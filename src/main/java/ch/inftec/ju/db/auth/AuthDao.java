@@ -12,10 +12,10 @@ import ch.inftec.ju.db.auth.repo.AuthRoleRepo;
  * @author Martin
  *
  */
-public class AuthUtil {
+public class AuthDao {
 	private EntityManager em;
 	
-	public AuthUtil(EntityManager em) {
+	public AuthDao(EntityManager em) {
 		this.em = em;
 	}
 	

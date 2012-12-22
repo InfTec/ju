@@ -63,7 +63,7 @@ public class JuUserDetailsService implements UserDetailsService {
 						authUser = new AuthUser();
 						authUser.setName(username);
 						authUser.setPassword(newUserInfo.getPassword());
-						AuthUtil authUtil = new AuthUtil(em);
+						AuthDao authUtil = new AuthDao(em);
 						for (String newAuth : newUserInfo.getAuthorities()) {
 							authUtil.addRole(authUser, newAuth);
 						}
