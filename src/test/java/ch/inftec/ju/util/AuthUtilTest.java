@@ -19,6 +19,9 @@ public class AuthUtilTest {
 	@Autowired
 	private AuthUtil authUtil;
 	
+	/**
+	 * Tests user authentication.
+	 */
 	@Test
 	public void authenticate() {
 		this.authUtil.logout();
@@ -35,11 +38,21 @@ public class AuthUtilTest {
 	}
 	
 	@Test
-	public void hasRoles() {
+	public void hasAllRoles() {
 		this.authUtil.authenticate("user1", "pwd1");
 		
 		Assert.assertTrue(this.authUtil.hasAllRoles("ROLE_USER"));
 		Assert.assertFalse(this.authUtil.hasAllRoles("ROLE_ADMIN"));
 		Assert.assertFalse(this.authUtil.hasAllRoles("ROLE_USER", "ROLE_ADMIN"));
+	}
+
+	@Test
+	public void hasAnyRole() {
+		this.authUtil.authenticate("user1", "pwd1");
+		
+		Assert.assertTrue(this.authUtil.hasAnyRole("ROLE_USER"));
+		Assert.assertTrue(this.authUtil.hasAnyRole("ROLE_USER", "ROLE_ADMIN"));
+		Assert.assertFalse(this.authUtil.hasAnyRole("ROLE_ADMIN"));
+		Assert.assertFalse(this.authUtil.hasAnyRole());
 	}
 }

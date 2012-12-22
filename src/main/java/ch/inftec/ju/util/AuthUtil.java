@@ -75,4 +75,25 @@ public class AuthUtil {
 		
 		return false;
 	}
+	
+	/**
+	 * Checks if we have any of the specified roles. If we are not authenticated, false is
+	 * returned.
+	 * @param roles Roles to check
+	 * @return True if we have any of the specified roles, false otherwise. If no roles
+	 * are specified, false is returned
+	 */
+	public boolean hasAnyRole(String... roles) {
+		if (this.isAuthenticated()) {
+			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+			
+			List<String> rolesList = JuCollectionUtils.asArrayList(roles);
+			
+			for (GrantedAuthority grant : auth.getAuthorities()) {
+				if (rolesList.contains(grant.getAuthority())) return true;
+			}
+		}
+		
+		return false;
+	}
 }
