@@ -11,12 +11,13 @@ import org.junit.Test;
  *
  */
 public class WinUtilsTest_Swisscom {
-	/**
-	 * Tests the user and domain name lookup.
-	 */
 	@Test
-	public void userAndDomainName() {
+	public void getUserName() {
 		Assert.assertEquals("tgdmemae", WinUtils.getUserName());
+	}
+	
+	@Test
+	public void getDomainName() {
 		Assert.assertEquals("CORPROOT", WinUtils.getDomainName());
 	}
 }

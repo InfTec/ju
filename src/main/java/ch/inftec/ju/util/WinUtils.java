@@ -1,6 +1,6 @@
 package ch.inftec.ju.util;
 
-import com.sun.security.auth.module.NTSystem;
+import java.lang.reflect.Method;
 
 /**
  * Utility class for windows specific functionality.
@@ -10,14 +10,13 @@ import com.sun.security.auth.module.NTSystem;
  * @author tgdmemae
  *
  */
-@SuppressWarnings("restriction")
 public class WinUtils {
 	/**
 	 * Gets the windows login name.
 	 * @return Windows login name
 	 */
 	public static String getUserName() {
-		return new NTSystem().getName();
+		return WinUtils.getNTSystemValue("getName");
 	}
 	
 	/**
@@ -25,6 +24,19 @@ public class WinUtils {
 	 * @return Windows domain name
 	 */
 	public static String getDomainName() {
-		return new NTSystem().getDomain();
+		return WinUtils.getNTSystemValue("getDomain");
+	}
+	
+	private static String getNTSystemValue(String methodName) {
+		String className = "com.sun.security.auth.module.NTSystem";
+		try {
+			Class<?> clazz = Class.forName(className);
+			Method method = clazz.getMethod(methodName);
+			Object instance = clazz.newInstance();
+			
+			return (String)method.invoke(instance);
+		} catch (Exception ex) {
+			throw new JuRuntimeException(String.format("Couldn't invoke method %s of %s. Make sure this is a Oracle Windows JDK.", methodName, className));
+		}
 	}
 }
