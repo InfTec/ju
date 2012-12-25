@@ -10,14 +10,14 @@ import org.junit.Test;
  * @author tgdmemae
  *
  */
-public class WinUtilsTest_Swisscom {
+public class OSUtilsTest_WindowsSwisscom {
 	@Test
 	public void getUserName() {
-		Assert.assertEquals("tgdmemae", WinUtils.getUserName());
+		Assert.assertEquals("tgdmemae", OSUtils.getUserName());
 	}
 	
 	@Test
 	public void getDomainName() {
-		Assert.assertEquals("CORPROOT", WinUtils.getDomainName());
+		Assert.assertEquals("CORPROOT", OSUtils.getDomainName());
 	}
 }
