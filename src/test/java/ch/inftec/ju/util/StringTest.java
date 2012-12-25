@@ -5,7 +5,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Date;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
 import junit.framework.Assert;
@@ -72,17 +73,12 @@ public class StringTest {
 	 */
 	@Test
 	public void zuluTime() throws Exception {
-		Date date = JuStringUtils.toDate("03.12.1980 12:01:02", JuStringUtils.DATE_FORMAT_SECONDS);
-		String zuluTime = JuStringUtils.toZuluDateString(date);
+		Calendar cal = new GregorianCalendar();
+		cal.setTimeZone(TimeZone.getTimeZone("UTC"));
+		cal.set(1980, Calendar.DECEMBER, 03, 12, 01, 02);
+		cal.set(Calendar.MILLISECOND, 0);
 		
-		int timeZoneOffset = TimeZone.getDefault().getOffset(date.getTime());
-		
-		if (timeZoneOffset == 1000 * 3600 * 2) {
-			Assert.assertEquals("1980-12-03T10:01:02.000Z", zuluTime);
-		} else if (timeZoneOffset == 1000 * 3600) {
-			Assert.assertEquals("1980-12-03T11:01:02.000Z", zuluTime);
-		} else {
-			Assert.fail("Illegal TimeZone");
-		}
+		String zuluTime = JuStringUtils.toZuluDateString(cal.getTime());
+		Assert.assertEquals("1980-12-03T12:01:02.000Z", zuluTime);
 	}
 }

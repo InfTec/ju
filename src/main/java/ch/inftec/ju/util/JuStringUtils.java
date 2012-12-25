@@ -59,7 +59,7 @@ public final class JuStringUtils {
 	
 	/**
 	 * Converts the specified String to a date using the SipleDateFormat provided.<br>
-	 * Use the static date formats of the DrUtil class.
+	 * Use the static date formats of the JuStringUtils class.
 	 * @param s String
 	 * @param dateFormat SimpleDateFormat to use
 	 * @return Date
