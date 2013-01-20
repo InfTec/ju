@@ -25,11 +25,19 @@
 
 			<distributionManagement>
 				<repository>
-					<id>local-artifactory</id>
-					<name>Local Artifactory Repository</name>
+					<id>centos-artifactory</id>
+					<name>CentOS Artifactory Repository</name>
 					<url>http://192.168.8.100:8081/artifactory/ext-snapshot-local</url>
 				</repository>
 			</distributionManagement>
+
+			<repositories>
+				<repository>
+					<id>centos-artifactory</id>
+					<name>CentOS Artifactory Repository</name>
+					<url>http://192.168.8.101:8081/artifactory/repo</url>
+				</repository>
+			</repositories>
 		</profile>
 		<profile>
 			<id>jenkins</id>
@@ -38,7 +46,7 @@
 				<repository>
 					<id>local-artifactory</id>
 					<name>Local Artifactory Repository</name>
-					<url>http://192.168.8.100:8081/artifactory/jenkins-local</url>
+					<url>http://localhost:8081/artifactory/jenkins-local</url>
 				</repository>
 			</distributionManagement>
 
@@ -46,7 +54,7 @@
 				<repository>
 					<id>local-artifactory</id>
 					<name>Local Artifactory Repository</name>
-					<url>http://192.168.8.101:8081/artifactory/repo</url>
+					<url>http://localhost:8081/artifactory/repo</url>
 				</repository>
 			</repositories>
 		</profile>
