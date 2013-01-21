@@ -6,12 +6,15 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 
 import org.apache.commons.dbutils.QueryRunner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ch.inftec.ju.db.DbRowUtils.DbRowsImpl;
 import ch.inftec.ju.util.JuStringUtils;
@@ -25,10 +28,14 @@ import ch.inftec.ju.util.change.DbActionUtils;
  *
  */
 final class DbConnectionImpl implements DbConnection {
-	//private static Log log = LogFactory.getLog(DbConnectionImpl.class);
+	Logger log = LoggerFactory.getLogger(DbConnectionImpl.class);
+
+	private static int idCnt = 0;
+	private final int id;
 	
-	private String name;
-	private EntityManagerFactory entityManagerFactory;
+	private final String name;
+	private final String schemaName;
+	private final EntityManagerFactory entityManagerFactory;
 	
 	private EntityManager entityManager;
 	private Connection connection;
@@ -39,9 +46,14 @@ final class DbConnectionImpl implements DbConnection {
 	 * @param entityManagerFactory Factory used to created an EntityManager that will back
 	 * up the connection
 	 */
-	protected DbConnectionImpl(String name, EntityManagerFactory entityManagerFactory) {
+	protected DbConnectionImpl(String name, String schemaName, EntityManagerFactory entityManagerFactory) {
 		this.name = name;
+		this.schemaName = schemaName;
 		this.entityManagerFactory = entityManagerFactory;
+		
+		synchronized(this) {
+			this.id = DbConnectionImpl.idCnt++;
+		}
 	}
 	
 	/**
@@ -51,6 +63,7 @@ final class DbConnectionImpl implements DbConnection {
 	 */
 	private EntityManager establishEntityManager() {
 		if (this.entityManager == null) {
+			log.debug("Establishing connection to EntityManager: " + this);
 			this.entityManager = this.entityManagerFactory.createEntityManager();
 			
 			try {
@@ -81,7 +94,18 @@ final class DbConnectionImpl implements DbConnection {
 	public String getName() {
 		return this.name;
 	}
+	
+	@Override
+	public String getSchemaName() {
+		return this.schemaName;
+	}
 
+	@Override
+	public List<String> getTableNames() throws JuDbException {
+		DbMetaData md = new DbMetaData();
+		return md.getTableNames();
+	}
+	
 	@Override
 	public String getPrimaryColumnName(String tableName) throws JuDbException {
 		DbMetaData md = new DbMetaData();
@@ -93,7 +117,7 @@ final class DbConnectionImpl implements DbConnection {
 		DbMetaData md = new DbMetaData();
 		return Arrays.asList(md.getColumnNames(tableName));			
 	}
-
+	
 	@Override
 	public DbQueryRunner getQueryRunner() {
 		return new DbQueryRunnerImpl(this);
@@ -123,8 +147,12 @@ final class DbConnectionImpl implements DbConnection {
 		if (this.entityManager != null) {
 			// The transaction might have been marked for rollback (e.g. by an OptimisticLockException)
 			if (this.entityManager.getTransaction().getRollbackOnly()) {
+				log.debug("Rolling back transaction: " + this);
 				this.rollback();
+				
+				throw new JuDbException("Transaction was rolled back");
 			} else {
+				log.debug("Committing transaction: " + this);
 				this.entityManager.getTransaction().commit();
 				this.entityManager.close();
 				this.entityManager = null;
@@ -155,6 +183,29 @@ final class DbConnectionImpl implements DbConnection {
 			}
 		}
 		
+		public List<String> getTableNames() throws JuDbException {
+			try {
+				this.rs = this.metaData.getTables(getSchemaName(), null, null, new String[]{"TABLE"});
+				
+				List<String> tableNames = new ArrayList<>();
+				while (rs.next()) {
+					String tableName = rs.getString("TABLE_NAME");
+					tableNames.add(tableName.toUpperCase());
+				}
+				
+				Collections.sort(tableNames);
+				
+				return tableNames;
+			} catch (JuDbException ex) {
+				throw ex;
+			} catch (SQLException ex) {
+				throw new JuDbException("Couldn't evaluate table names", ex);
+			} finally {
+				JuDbUtils.closeQuietly(this.rs);
+				this.rs = null;
+			}
+		}
+		
 		/**
 		 * Gets the primary column name for the specified table.
 		 * @param tableName Table name
@@ -179,7 +230,7 @@ final class DbConnectionImpl implements DbConnection {
 			} catch (SQLException ex) {
 				throw new JuDbException("Couldn't evaluate primary key for table " + tableName, ex);
 			} finally {
-				DbUtil.closeQuietly(this.rs);
+				JuDbUtils.closeQuietly(this.rs);
 				this.rs = null;
 			}
 		}
@@ -212,7 +263,7 @@ final class DbConnectionImpl implements DbConnection {
 			} catch (SQLException ex) {
 				throw new JuDbException("Couldn't evaluate primary key for table " + tableName, ex);
 			} finally {
-				DbUtil.closeQuietly(this.rs);
+				JuDbUtils.closeQuietly(this.rs);
 				this.rs = null;
 			}
 		}
@@ -220,7 +271,7 @@ final class DbConnectionImpl implements DbConnection {
 	
 	@Override
 	public String toString() {
-		return JuStringUtils.toString(this, "name", this.getName());
+		return JuStringUtils.toString(this, "name", this.getName(), "id", this.id);
 	}
 	
 	/**

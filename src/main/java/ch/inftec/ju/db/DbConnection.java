@@ -24,12 +24,18 @@ public interface DbConnection extends AutoCloseable {
 	 */
 	public String getName();
 	
-//	/**
-//	 * Creates a connection to the DB.
-//	 * @return Connection instance
-//	 * @throws JuDbException If the connection cannot be created
-//	 */
-//	public Connection getConnection() throws JuDbException;
+	/**
+	 * Gets the Schema name used by this connection.
+	 * @return Schema name or null if no Schema name is specified
+	 */
+	public String getSchemaName();
+
+	/**
+	 * Gets a list of all table names of the DB. Table names are all upper case.
+	 * @return List of Table names
+	 * @throws JuDbException If the list cannot be evaluated
+	 */
+	public List<String> getTableNames() throws JuDbException;
 	
 	/**
 	 * Gets the name of the table's primary key column. Multi-Column primary keys are not supported.

@@ -2,15 +2,18 @@ package ch.inftec.ju.db;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.persistence.config.PersistenceUnitProperties;
 
 import ch.inftec.ju.util.JuCollectionUtils;
@@ -26,7 +29,12 @@ class DbConnectionFactoryImpl implements DbConnectionFactory {
 	 * order is preserved.
 	 */
 	private LinkedHashMap<String, String[]> flags = new LinkedHashMap<>();
-
+	
+	/**
+	 * Contains the SchemaNames for the connections.
+	 */
+	private Map<String, String> schemaNames = new HashMap<>();
+	
 	/**
 	 * Hashtable containing the connection's factories.
 	 */
@@ -39,12 +47,8 @@ class DbConnectionFactoryImpl implements DbConnectionFactory {
 		
 	}
 	
-	/**
-	 * Gets the EntityManagerFactory for the specified connection.
-	 * @param name Connection name
-	 * @return EntityManagerFactory
-	 */
-	private EntityManagerFactory getEntityManagerFactory(String name) {
+	@Override
+	public EntityManagerFactory getEntityManagerFactory(String name) {
 		if (!this.factories.containsKey(name)) {
 			Properties props = new Properties();
 			
@@ -58,7 +62,7 @@ class DbConnectionFactoryImpl implements DbConnectionFactory {
 		
 		return this.factories.get(name);
 	}
-	
+
 	@Override
 	public List<String> getAvailableConnections(String... flags) {
 		ArrayList<String> connections = new ArrayList<>();
@@ -79,7 +83,7 @@ class DbConnectionFactoryImpl implements DbConnectionFactory {
 	@Override
 	public DbConnection openDbConnection(String name) {
 		EntityManagerFactory emf = this.getEntityManagerFactory(name);
-		return new DbConnectionImpl(name, emf);
+		return new DbConnectionImpl(name, this.schemaNames.get(name), emf);
 	}
 
 	/**
@@ -87,12 +91,13 @@ class DbConnectionFactoryImpl implements DbConnectionFactory {
 	 * @param name Connection name
 	 * @param flags Flags of the connection, used by the getAvailableConnections method to filters
 	 */
-	public void addDbConnection(String name, String... flags) {
+	public void addDbConnection(String name, String schemaName, String... flags) {
 		if (this.flags.containsKey(name)) {
 			throw new IllegalArgumentException("Factory already contains a connection with the name: " + name);
 		}
 		
 		this.flags.put(name, flags);
+		this.schemaNames.put(name, StringUtils.trimToNull(schemaName));
 	}
 
 	@Override

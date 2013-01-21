@@ -3,8 +3,8 @@ package ch.inftec.ju.db;
 import java.net.URL;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 
 import ch.inftec.ju.util.JuRuntimeException;
@@ -17,7 +17,7 @@ import ch.inftec.ju.util.xml.XmlUtils;
  *
  */
 public class DbConnectionFactoryLoader {
-	private static Log log = LogFactory.getLog(DbConnectionFactoryLoader.class);
+	Logger log = LoggerFactory.getLogger(DbConnectionFactoryLoader.class);
 	
 	/**
 	 * Make constructor private.
@@ -36,12 +36,12 @@ public class DbConnectionFactoryLoader {
 	
 	/**
 	 * Creates a new instance of a DbConnectionFactory using the specified resource.xml file
-	 * @param resourceXmlPath Path to resource.xml file, e.g. /META-INF/persistence.xml
+	 * @param persistenceXmlPath Path to resource.xml file, e.g. /META-INF/persistence.xml
 	 * @return DbConnectionFactory intance
 	 */
-	public static DbConnectionFactory createInstance(String resourceXmlPath) {
+	public static DbConnectionFactory createInstance(String persistenceXmlPath) {
 		try {
-			return new DbConnectionFactoryLoader().loadFromXml(resourceXmlPath);
+			return new DbConnectionFactoryLoader().loadFromXml(persistenceXmlPath);
 		} catch (Exception ex) {
 			throw new JuRuntimeException("Couldn't create DbConnectionFactory instance", ex);
 		}
@@ -50,6 +50,14 @@ public class DbConnectionFactoryLoader {
 	/**
 	 * Loads a new ConnectionFactory from the specified XML file. The XML is a standard JPA
 	 * persistence.xml file that may contain JU specific properties.
+	 * <p>
+	 * Additionally, some JU DbUtil specific properties are supported:
+	 * <ul>
+	 *   <li>ch.inftec.ju.flags: Comma separated list of flags for the connection, e.g. productive,admin. Can be used
+	 *       to get available connections by flags using the DbConnectionFactory</li>
+	 *   <li>ch.inftec.ju.schemaName: Explicit Schema name. Currently, this is only used by DbUnit to avoid
+	 *       AmbigiousTableNameException on Oracle DBs</li>
+	 * </ul>
 	 * @param resourceXmlPath Path to the persistence.xml file
 	 * @return ConnectionFactory instance containing the connections defined in the XML
 	 * @throws IllegalArgumentException If the XML cannot be processed
@@ -68,12 +76,13 @@ public class DbConnectionFactoryLoader {
 			for (XPathGetter xgConn : xg.getGetters("persistence/persistence-unit")) {
 				String name = xgConn.getSingle("@name");
 				String flagString = xgConn.getSingle("properties/property[@name='ch.inftec.ju.flags']/@value");
+				String schemaName = xgConn.getSingle("properties/property[@name='ch.inftec.ju.schemaName']/@value");
 				
 				String flags[] = flagString != null
 						? StringUtils.stripAll(StringUtils.split(flagString, ','))
 						: new String[0];
 				
-				factory.addDbConnection(name, flags);
+				factory.addDbConnection(name, schemaName, flags);
 			}
 			
 			return factory;
