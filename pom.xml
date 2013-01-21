@@ -40,6 +40,17 @@
 				</repository>
 			</repositories>
 		</profile>
+		<profile>
+			<id>jenkins</id>
+
+			<distributionManagement>
+				<repository>
+					<id>local-artifactory</id>
+					<name>Local Artifactory Repository</name>
+					<url>http://localhost:8081/artifactory/jenkins-local</url>
+				</repository>
+			</distributionManagement>
+		</profile>
 	</profiles>
 
 	<dependencies>
