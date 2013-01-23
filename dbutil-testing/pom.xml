@@ -9,7 +9,7 @@
 	</parent>
 
 	<artifactId>ju-dbutil-testing</artifactId>
-	<version>1.2.1</version>
+	<version>1.2.2-SNAPSHOT</version>
 
 	<name>db-util tests</name>
 	<description>Separate testing project to avoid circular references between ju-dbutil and ju-testing</description>
