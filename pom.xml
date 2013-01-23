@@ -7,7 +7,7 @@
 	<parent>
 		<artifactId>ju-root</artifactId>
 		<groupId>ch.inftec.ju</groupId>
-		<version>1.3</version>
+		<version>1.3.2</version>
 	</parent>
 
 	<artifactId>ju-util</artifactId>
