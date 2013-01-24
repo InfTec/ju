@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root xmlns="http://inftec.ch/ju/util/xml/test">
+	<a1 text="A1">
+		<b1 text="B2"/>
+		<b2 text="B2">
+			<c1 text="C1" value="1"/>
+		</b2>
+		<b3 text="B3">
+			<c2 text="C2" value="2"/>
+			<c3 text="C3" value="2"/>
+		</b3>
+	</a1>
+</root>

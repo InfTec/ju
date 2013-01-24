@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<root>
+  <child1 childAttr1="val1" childAttr2="val2">Text1</child1>
+  <child2>
+    <subChild1>Text3</subChild1>
+  </child2>
+</root>
