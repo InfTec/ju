@@ -4,11 +4,17 @@
 
 	<groupId>ch.inftec.ju</groupId>
 	<artifactId>ju-root</artifactId>
-	<version>1.3.3-SNAPSHOT</version>
-	<packaging>pom</packaging>
+	<version>2.0-SNAPSHOT</version>
 
 	<name>JU root</name>
 	<description>JU root project that holds the root pom all other JU projects will derive from</description>
+
+	<modules>
+		<module>ju-util</module>
+		<module>ju-dbutil</module>
+		<module>ju-dbutil-test</module>
+		<module>ju-testing</module>
+	</modules>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -128,4 +134,5 @@
 			</plugin>
 		</plugins>
 	</build>
+	<packaging>pom</packaging>
 </project>
