@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dataset>
+  <PLAYER/>
+  <SEQUENCE SEQ_NAME="SEQ_GEN" SEQ_COUNT="9"/>
+  <TEAM/>
+  <TEAM_PLAYER/>
+  <TESTINGENTITY/>
+  <TEST_A/>
+  <TEST_B/>
+  <TEST_C/>
+  <TEST_D/>
+  <TEST_DATATYPES/>
+</dataset>
