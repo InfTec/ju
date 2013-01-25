@@ -159,6 +159,16 @@ public class CollectionTest {
 		TestUtils.assertCollectionEquals(c4, (String)null);
 	}
 	
+	@Test
+	public void collectionContains() {
+		Collection<String> col = Arrays.asList("a1", "A2", "b1", null);
+		
+		Assert.assertTrue(JuCollectionUtils.collectionContains(col, "a1"));
+		Assert.assertTrue(JuCollectionUtils.collectionContains(col, "a1", "b1"));
+		Assert.assertFalse(JuCollectionUtils.collectionContains(col, "a1", "A3"));
+		Assert.assertTrue(JuCollectionUtils.collectionContains(col));
+	}
+	
 	/**
 	 * Tests the WeakReferenceIterable implementation of JuCollectionUtils.
 	 */

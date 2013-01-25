@@ -10,6 +10,8 @@ import javax.persistence.TypedQuery;
 import junit.framework.Assert;
 
 import org.junit.Test;
+import org.springframework.context.annotation.Bean;
+import org.springframework.test.context.ContextConfiguration;
 
 import ch.inftec.ju.testing.db.AbstractBaseDbTest;
 import ch.inftec.ju.testing.db.data.entity.Player;
@@ -20,10 +22,13 @@ import ch.inftec.ju.testing.db.data.entity.Team;
  * @author tgdmemae
  *
  */
+@ContextConfiguration(classes={JpaTest.Configuration.class})
 public class JpaTest extends AbstractBaseDbTest {
-	@Override
-	protected void loadDefaultTestData() {
-		this.loadDataSet(DefaultDataSet.FULL);
+	static class Configuration {
+		@Bean
+		private DefaultDataSet fullData() {
+			return AbstractBaseDbTest.DefaultDataSet.FULL;
+		}
 	}
 	
 	/**

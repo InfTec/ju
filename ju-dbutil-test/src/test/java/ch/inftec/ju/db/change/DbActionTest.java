@@ -5,6 +5,8 @@ import java.util.Date;
 import junit.framework.Assert;
 
 import org.junit.Test;
+import org.springframework.context.annotation.Bean;
+import org.springframework.test.context.ContextConfiguration;
 
 import ch.inftec.ju.db.DbQueryRunner;
 import ch.inftec.ju.db.DbRow;
@@ -17,10 +19,13 @@ import ch.inftec.ju.util.change.DbActionValue;
 import ch.inftec.ju.util.persistable.GenericMementoUtils;
 import ch.inftec.ju.util.persistable.GenericMementoX;
 
+@ContextConfiguration(classes={DbActionTest.Configuration.class})
 public class DbActionTest extends AbstractBaseDbTest {
-	@Override
-	protected void loadDefaultTestData() {
-		this.loadDataSet(DefaultDataSet.FULL);
+	static class Configuration {
+		@Bean
+		private DefaultDataSet fullData() {
+			return AbstractBaseDbTest.DefaultDataSet.FULL;
+		}
 	}
 	
 	@Test

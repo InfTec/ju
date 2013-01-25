@@ -2,14 +2,22 @@ package ch.inftec.ju.testing.db;
 
 import java.net.URL;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.persistence.EntityManager;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Scope;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import ch.inftec.ju.db.DbConnection;
 import ch.inftec.ju.db.DbQueryRunner;
@@ -34,7 +42,26 @@ import ch.inftec.ju.util.comparison.ValueComparator;
  * @author tgdmemae
  *
  */
+@ContextConfiguration(classes={AbstractBaseDbTest.Configuration.class})
+@RunWith(SpringJUnit4ClassRunner.class)
 public abstract class AbstractBaseDbTest {
+	protected String getTest() {
+		return "ok";		
+	}
+	
+	/**
+	 * Spring configuration.
+	 * @author tgdmemae
+	 *
+	 */
+	static class Configuration {
+		@Bean
+		@Scope("prototype")
+		private TestDb testDb() {
+			return TestDbUtils.getDerbyInMemoryTestDb();
+		}
+	}
+	
 	protected final Logger log = LoggerFactory.getLogger(this.getClass());
 	
 	/**
@@ -55,7 +82,15 @@ public abstract class AbstractBaseDbTest {
 	 */
 	protected DbQueryRunner qr;
 	
+	@Autowired
 	private TestDb testDb;
+	
+	@Autowired(required=false)
+	@Qualifier("dataSet")
+	private List<URL> initialDataSetUrls;
+	
+	@Autowired(required=false)
+	private List<DefaultDataSet> initialDataSets;
 	
 	/**
 	 * Helper method to load the data of the provided DefaultDataSet.
@@ -76,7 +111,7 @@ public abstract class AbstractBaseDbTest {
 	 * @param testDataFile URL to a test data file
 	 */
 	protected final void loadDataSet(URL testDataFile) {
-		this.getTestDb().loadTestData(testDataFile);
+		this.testDb.loadTestData(testDataFile);
 	}
 	
 	/**
@@ -89,7 +124,7 @@ public abstract class AbstractBaseDbTest {
 	
 	@Before
 	public final void initConnection() throws Exception {
-		this.getTestDb().clearData();
+		this.testDb.clearData();
 		this.loadDefaultTestData();
 		this.dbConn = this.openDbConnection();
 		this.em = this.dbConn.getEntityManager();
@@ -117,62 +152,22 @@ public abstract class AbstractBaseDbTest {
 			this.qr = this.dbConn.getQueryRunner();
 			
 			if (evictCache) this.em.getEntityManagerFactory().getCache().evictAll();
-			
-			this.doReInitConnection();
 		} catch (Exception ex) {
 			throw new JuDbException("Couldn't reinit connection", ex);
 		}
 	}
 	
 	/**
-	 * Extending classes can override this method to perform custom reinitialization.
+	 * Loads the specified default data sets at the beginning of a test.
 	 */
-	protected void doReInitConnection() {		
-	}
-	
-	/**
-	 * This method may be overrwriten by extending classes to load default test
-	 * data after each test initialization.
-	 * <p>
-	 * The default implementation does nothing, i.e. leaves the DB at the
-	 * state after TestDb.clearData().
-	 * <p>
-	 * The DefaultDataSet enum provides some predefined data sets that may be
-	 * loaded here.
-	 * <p>
-	 * Use the loadDataSet methods to load the data.
-	 */
-	protected void loadDefaultTestData() {
-	}
-	
-	/**
-	 * Gets the TestDb instance to run the tests on.
-	 * <p>
-	 * Extending classes can override the method createTestDb to return a custom
-	 * implementation.
-	 * <p>
-	 * The basic implementation returns a Derby In-Memory implementation
-	 * @return TestDb instance to run the tests.
-	 * @throws JuDbException If the connection to the TestDb cannot be established
-	 */
-	protected final TestDb getTestDb() {
-		if (this.testDb == null) {
-			this.testDb = this.createTestDb();
+	private void loadDefaultTestData() {
+		for (DefaultDataSet dataSet : JuCollectionUtils.emptyForNull(this.initialDataSets)) {
+			this.loadDataSet(dataSet);
 		}
-		return this.testDb;
-	}
-	
-	/**
-	 * Creates the TestDb instance to run the tests on.
-	 * <p>
-	 * Extending classes can override this method to provide a custom implementation. 
-	 * <p>
-	 * The basic implementation returns a Derby In-Memory implementation
-	 * @return TestDb instance to run the tests.
-	 * @throws JuDbException If the connection to the TestDb cannot be established
-	 */
-	protected TestDb createTestDb() {
-		return TestDbUtils.getDerbyInMemoryTestDb();
+		
+		for (URL dataSetUrl : JuCollectionUtils.emptyForNull(this.initialDataSetUrls)) {
+			this.loadDataSet(dataSetUrl);
+		}
 	}
 	
 	/**
@@ -182,7 +177,7 @@ public abstract class AbstractBaseDbTest {
 	 * @throws JuDbException If the DbConnection instance cannot be retrieved
 	 */
 	protected final DbConnection openDbConnection() throws JuDbException {
-		return this.getTestDb().openDbConnection();
+		return this.testDb.openDbConnection();
 	}
 	
 	/**
@@ -219,7 +214,7 @@ public abstract class AbstractBaseDbTest {
 	 * @author Martin
 	 *
 	 */
-	protected static enum DefaultDataSet {
+	public static enum DefaultDataSet {
 		SINGLE_TESTING_ENTITY("/datasets/singleTestingEntityData.xml"),
 		FULL("/datasets/fullData.xml");
 		

@@ -1,5 +1,8 @@
 package ch.inftec.ju.db.auth;
 
+import org.springframework.context.annotation.Bean;
+import org.springframework.test.context.ContextConfiguration;
+
 import ch.inftec.ju.testing.db.AbstractBaseDbTest;
 import ch.inftec.ju.testing.db.data.TestDb;
 import ch.inftec.ju.testing.db.data.TestDbUtils;
@@ -9,12 +12,15 @@ import ch.inftec.ju.testing.db.data.TestDbUtils;
  * @author Martin
  *
  */
-public class AbstractAuthBaseDbTest extends AbstractBaseDbTest {
-	@Override
-	protected TestDb createTestDb() {
-		return new TestDbUtils().buildTestDb("Derby InMemory-DB")
-			.persistenceFile("/META-INF/authPersistence.xml")
-			.noDataXmlImportFile("/datasets/auth/noData.xml")
-			.createDerbyDb();
+@ContextConfiguration(classes={AbstractAuthBaseDbTest.Configuration.class})
+public abstract class AbstractAuthBaseDbTest extends AbstractBaseDbTest {
+	static class Configuration {
+		@Bean
+		private TestDb testDb() {
+			return new TestDbUtils().buildTestDb("Derby InMemory-DB")
+					.persistenceFile("/META-INF/authPersistence.xml")
+					.noDataXmlImportFile("/datasets/auth/noData.xml")
+					.createDerbyDb();
+		}
 	}
 }

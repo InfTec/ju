@@ -92,6 +92,22 @@ public final class JuCollectionUtils {
 	}
 	
 	/**
+	 * Checks if all specified values are part of the specified collection.
+	 * <p>
+	 * The collection may contain more than the specified values
+	 * @param cCollection Collection
+	 * @param values Values the collection must contain, in arbitrary order
+	 */
+	@SafeVarargs
+	public static <T> boolean collectionContains(Collection<T> cCollection, T... values) {
+		for (T val : values) {
+			if (!cCollection.contains(val)) return false;
+		}
+		
+		return true;
+	}
+	
+	/**
 	 * Returns a map using the provided key (String or Object.toString) and
 	 * values (Object) pairs.
 	 * @param keyValuePairs Key value pairs
@@ -136,6 +152,21 @@ public final class JuCollectionUtils {
 	@SafeVarargs
 	public static <T> List<T> unmodifiableList(T... elements) {
 		return Collections.unmodifiableList(JuCollectionUtils.arrayList(elements));
+	}
+	
+	/**
+	 * Returns an empty collection if the specified collection is null,
+	 * otherwise the same reference is returned.
+	 * <p>
+	 * Can be used to avoid null pointer issues.
+	 * @param col Collection
+	 * @return Empty collection is specified collection is null, the same collection otherwise
+	 */
+	public static <T> Collection<T> emptyForNull(Collection<T> col) {
+		@SuppressWarnings("unchecked")
+		Collection<T> emptyList = Collections.EMPTY_LIST;
+		
+		return col == null ? emptyList : col;
 	}
 	
 	/**

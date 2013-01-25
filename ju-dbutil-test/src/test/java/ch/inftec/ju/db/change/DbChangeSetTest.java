@@ -3,6 +3,8 @@ package ch.inftec.ju.db.change;
 import junit.framework.Assert;
 
 import org.junit.Test;
+import org.springframework.context.annotation.Bean;
+import org.springframework.test.context.ContextConfiguration;
 
 import ch.inftec.ju.db.DbQueryRunner;
 import ch.inftec.ju.db.DbRow;
@@ -21,10 +23,13 @@ import ch.inftec.ju.util.persistable.MementoStorage;
  * @author tgdmemae
  *
  */
+@ContextConfiguration(classes={DbChangeSetTest.Configuration.class})
 public class DbChangeSetTest extends AbstractBaseDbTest {
-	@Override
-	protected void loadDefaultTestData() {
-		this.loadDataSet(DefaultDataSet.FULL);
+	static class Configuration {
+		@Bean
+		private DefaultDataSet fullData() {
+			return AbstractBaseDbTest.DefaultDataSet.FULL;
+		}
 	}
 	
 	@Test

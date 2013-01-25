@@ -4,6 +4,8 @@ import java.io.File;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.springframework.context.annotation.Bean;
+import org.springframework.test.context.ContextConfiguration;
 import org.w3c.dom.Document;
 
 import ch.inftec.ju.util.IOUtil;
@@ -15,10 +17,13 @@ import ch.inftec.ju.util.xml.XPathGetter;
  * @author Martin
  *
  */
+@ContextConfiguration(classes={DbDataUtilTest.Configuration.class})
 public class DbDataUtilTest extends AbstractBaseDbTest {
-	@Override
-	protected void loadDefaultTestData() {
-		this.loadDataSet(DefaultDataSet.FULL);
+	static class Configuration {
+		@Bean
+		private DefaultDataSet fullData() {
+			return AbstractBaseDbTest.DefaultDataSet.FULL;
+		}
 	}
 	
 	/**

@@ -7,6 +7,8 @@ import javax.persistence.Query;
 import junit.framework.Assert;
 
 import org.junit.Test;
+import org.springframework.context.annotation.Bean;
+import org.springframework.test.context.ContextConfiguration;
 
 import ch.inftec.ju.db.DbRows;
 import ch.inftec.ju.testing.db.AbstractBaseDbTest;
@@ -18,12 +20,15 @@ import ch.inftec.ju.util.JuCollectionUtils;
  * @author tgdmemae
  *
  */
+@ContextConfiguration(classes={TestDbTest.Configuration.class})
 public class TestDbTest extends AbstractBaseDbTest {
-	@Override
-	protected void loadDefaultTestData() {
-		this.loadDataSet(DefaultDataSet.FULL);
+	static class Configuration {
+		@Bean
+		private DefaultDataSet fullData() {
+			return AbstractBaseDbTest.DefaultDataSet.FULL;
+		}
 	}
-	
+
 	/**
 	 * Tests if the table TEST_A has been created correctly.
 	 */

@@ -3,9 +3,13 @@ package ch.inftec.ju.db;
 import java.util.Date;
 import java.util.List;
 
+import javax.annotation.Resource;
+
 import junit.framework.Assert;
 
 import org.junit.Test;
+import org.springframework.context.annotation.Bean;
+import org.springframework.test.context.ContextConfiguration;
 
 import ch.inftec.ju.testing.db.AbstractBaseDbTest;
 import ch.inftec.ju.util.JuCollectionUtils;
@@ -20,10 +24,27 @@ import ch.inftec.ju.util.JuStringUtils;
  * @author tgdmemae
  *
  */
+//@ContextConfiguration(classes={BasicDbTest.Configuration.class})
 public class BasicDbTest extends AbstractBaseDbTest {
-	@Override
-	protected void loadDefaultTestData() {
-		this.loadDataSet(DefaultDataSet.FULL);
+//	static class Configuration {
+//		@Bean
+//		private DefaultDataSet fullData() {
+//			return AbstractBaseDbTest.DefaultDataSet.FULL;
+//		}
+//		
+//		@Bean
+//		private String simpleString() {
+//			return "test";
+//		}
+//	}
+	
+	@Resource(name="simpleString")
+	private String string;
+	
+	@Test
+	public void simpleSpring() {
+		Assert.assertEquals("ok", this.getTest());
+		Assert.assertEquals("test", this.string);
 	}
 	
 	@Test
@@ -71,7 +92,7 @@ public class BasicDbTest extends AbstractBaseDbTest {
 	@Test
 	public void queryRunner() throws Exception {
 		DbRows dbRows = this.dbConn.getQueryRunner().query("SELECT * FROM TEST_A WHERE AID IN (?, ?) ORDER BY AID ASC", 1, 2);
-		Assert.assertEquals(dbRows.getRowCount(), 2);
+		Assert.assertEquals(2, dbRows.getRowCount());
 		this.assertRowEquals(dbRows.getRow(0), "AID", 1, "TEXT", "A1", "B_FK", 1);
 		this.assertRowEquals(dbRows.getRow(1), "AID", 2, "TEXT", "A2", "B_FK", 2);
 	}

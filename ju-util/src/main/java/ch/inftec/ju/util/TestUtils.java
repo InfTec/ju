@@ -151,4 +151,18 @@ public final class TestUtils {
 		
 		Assert.assertEquals(expectedXml, actualXml);
 	}
+	
+	/**
+	 * Asserts that all specified values are part of the specified collection.
+	 * <p>
+	 * The collection may contain more than the specified values
+	 * @param cCollection Collection
+	 * @param values Values the collection must contain, in arbitrary order
+	 */
+	@SafeVarargs
+	public static <T> void assertCollectionContains(Collection<T> cCollection, T... values) {
+		for (T val : values) {
+			if (!cCollection.contains(val)) Assert.fail("Value not part of collection: " + val);
+		}
+	}
 }
