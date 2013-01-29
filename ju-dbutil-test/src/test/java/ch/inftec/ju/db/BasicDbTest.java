@@ -3,8 +3,6 @@ package ch.inftec.ju.db;
 import java.util.Date;
 import java.util.List;
 
-import javax.annotation.Resource;
-
 import junit.framework.Assert;
 
 import org.junit.Test;
@@ -24,27 +22,13 @@ import ch.inftec.ju.util.JuStringUtils;
  * @author tgdmemae
  *
  */
-//@ContextConfiguration(classes={BasicDbTest.Configuration.class})
+@ContextConfiguration(classes={BasicDbTest.Configuration.class})
 public class BasicDbTest extends AbstractBaseDbTest {
-//	static class Configuration {
-//		@Bean
-//		private DefaultDataSet fullData() {
-//			return AbstractBaseDbTest.DefaultDataSet.FULL;
-//		}
-//		
-//		@Bean
-//		private String simpleString() {
-//			return "test";
-//		}
-//	}
-	
-	@Resource(name="simpleString")
-	private String string;
-	
-	@Test
-	public void simpleSpring() {
-		Assert.assertEquals("ok", this.getTest());
-		Assert.assertEquals("test", this.string);
+	static class Configuration {
+		@Bean
+		private DefaultDataSet fullData() {
+			return AbstractBaseDbTest.DefaultDataSet.FULL;
+		}
 	}
 	
 	@Test
