@@ -28,7 +28,7 @@ public class AuthenticationTest extends AbstractAuthBaseDbTest {
 	 */
 	@org.springframework.context.annotation.Configuration
 	@ImportResource("classpath:ch/inftec/ju/db/auth/AuthenticationTest-context.xml")
-	static class Configuration {		
+	static class Configurationuration {		
 	}
 	
 	@Autowired

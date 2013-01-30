@@ -22,7 +22,7 @@ import ch.inftec.ju.util.JuCollectionUtils;
  */
 @ContextConfiguration(classes={TestDbTest.Configuration.class})
 public class TestDbTest extends AbstractBaseDbTest {
-	private static class Configuration {
+	static class Configuration {
 		@Bean
 		private DefaultDataSet fullData() {
 			return AbstractBaseDbTest.DefaultDataSet.FULL;

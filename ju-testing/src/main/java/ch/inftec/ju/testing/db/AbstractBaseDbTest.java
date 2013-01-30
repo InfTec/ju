@@ -55,7 +55,7 @@ public abstract class AbstractBaseDbTest {
 	 * @author tgdmemae
 	 *
 	 */
-	private static class Configuration {
+	static class Configuration {
 		@Bean
 		@Scope("prototype")
 		private TestDb testDb() {
