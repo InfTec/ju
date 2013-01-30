@@ -47,12 +47,12 @@ public class XmlTest {
 	@Test(expected=JuException.class)
 	public void loadXml_invalid() throws Exception {
 		try {
-			XmlUtils.loadXml(IOUtil.getResourceURL("simpleValidated_invalid.xml"));
+			XmlUtils.loadXml(IOUtil.getResourceURL("simpleValidated.xml_invalid"));
 		} catch (Exception ex) {
 			Assert.fail(ex.toString());
 		}
 		
-		XmlUtils.loadXml(IOUtil.getResourceURL("simpleValidated_invalid.xml"), IOUtil.getResourceURL("simple.xsd"));
+		XmlUtils.loadXml(IOUtil.getResourceURL("simpleValidated.xml_invalid"), IOUtil.getResourceURL("simple.xsd"));
 	}
 	
 	private void xPathGetter(String resourceName) throws Exception {
