@@ -5,6 +5,7 @@ import junit.framework.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.context.ContextConfiguration;
@@ -26,9 +27,9 @@ public class AuthenticationTest extends AbstractAuthBaseDbTest {
 	 * NOTE: We need to load the XML configuration file in a class Configuration. Loading it
 	 * directly with the @ContextConfiguration annotation is not working.
 	 */
-	@org.springframework.context.annotation.Configuration
 	@ImportResource("classpath:ch/inftec/ju/db/auth/AuthenticationTest-context.xml")
-	static class Configurationuration {		
+	static class Configuration {
+		@Bean private Object dummy() {return null;};
 	}
 	
 	@Autowired
