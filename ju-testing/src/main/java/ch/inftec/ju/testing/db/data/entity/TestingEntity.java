@@ -4,6 +4,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 
+import ch.inftec.ju.util.JuStringUtils;
+
 @Entity
 public class TestingEntity {
 	@Id
@@ -28,5 +30,8 @@ public class TestingEntity {
 		this.name = name;
 	}
 
-	
+	@Override
+	public String toString() {
+		return JuStringUtils.toString(this, "id", this.getId(), "name", this.getName());
+	}
 }

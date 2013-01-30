@@ -38,6 +38,9 @@ import ch.inftec.ju.util.comparison.ValueComparator;
  * <p>
  * By default, no test data is loaded. Override the loadDefaultTestData method to
  * load test data in each test setup.
+ * <p>
+ * Note that test data is commited after loading to avoid transactional problems when
+ * using multiple connections.
  * 
  * @author tgdmemae
  *
@@ -45,10 +48,6 @@ import ch.inftec.ju.util.comparison.ValueComparator;
 @ContextConfiguration(classes={AbstractBaseDbTest.Configuration.class})
 @RunWith(SpringJUnit4ClassRunner.class)
 public abstract class AbstractBaseDbTest {
-	protected String getTest() {
-		return "ok";		
-	}
-	
 	/**
 	 * Spring configuration.
 	 * @author tgdmemae
