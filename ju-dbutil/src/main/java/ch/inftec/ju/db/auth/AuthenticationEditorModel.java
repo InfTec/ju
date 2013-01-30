@@ -14,15 +14,19 @@ import ch.inftec.ju.db.auth.repo.AuthUserRepo;
 import ch.inftec.ju.util.JuCollectionUtils;
 
 /**
- * ViewModel to manage users and roles for Authentication Services.
+ * Model to manage users and roles for Authentication Services.
  * <p>
  * This class works with the AuthUser and AuthRole entities.
+ * 
  * @author Martin
  *
  */
-public class AuthenticationEditorViewModel {
+public class AuthenticationEditorModel {
 	@Autowired
 	private DbConnection dbConn;
+	
+	@Autowired
+	private RoleProvider roleProvider;
 	
 	/**
 	 * Gets a list of all available users.
@@ -95,6 +99,14 @@ public class AuthenticationEditorViewModel {
 		}
 		
 		return roles;
+	}
+	
+	/**
+	 * Gets a list of all available roles.
+	 * @return List of available roles
+	 */
+	public List<String> getAvailableRoles() {
+		return this.roleProvider.getAvailableRoles();
 	}
 
 	/**

@@ -12,8 +12,10 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Version;
 
+import ch.inftec.ju.db.AbstractPersistenceObject;
+
 @Entity
-public class Team {
+public class Team extends AbstractPersistenceObject {
 	@Id
 	@GeneratedValue
 	private long id;

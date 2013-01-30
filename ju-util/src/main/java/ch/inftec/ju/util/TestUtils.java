@@ -1,6 +1,7 @@
 package ch.inftec.ju.util;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
@@ -163,6 +164,29 @@ public final class TestUtils {
 	public static <T> void assertCollectionContains(Collection<T> cCollection, T... values) {
 		for (T val : values) {
 			if (!cCollection.contains(val)) Assert.fail("Value not part of collection: " + val);
+		}
+	}
+	
+	/**
+	 * Asserts that the specified collection contains all specified values, in arbitray order
+	 * and count.
+	 * @param collection Collection to test
+	 * @param values Values the collection must contain, i.e. the collection must contain all
+	 * specified values and no non-specified
+	 */
+	@SafeVarargs
+	public static <T> void assertCollectionConsistsOfAll(Collection<T> collection, T... values) {
+		ArrayList<T> c = new ArrayList<>(collection);
+		for (T val : values) {
+			if (c.remove(val)) {
+				while (c.remove(val));
+			} else {
+				Assert.fail("Element not found in collection: " + val);
+			}
+		}
+		
+		if (c.size() > 0) {
+			Assert.fail("Collection contains other than the specified values: " + c);
 		}
 	}
 }

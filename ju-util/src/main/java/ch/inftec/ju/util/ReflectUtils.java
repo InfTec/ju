@@ -206,6 +206,24 @@ public final class ReflectUtils {
 	}
 	
 	/**
+	 * Gets the value of the specified field in the specified object.
+	 * <p>
+	 * If the field is not accessible, the method tries to overwrite the
+	 * accessibility.
+	 * @param obj Object to get field value of
+	 * @param field Field to get
+	 * @return
+	 */
+	public static Object getFieldValue(Object obj, Field field) {
+		try {
+			if (!field.isAccessible()) field.setAccessible(true);
+			return field.get(obj);
+		} catch (Exception ex) {
+			throw new JuRuntimeException("Couldn't access field", ex);
+		}
+	}
+	
+	/**
 	 * Creates an instance of the specified class, forcing access to the default constructor if necessary.
 	 * @param clazz Clazz
 	 * @param forceAccess If true, access to a private constructor is forces

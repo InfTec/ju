@@ -11,9 +11,11 @@ import javax.persistence.ManyToMany;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import ch.inftec.ju.db.AbstractPersistenceObject;
+
 
 @Entity
-public class Player {
+public class Player extends AbstractPersistenceObject {
 	@Id
 	@GeneratedValue
 	private long id;

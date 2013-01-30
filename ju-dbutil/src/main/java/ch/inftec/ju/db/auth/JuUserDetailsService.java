@@ -62,14 +62,13 @@ public class JuUserDetailsService implements UserDetailsService {
 					if (newUserInfo != null) {
 						// Create the user
 						authUser = new AuthUser();
+						em.persist(authUser);
 						authUser.setName(username);
 						authUser.setPassword(newUserInfo.getPassword());
 						AuthDao authUtil = new AuthDao(em);
 						for (String newAuth : newUserInfo.getAuthorities()) {
 							authUtil.addRole(authUser, newAuth);
 						}
-						
-						em.persist(authUser);
 					}
 				}
 				

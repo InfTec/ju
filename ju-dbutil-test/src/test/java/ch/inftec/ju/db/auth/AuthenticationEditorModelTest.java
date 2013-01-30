@@ -20,21 +20,31 @@ import ch.inftec.ju.util.TestUtils;
  * @author Martin
  *
  */
-@ContextConfiguration(classes={AuthenticationEditorViewModelTest.Configuration.class})
+@ContextConfiguration(classes={AuthenticationEditorModelTest.Configuration.class})
 @RunWith(SpringJUnit4ClassRunner.class)
-public class AuthenticationEditorViewModelTest extends AbstractAuthBaseDbTest {
+public class AuthenticationEditorModelTest extends AbstractAuthBaseDbTest {
 	static class Configuration {
 		@Bean
-		private AuthenticationEditorViewModel authenticationEditorViewModel() {
-			return new AuthenticationEditorViewModel();
+		private AuthenticationEditorModel authenticationEditorViewModel() {
+			return new AuthenticationEditorModel();
+		}
+		
+		@Bean
+		private RoleProvider roleProvider() {
+			return new RoleProvider() {
+				@Override
+				public List<String> getAvailableRoles() {
+					return Arrays.asList("role1", "newRole", "anotherRole");
+				}
+			};
 		}
 	}
 
 	@Autowired
-	private AuthenticationEditorViewModel authVm;
+	private AuthenticationEditorModel authVm;
 	
 	@Test
-	public void authRepositoryTest() {
+	public void authenticationEditorModelTest() {
 		this.loadDataSet("/datasets/auth/singleUser.xml");
 		
 		// Test the getUsers method
@@ -61,5 +71,8 @@ public class AuthenticationEditorViewModelTest extends AbstractAuthBaseDbTest {
 		// Change roles
 		this.authVm.setRoles(u2, Arrays.asList("role1", "anotherRole"));
 		TestUtils.assertCollectionEquals(this.authVm.getRoles(u2), "anotherRole", "role1");
+		
+		// Available roles
+		TestUtils.assertCollectionConsistsOfAll(this.authVm.getAvailableRoles(), "role1", "newRole", "anotherRole");
 	}
 }

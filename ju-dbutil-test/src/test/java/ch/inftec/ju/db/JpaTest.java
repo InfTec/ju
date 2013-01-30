@@ -16,6 +16,8 @@ import org.springframework.test.context.ContextConfiguration;
 import ch.inftec.ju.testing.db.AbstractBaseDbTest;
 import ch.inftec.ju.testing.db.data.entity.Player;
 import ch.inftec.ju.testing.db.data.entity.Team;
+import ch.inftec.ju.testing.db.data.entity.TestingEntity;
+import ch.inftec.ju.testing.db.data.repo.TestingEntityRepo;
 
 /**
  * Test class for JPA related tests.
@@ -47,6 +49,29 @@ public class JpaTest extends AbstractBaseDbTest {
 			Player allstar3 = this.getAllStar(otherEm);
 			Assert.assertNotSame(allstar, allstar3);
 		}
+	}
+	
+	@Test
+	public void abstractPersistenceObjectTest() {
+		TestingEntityRepo repo = JuDbUtils.getJpaRepository(this.em, TestingEntityRepo.class);
+		
+		TestingEntity t1 = repo.findOne(1L);
+		Assert.assertNotNull(t1.hashCode());
+		
+		TestingEntity t2 = new TestingEntity();
+		this.em.persist(t2);
+		Assert.assertNotNull(t2.hashCode());
+		
+		Assert.assertFalse(t1.equals(t2));
+		
+		Assert.assertEquals(repo.findOne(t2.getId()), t2);
+		
+		this.em.flush();
+		this.em.detach(t2);
+		
+		TestingEntity t3 = repo.findOne(t2.getId());
+		Assert.assertNotSame(t2, t3);
+		Assert.assertEquals(t2, t3);
 	}
 	
 	/**

@@ -1,7 +1,7 @@
 package ch.inftec.ju.db.auth.entity;
 
-import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeSet;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -9,6 +9,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.OrderBy;
+
+import ch.inftec.ju.db.AbstractPersistenceObject;
 
 /**
  * Entity for a User used for authentication.
@@ -18,7 +20,7 @@ import javax.persistence.OrderBy;
  *
  */
 @Entity
-public class AuthUser {
+public class AuthUser extends AbstractPersistenceObject {
 	@Id
 	@GeneratedValue
 	private Long id;
@@ -29,8 +31,7 @@ public class AuthUser {
 	private String password;
 	
 	@ManyToMany
-	@OrderBy("name")
-	private Set<AuthRole> roles = new HashSet<>();
+	private Set<AuthRole> roles = new TreeSet<>();
 
 	public Long getId() {
 		return id;

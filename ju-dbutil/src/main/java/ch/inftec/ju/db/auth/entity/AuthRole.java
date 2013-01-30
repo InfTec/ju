@@ -9,18 +9,20 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 
+import ch.inftec.ju.db.AbstractPersistenceObject;
+
 /**
  * Entity for a role. A role can belong to 0-n AuthUsers.
  * @author Martin
  *
  */
 @Entity
-public class AuthRole {
+public class AuthRole extends AbstractPersistenceObject implements Comparable<AuthRole> {
 	@Id
 	@GeneratedValue
 	private Long id;
 	
-	@Column(unique=true)
+	@Column(unique=true, nullable=false)
 	private String name;
 	
 	@ManyToMany(mappedBy="roles")
@@ -44,5 +46,10 @@ public class AuthRole {
 
 	public Set<AuthUser> getUsers() {
 		return users;
+	}
+
+	@Override
+	public int compareTo(AuthRole o) {
+		return this.getName().compareTo(o.getName());
 	}
 }

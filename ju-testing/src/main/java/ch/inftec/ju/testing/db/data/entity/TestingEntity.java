@@ -4,10 +4,11 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 
+import ch.inftec.ju.db.AbstractPersistenceObject;
 import ch.inftec.ju.util.JuStringUtils;
 
 @Entity
-public class TestingEntity {
+public class TestingEntity extends AbstractPersistenceObject {
 	@Id
 	@GeneratedValue
 	private Long id;
