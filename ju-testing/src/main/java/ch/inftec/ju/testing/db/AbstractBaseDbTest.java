@@ -41,7 +41,9 @@ import ch.inftec.ju.util.comparison.ValueComparator;
  * <p>
  * Note that test data is commited after loading to avoid transactional problems when
  * using multiple connections.
- * 
+ * <p>
+ * Using a Spring ContextConfiguration, one can set the TestDb and initial dataSets (URLs with
+ * Qualifier=dataSet or DefaultDataSet instances). 
  * @author tgdmemae
  *
  */
@@ -53,7 +55,7 @@ public abstract class AbstractBaseDbTest {
 	 * @author tgdmemae
 	 *
 	 */
-	static class Configuration {
+	private static class Configuration {
 		@Bean
 		@Scope("prototype")
 		private TestDb testDb() {
@@ -151,9 +153,17 @@ public abstract class AbstractBaseDbTest {
 			this.qr = this.dbConn.getQueryRunner();
 			
 			if (evictCache) this.em.getEntityManagerFactory().getCache().evictAll();
+			
+			this.doReInitConnection();
 		} catch (Exception ex) {
 			throw new JuDbException("Couldn't reinit connection", ex);
 		}
+	}
+	
+	/**
+	 * Extending classes can override this method to perform custom reinitialization.
+	 */
+	protected void doReInitConnection() {		
 	}
 	
 	/**

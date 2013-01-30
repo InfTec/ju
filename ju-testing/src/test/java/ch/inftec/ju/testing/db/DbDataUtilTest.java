@@ -19,7 +19,7 @@ import ch.inftec.ju.util.xml.XPathGetter;
  */
 @ContextConfiguration(classes={DbDataUtilTest.Configuration.class})
 public class DbDataUtilTest extends AbstractBaseDbTest {
-	static class Configuration {
+	private static class Configuration {
 		@Bean
 		private DefaultDataSet fullData() {
 			return AbstractBaseDbTest.DefaultDataSet.FULL;
