@@ -33,6 +33,6 @@
 		class="ch.inftec.ju.db.JuDbUtils"
 		factory-method="openDbConnection">
 		<beans:constructor-arg><beans:value>/META-INF/authPersistence.xml</beans:value></beans:constructor-arg>
-		<beans:constructor-arg><beans:value>Derby InMemory-DB</beans:value></beans:constructor-arg>
+		<beans:constructor-arg><beans:value>Derby Auth InMemory-DB</beans:value></beans:constructor-arg>
 	</beans:bean>
 </beans:beans>

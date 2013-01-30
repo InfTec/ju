@@ -14,6 +14,6 @@ public interface AuthRoleRepo extends CrudRepository<AuthRole, Long>{
 	@Query("select r from AuthRole r where r.name=?1")
 	AuthRole getByName(String name);
 	
-	@Query("select r from AuthRole r join AuthUser u where r.name=?1 and u.id=?2")
+	@Query("select r from AuthRole r join r.users u where r.name=?1 and u.id=?2")
 	AuthRole getByNameAndUsersId(String name, Long userId);
 }

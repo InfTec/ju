@@ -8,6 +8,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
+import javax.persistence.OrderBy;
 
 /**
  * Entity for a User used for authentication.
@@ -28,6 +29,7 @@ public class AuthUser {
 	private String password;
 	
 	@ManyToMany
+	@OrderBy("name")
 	private Set<AuthRole> roles = new HashSet<>();
 
 	public Long getId() {
