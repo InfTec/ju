@@ -8,9 +8,9 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
-import javax.persistence.OrderBy;
 
 import ch.inftec.ju.db.AbstractPersistenceObject;
+import ch.inftec.ju.util.JuStringUtils;
 
 /**
  * Entity for a User used for authentication.
@@ -59,5 +59,10 @@ public class AuthUser extends AbstractPersistenceObject {
 
 	public Set<AuthRole> getRoles() {
 		return roles;
+	}
+	
+	@Override
+	public String toString() {
+		return JuStringUtils.toString(this, "name", this.getName());
 	}
 }

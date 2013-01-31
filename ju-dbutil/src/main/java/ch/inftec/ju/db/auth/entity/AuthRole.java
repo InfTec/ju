@@ -10,6 +10,7 @@ import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 
 import ch.inftec.ju.db.AbstractPersistenceObject;
+import ch.inftec.ju.util.JuStringUtils;
 
 /**
  * Entity for a role. A role can belong to 0-n AuthUsers.
@@ -51,5 +52,10 @@ public class AuthRole extends AbstractPersistenceObject implements Comparable<Au
 	@Override
 	public int compareTo(AuthRole o) {
 		return this.getName().compareTo(o.getName());
+	}
+	
+	@Override
+	public String toString() {
+		return JuStringUtils.toString(this, "name", this.getName());
 	}
 }

@@ -58,6 +58,7 @@ public class AuthDao {
 	 */
 	public void removeRole(AuthUser user, String roleName) {
 		AuthRoleRepo roleRepo = JuDbUtils.getJpaRepository(this.em, AuthRoleRepo.class);
+		AuthUserRepo userRepo = JuDbUtils.getJpaRepository(this.em, AuthUserRepo.class);
 		
 		// Check if the role exists
 		AuthRole role = roleRepo.getByName(roleName);
@@ -67,6 +68,7 @@ public class AuthDao {
 				role.getUsers().remove(user);
 				user.getRoles().remove(role);
 				roleRepo.save(role);
+				userRepo.save(user);
 			}
 		}
 	}
