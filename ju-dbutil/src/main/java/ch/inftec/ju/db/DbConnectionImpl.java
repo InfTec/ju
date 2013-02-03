@@ -9,12 +9,14 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
+import javax.sql.DataSource;
 
 import org.apache.commons.dbutils.QueryRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DataSourceUtils;
 
 import ch.inftec.ju.db.DbRowUtils.DbRowsImpl;
 import ch.inftec.ju.util.JuStringUtils;
@@ -24,71 +26,33 @@ import ch.inftec.ju.util.change.DbActionUtils;
 
 /**
  * Implementation of the DbConnection interface.
+ * <p>
+ * Expects a DataSource and JdbcTemplate to be autowired by Spring.
  * @author Martin
  *
  */
 final class DbConnectionImpl implements DbConnection {
 	Logger log = LoggerFactory.getLogger(DbConnectionImpl.class);
 
-	private static int idCnt = 0;
-	private final int id;
+	@Autowired
+	private JdbcTemplate jdbcTemplate;
 	
-	private final String name;
-	private final String schemaName;
-	private final EntityManagerFactory entityManagerFactory;
+	@Autowired
+	private DataSource dataSource;
 	
-	private EntityManager entityManager;
-	private Connection connection;
+	private String name;
+	private String schemaName;
 	
-	/**
-	 * Creates a new connection creator with the specified name.
-	 * @param name Unique name of the connection
-	 * @param entityManagerFactory Factory used to created an EntityManager that will back
-	 * up the connection
-	 */
-	protected DbConnectionImpl(String name, String schemaName, EntityManagerFactory entityManagerFactory) {
-		this.name = name;
-		this.schemaName = schemaName;
-		this.entityManagerFactory = entityManagerFactory;
-		
-		synchronized(this) {
-			this.id = DbConnectionImpl.idCnt++;
-		}
-	}
-	
-	/**
-	 * Establishes an EntityManager, i.e. makes sure the DbConnection has an active
-	 * EntityManager with a started transaction.
-	 * @return EntityManager instance
-	 */
-	private EntityManager establishEntityManager() {
-		if (this.entityManager == null) {
-			log.debug("Establishing connection to EntityManager: " + this);
-			this.entityManager = this.entityManagerFactory.createEntityManager();
-			
-			try {
-				this.entityManager.getTransaction().begin();
-			} catch (Exception ex) {
-				this.entityManager = null;
-				throw ex;
-			}
-		}
-		
-		return this.entityManager;
-	}
-	
-	/**
-	 * Establishes a Connection, i.e. makes sure the DbConnection has an active Connection
-	 * with a started transaction.
-	 * @return Connection instance
-	 */
-	private Connection establishConnection() {
-		if (this.connection == null) {
-			this.connection = this.establishEntityManager().unwrap(Connection.class);
-		}
-		
-		return this.connection;
-	}
+//	/**
+//	 * Creates a new connection creator with the specified name.
+//	 * @param name Unique name of the connection
+//	 * @param entityManagerFactory Factory used to created an EntityManager that will back
+//	 * up the connection
+//	 */
+//	protected DbConnectionImpl(String name, String schemaName, EntityManagerFactory entityManagerFactory) {
+//		this.name = name;
+//		this.schemaName = schemaName;
+//	}
 
 	@Override
 	public String getName() {
@@ -124,40 +88,8 @@ final class DbConnectionImpl implements DbConnection {
 	}
 	
 	@Override
-	public EntityManager getEntityManager() {
-		return this.establishEntityManager();
-	}
-	
-	@Override
 	public Connection getConnection() {
-		return this.establishConnection();
-	}
-	
-	@Override
-	public void rollback() {
-		if (this.entityManager != null) {
-			this.entityManager.getTransaction().rollback();
-			this.entityManager.close();
-			this.entityManager = null;
-		}
-	}
-	
-	@Override
-	public void close() {
-		if (this.entityManager != null) {
-			// The transaction might have been marked for rollback (e.g. by an OptimisticLockException)
-			if (this.entityManager.getTransaction().getRollbackOnly()) {
-				log.debug("Rolling back transaction: " + this);
-				this.rollback();
-				
-				throw new JuDbException("Transaction was rolled back");
-			} else {
-				log.debug("Committing transaction: " + this);
-				this.entityManager.getTransaction().commit();
-				this.entityManager.close();
-				this.entityManager = null;
-			}
-		}
+		return DataSourceUtils.getConnection(this.dataSource);
 	}
 	
 	/**
@@ -177,7 +109,7 @@ final class DbConnectionImpl implements DbConnection {
 		 */
 		public DbMetaData() throws JuDbException {
 			try {
-				this.metaData = DbConnectionImpl.this.establishConnection().getMetaData();
+				this.metaData = DbConnectionImpl.this.getConnection().getMetaData();
 			} catch (SQLException ex) {
 				throw new JuDbException("Couldn't access DatabaseMetaData", ex);
 			}
@@ -271,7 +203,7 @@ final class DbConnectionImpl implements DbConnection {
 	
 	@Override
 	public String toString() {
-		return JuStringUtils.toString(this, "name", this.getName(), "id", this.id);
+		return JuStringUtils.toString(this, "name", this.getName());
 	}
 	
 	/**
@@ -297,7 +229,7 @@ final class DbConnectionImpl implements DbConnection {
 		 * @throws JuDbException If the connection cannot be established
 		 */
 		private Connection getConnection() throws JuDbException {
-			return this.dbConnection.establishConnection();
+			return this.dbConnection.getConnection();
 		}
 			
 		@Override

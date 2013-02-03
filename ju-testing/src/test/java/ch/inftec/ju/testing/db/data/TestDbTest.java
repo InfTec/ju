@@ -7,40 +7,38 @@ import javax.persistence.Query;
 import junit.framework.Assert;
 
 import org.junit.Test;
-import org.springframework.context.annotation.Bean;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import ch.inftec.ju.db.DbRows;
+import ch.inftec.ju.db.JuDbUtils;
 import ch.inftec.ju.testing.db.AbstractBaseDbTest;
 import ch.inftec.ju.testing.db.data.entity.Player;
 import ch.inftec.ju.util.JuCollectionUtils;
+
+import com.github.springtestdbunit.annotation.DatabaseSetup;
 
 /**
  * Tests to test a TestDb instance.
  * @author tgdmemae
  *
  */
-@ContextConfiguration(classes={TestDbTest.Configuration.class})
+@DatabaseSetup("/datasets/fullData.xml")
 public class TestDbTest extends AbstractBaseDbTest {
-	static class Configuration {
-		@Bean
-		private DefaultDataSet fullData() {
-			return AbstractBaseDbTest.DefaultDataSet.FULL;
-		}
-	}
+	
+	@Autowired
+	private JuDbUtils juDbUtils;
 
 	/**
 	 * Tests if the table TEST_A has been created correctly.
 	 */
 	@Test
-	public final void testA() {
-		List<String> columnNames = dbConn.getColumnNames("TEST_A");
+	public final void testA() {		
+		List<String> columnNames = this.juDbUtils.getColumnNames("TEST_A");
 			
 		Assert.assertEquals(3, columnNames.size());
 		Assert.assertTrue(columnNames.containsAll(JuCollectionUtils.arrayList("AID", "TEXT", "B_FK")));
 		
-		DbRows rows = dbConn.getQueryRunner().query("select * from test_a");
-		Assert.assertEquals(3, rows.getRowCount());
+		int cnt = this.jdbcTemplate.queryForInt("select count(*) from test_a");
+		Assert.assertEquals(3, cnt);
 	}
 	
 	/**

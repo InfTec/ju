@@ -12,6 +12,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import com.github.springtestdbunit.annotation.DatabaseSetup;
+
 import ch.inftec.ju.db.auth.AuthenticationEditorViewModel.UserInfo;
 import ch.inftec.ju.db.auth.AuthenticationEditorViewModel.UserInfo.RoleInfo;
 import ch.inftec.ju.db.auth.AuthenticationEditorViewModel.UserInfo.RoleState;
@@ -54,10 +56,9 @@ public class AuthenticationEditorModelTest extends AbstractAuthBaseDbTest {
 	@Autowired
 	private AuthenticationEditorViewModel authVm;
 	
+	@DatabaseSetup("/datasets/auth/singleUser.xml")
 	@Test
 	public void authenticationEditorModelTest() {
-		this.loadDataSet("/datasets/auth/singleUser.xml");
-		
 		// Test the getUsers method
 		List<AuthUser> u1 = this.authModel.getUsers();
 		Assert.assertEquals(1, u1.size());
@@ -87,10 +88,9 @@ public class AuthenticationEditorModelTest extends AbstractAuthBaseDbTest {
 		TestUtils.assertCollectionConsistsOfAll(this.authModel.getAvailableRoles(), "role1", "newRole", "anotherRole");
 	}
 	
+	@DatabaseSetup("/datasets/auth/singleUser.xml")
 	@Test
 	public void authenticationEditorViewModelTest() {
-		this.loadDataSet("/datasets/auth/singleUser.xml");
-		
 		this.authVm.refresh();
 		
 		// Read / modify the one existing user

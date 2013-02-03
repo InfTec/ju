@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
@@ -13,8 +14,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
-import ch.inftec.ju.db.DbConnection;
-import ch.inftec.ju.db.JuDbUtils;
 import ch.inftec.ju.db.auth.UnknownUserHandler.NewUserInfo;
 import ch.inftec.ju.db.auth.entity.AuthRole;
 import ch.inftec.ju.db.auth.entity.AuthUser;
@@ -41,52 +40,50 @@ import ch.inftec.ju.db.auth.repo.AuthUserRepo;
  */
 public class JuUserDetailsService implements UserDetailsService {
 	// TODO: Use name or qualifier / getter/setter
+	@PersistenceContext
+	private EntityManager em;
+	
 	@Autowired
-	private DbConnection dbConn;
+	private AuthUserRepo authUserRepo;
 	
 	@Autowired(required=false)
 	private UnknownUserHandler unknownUserHandler;
 	
+	@Autowired
+	private AuthDao authDao;
+	
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-		try {
-			EntityManager em = this.dbConn.getEntityManager();
-			
-			AuthUserRepo authUserRepo = JuDbUtils.getJpaRepository(em, AuthUserRepo.class);
-			AuthUser authUser = authUserRepo.getByName(username);
-			
-			if (authUser == null) {
-				if (this.unknownUserHandler != null) {
-					// Check whether the user should be added
-					NewUserInfo newUserInfo = this.unknownUserHandler.handleUser(username);
-					if (newUserInfo != null) {
-						// Create the user
-						authUser = new AuthUser();
-						em.persist(authUser);
-						authUser.setName(username);
-						authUser.setPassword(newUserInfo.getPassword());
-						AuthDao authUtil = new AuthDao(em);
-						for (String newAuth : newUserInfo.getAuthorities()) {
-							authUtil.addRole(authUser, newAuth);
-						}
+		AuthUser authUser = this.authUserRepo.getByName(username);
+		
+		if (authUser == null) {
+			if (this.unknownUserHandler != null) {
+				// Check whether the user should be added
+				NewUserInfo newUserInfo = this.unknownUserHandler.handleUser(username);
+				if (newUserInfo != null) {
+					// Create the user
+					authUser = new AuthUser();
+					this.authUserRepo.save(authUser);
+					authUser.setName(username);
+					authUser.setPassword(newUserInfo.getPassword());
+					for (String newAuth : newUserInfo.getAuthorities()) {
+						this.authDao.addRole(authUser, newAuth);
 					}
 				}
-				
-				if (authUser == null) {
-					throw new UsernameNotFoundException("No such user: " + username);
-				}
-			}			
-			
-			List<GrantedAuthority> grantedAuths = new ArrayList<>();
-			for (AuthRole authRole : authUser.getRoles()) {
-				grantedAuths.add(new SimpleGrantedAuthority(authRole.getName()));
 			}
 			
-			User user = new User(username, authUser.getPassword(), grantedAuths);
-			
-			return user;
-		} finally {
-			this.dbConn.close();
-		}		
+			if (authUser == null) {
+				throw new UsernameNotFoundException("No such user: " + username);
+			}
+		}			
+		
+		List<GrantedAuthority> grantedAuths = new ArrayList<>();
+		for (AuthRole authRole : authUser.getRoles()) {
+			grantedAuths.add(new SimpleGrantedAuthority(authRole.getName()));
+		}
+		
+		User user = new User(username, authUser.getPassword(), grantedAuths);
+		
+		return user;
 	}
 }

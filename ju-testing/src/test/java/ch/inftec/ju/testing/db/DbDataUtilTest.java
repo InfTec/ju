@@ -4,12 +4,12 @@ import java.io.File;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.springframework.context.annotation.Bean;
-import org.springframework.test.context.ContextConfiguration;
 import org.w3c.dom.Document;
 
 import ch.inftec.ju.util.IOUtil;
 import ch.inftec.ju.util.xml.XPathGetter;
+
+import com.github.springtestdbunit.annotation.DatabaseSetup;
 
 
 /**
@@ -17,27 +17,18 @@ import ch.inftec.ju.util.xml.XPathGetter;
  * @author Martin
  *
  */
-@ContextConfiguration(classes={DbDataUtilTest.Configuration.class})
+@DatabaseSetup("/datasets/fullData.xml")
 public class DbDataUtilTest extends AbstractBaseDbTest {
-	static class Configuration {
-		@Bean
-		private DefaultDataSet fullData() {
-			return AbstractBaseDbTest.DefaultDataSet.FULL;
-		}
-	}
-	
 	/**
 	 * Tests the data export function writing DB data to an XML file.
 	 */
 	@Test
 	public void writeToXmlFile() {
-		DbDataUtil du = new DbDataUtil(dbConn);
-		
 		// Whole table to file
 		String fileName = "writeToXmlFile_team.xml";
 		File file = new File(fileName);
 		if (file.exists()) Assert.fail(String.format("File %s already exists", fileName));
-		du.buildExport()
+		this.createDbDataUtil().buildExport()
 			.addTable("Team", null)
 			.writeToXmlFile(fileName);
 		
@@ -50,10 +41,8 @@ public class DbDataUtilTest extends AbstractBaseDbTest {
 	 */
 	@Test
 	public void writeToDocument() {
-		DbDataUtil du = new DbDataUtil(dbConn);
-		
 		// Whole table to XML Document
-		Document doc = du.buildExport()
+		Document doc = this.createDbDataUtil().buildExport()
 			.addTable("Team", null)
 			.writeToXmlDocument();
 		
@@ -63,9 +52,13 @@ public class DbDataUtilTest extends AbstractBaseDbTest {
 	
 	@Test
 	public void writeToDocument_query() {
-		this.loadDataSet("/datasets/testingEntityUnsortedData.xml");
+		// Annotation not working as it would run after class annotation which results
+		// in an INSERT instead of a CLEAN_INSERT
+		this.createDbDataUtil().buildImport()
+			.from("/datasets/testingEntityUnsortedData.xml")
+			.executeCleanInsert();
 		
-		Document doc = new DbDataUtil(dbConn).buildExport()
+		Document doc = this.createDbDataUtil().buildExport()
 			.addTable("TestingEntity", "SELECT * FROM TESTINGENTITY WHERE ID=2")
 			.writeToXmlDocument();
 		
@@ -76,9 +69,13 @@ public class DbDataUtilTest extends AbstractBaseDbTest {
 	
 	@Test
 	public void writeToDocument_order() {
-		this.loadDataSet("/datasets/testingEntityUnsortedData.xml");
-		
-		Document doc = new DbDataUtil(dbConn).buildExport()
+		// Annotation not working as it would run after class annotation which results
+		// in an INSERT instead of a CLEAN_INSERT
+		this.createDbDataUtil().buildImport()
+			.from("/datasets/testingEntityUnsortedData.xml")
+			.executeCleanInsert();
+				
+		Document doc = this.createDbDataUtil().buildExport()
 			.addTableSorted("TestingEntity", "ID")
 			.writeToXmlDocument();
 		
@@ -95,8 +92,7 @@ public class DbDataUtilTest extends AbstractBaseDbTest {
 	public void importDataFromXml() {
 		Assert.assertEquals(1, em.createQuery("Select t from TestingEntity t").getResultList().size());
 		
-		DbDataUtil du = new DbDataUtil(dbConn);
-		du.buildImport()
+		this.createDbDataUtil().buildImport()
 			.from(IOUtil.getResourceURL("DbDataUtilsTest_importDataFromXml.xml"))
 			.executeCleanInsert();
 		
@@ -108,12 +104,10 @@ public class DbDataUtilTest extends AbstractBaseDbTest {
 	 */
 	@Test
 	public void assertEqualsAll() {
-		DbDataUtil du = new DbDataUtil(dbConn);
-		
 //		// Can be used to create full export XML
 //		du.buildExport().writeToXmlFile("completeExport.xml");
 		
-		du.buildAssert()
+		this.createDbDataUtil().buildAssert()
 			.expected(IOUtil.getResourceURL("DbDataUtilsTest_assertEqualsAll.xml"))
 			.assertEqualsAll();
 	}
@@ -123,13 +117,11 @@ public class DbDataUtilTest extends AbstractBaseDbTest {
 	 */
 	@Test
 	public void assertEqualsTables() {
-		DbDataUtil du = new DbDataUtil(dbConn);
-		
 //		du.buildExport()
 //			.addTable("team", "select * from team order by name")
 //			.writeToXmlFile("teamExport.xml");
 		
-		du.buildAssert()
+		this.createDbDataUtil().buildAssert()
 			.expected(IOUtil.getResourceURL("DbDataUtilsTest_assertEqualsTables.xml"))
 			.assertEqualsTable("team", "name");
 	}

@@ -3,15 +3,16 @@ package ch.inftec.ju.db;
 import java.util.List;
 
 import javax.persistence.EntityManager;
-import javax.persistence.OptimisticLockException;
+import javax.persistence.EntityManagerFactory;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 
 import junit.framework.Assert;
 
 import org.junit.Test;
-import org.springframework.context.annotation.Bean;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.ImportResource;
 
 import ch.inftec.ju.testing.db.AbstractBaseDbTest;
 import ch.inftec.ju.testing.db.data.entity.Player;
@@ -19,43 +20,50 @@ import ch.inftec.ju.testing.db.data.entity.Team;
 import ch.inftec.ju.testing.db.data.entity.TestingEntity;
 import ch.inftec.ju.testing.db.data.repo.TestingEntityRepo;
 
+import com.github.springtestdbunit.annotation.DatabaseSetup;
+
 /**
  * Test class for JPA related tests.
  * @author tgdmemae
  *
  */
-@ContextConfiguration(classes={JpaTest.Configuration.class})
+@DatabaseSetup("/datasets/fullData.xml")
 public class JpaTest extends AbstractBaseDbTest {
-	static class Configuration {
-		@Bean
-		private DefaultDataSet fullData() {
-			return AbstractBaseDbTest.DefaultDataSet.FULL;
-		}
+	// TODO: Refactor concurrent tests...
+	
+	@Configuration
+	// TODO: Spring Data v1.2 should support the annotation EnableJpaRepositories
+	@ImportResource("classpath:/ch/inftec/ju/db/RepoScan-context.xml")
+	static class Config {
 	}
 	
-	/**
-	 * Test if the EntityManager returns the same instance for the same object
-	 */
-	@Test
-	public void objectReferenceTest() {
-		Player allstar = this.getAllStar(this.em);
-		Player allstar2 = this.getAllStar(this.em);
-		Assert.assertSame(allstar, allstar2);
-		
-		try (DbConnection dbConn = this.openDbConnection()) {
-			EntityManager otherEm = dbConn.getEntityManager();
-			Assert.assertNotSame(otherEm, this.em);
-			
-			Player allstar3 = this.getAllStar(otherEm);
-			Assert.assertNotSame(allstar, allstar3);
-		}
-	}
+	@Autowired
+	private TestingEntityRepo testingEntityRepo;
+	
+	@Autowired
+	private EntityManagerFactory emf;
+	
+//	/**
+//	 * Test if the EntityManager returns the same instance for the same object
+//	 */
+//	@Test
+//	public void objectReferenceTest() {
+//		Player allstar = this.getAllStar(this.em);
+//		Player allstar2 = this.getAllStar(this.em);
+//		Assert.assertSame(allstar, allstar2);
+//		
+//		EntityManager otherEm = this.emf.createEntityManager();
+//		Assert.assertNotSame(otherEm, this.em);
+//		
+//		Player allstar3 = this.getAllStar(otherEm);
+//		Assert.assertNotSame(allstar, allstar3);
+//		
+//		otherEm.close();
+//	}
 	
 	@Test
 	public void abstractPersistenceObjectTest() {
-		TestingEntityRepo repo = JuDbUtils.getJpaRepository(this.em, TestingEntityRepo.class);
-		
-		TestingEntity t1 = repo.findOne(1L);
+		TestingEntity t1 = this.testingEntityRepo.findOne(1L);
 		Assert.assertNotNull(t1.hashCode());
 		
 		TestingEntity t2 = new TestingEntity();
@@ -64,95 +72,95 @@ public class JpaTest extends AbstractBaseDbTest {
 		
 		Assert.assertFalse(t1.equals(t2));
 		
-		Assert.assertEquals(repo.findOne(t2.getId()), t2);
+		Assert.assertEquals(this.testingEntityRepo.findOne(t2.getId()), t2);
 		
 		this.em.flush();
 		this.em.detach(t2);
 		
-		TestingEntity t3 = repo.findOne(t2.getId());
+		TestingEntity t3 = this.testingEntityRepo.findOne(t2.getId());
 		Assert.assertNotSame(t2, t3);
 		Assert.assertEquals(t2, t3);
 	}
 	
-	/**
-	 * Tests how entities behave if they are changed in another instance connected
-	 * to another EntityManager (with a separate transaction).
-	 */
-	@Test
-	public void concurrentChanges() {
-		Player allstar = this.getAllStar(this.em);
-		
-		try (DbConnection dbConn = this.openDbConnection()) {
-			EntityManager otherEm = dbConn.getEntityManager();
-			Player allstar2 = this.getAllStar(otherEm);
-			
-			allstar2.setFirstName("None");
-			otherEm.flush();
-			
-			Assert.assertEquals("All", allstar.getFirstName());
-		}
-		
-		Assert.assertEquals("All", allstar.getFirstName());
-		this.em.refresh(allstar);
-		Assert.assertEquals("None", allstar.getFirstName());
-	}
+//	/**
+//	 * Tests how entities behave if they are changed in another instance connected
+//	 * to another EntityManager (with a separate transaction).
+//	 */
+//	@Test
+//	public void concurrentChanges() {
+//		Player allstar = this.getAllStar(this.em);
+//		
+//		try (DbConnection dbConn = this.openDbConnection()) {
+//			EntityManager otherEm = dbConn.getEntityManager();
+//			Player allstar2 = this.getAllStar(otherEm);
+//			
+//			allstar2.setFirstName("None");
+//			otherEm.flush();
+//			
+//			Assert.assertEquals("All", allstar.getFirstName());
+//		}
+//		
+//		Assert.assertEquals("All", allstar.getFirstName());
+//		this.em.refresh(allstar);
+//		Assert.assertEquals("None", allstar.getFirstName());
+//	}
 	
-	/**
-	 * Tests how versioning behaves. Team has versioning for optimistic locking
-	 * enabled, Player hasn't.
-	 */
-	@Test
-	public void versioning() {
-		Player allstar = this.getAllStar(this.em);
-		allstar.setFirstName("Change1");
-		
-		try (DbConnection dbConn = this.openDbConnection()) {
-			EntityManager otherEm = dbConn.getEntityManager();
-			Player allstar2 = this.getAllStar(otherEm);
-			
-			allstar2.setFirstName("Change2");
-		} // Close will commit
-		
-		// Flush will work and overwrite changes made by first transaction
-		em.flush();
-		
-		Team team = this.getTeam1(this.em);
-		
-		team.setName("Change1");
-		
-		try (DbConnection dbConn = this.openDbConnection()) {
-			EntityManager otherEm = dbConn.getEntityManager();
-			Team team2 = this.getTeam1(otherEm);
-			
-			team2.setName("Change2");
-		} // Close will commit
-		
-		try {
-			em.flush();
-			Assert.fail("Excpected OptimisticLockException");
-		} catch (OptimisticLockException ex) {
-			// Update with version check failed
-		}
-		
-		// Make a rollback, otherwise we get an exception when we close the DbConn
-		this.dbConn.rollback();
-	}
+//	/**
+//	 * Tests how versioning behaves. Team has versioning for optimistic locking
+//	 * enabled, Player hasn't.
+//	 */
+//	@Test
+//	public void versioning() {
+//		Player allstar = this.getAllStar(this.em);
+//		allstar.setFirstName("Change1");
+//		
+//		try (DbConnection dbConn = this.openDbConnection()) {
+//			EntityManager otherEm = dbConn.getEntityManager();
+//			Player allstar2 = this.getAllStar(otherEm);
+//			
+//			allstar2.setFirstName("Change2");
+//		} // Close will commit
+//		
+//		// Flush will work and overwrite changes made by first transaction
+//		em.flush();
+//		
+//		Team team = this.getTeam1(this.em);
+//		
+//		team.setName("Change1");
+//		
+//		try (DbConnection dbConn = this.openDbConnection()) {
+//			EntityManager otherEm = dbConn.getEntityManager();
+//			Team team2 = this.getTeam1(otherEm);
+//			
+//			team2.setName("Change2");
+//		} // Close will commit
+//		
+//		try {
+//			em.flush();
+//			Assert.fail("Excpected OptimisticLockException");
+//		} catch (OptimisticLockException ex) {
+//			// Update with version check failed
+//		}
+//		
+//		// Make a rollback, otherwise we get an exception when we close the DbConn
+//		this.dbConn.rollback();
+//	}
 	
-	/**
-	 * Test case for an EntityManager refreshing problem that is caused
-	 * by updating the data using DbUnit (JDBC) and then accessing it
-	 * via EntityManager.
-	 * <p>
-	 * When the EM cache is not evicted after a JDBC data import, concurrentChanges
-	 * test would fail after versioning test.
-	 */
-	@Test
-	public void entityManagerRefreshingProblem() throws Exception {
-		this.versioning();
-		this.closeConnection();
-		this.initConnection();		
-		this.concurrentChanges();
-	}
+//	/**
+//	 * Test case for an EntityManager refreshing problem that is caused
+//	 * by updating the data using DbUnit (JDBC) and then accessing it
+//	 * via EntityManager.
+//	 * <p>
+//	 * When the EM cache is not evicted after a JDBC data import, concurrentChanges
+//	 * test would fail after versioning test.
+//	 */
+//	@Test
+//	public void entityManagerRefreshingProblem() throws Exception {
+//		this.versioning();
+//		this.closeConnection();
+//		this.initConnection();		
+//		this.concurrentChanges();
+//	}
 	
 	/**
 	 * Test the execution of Native SQL queries through the EntityManager.

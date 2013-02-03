@@ -3,21 +3,15 @@ package ch.inftec.ju.db;
 import java.sql.Connection;
 import java.util.List;
 
-import javax.persistence.EntityManager;
-
 
 /**
- * Wrapper class around a SQL Connection instance. Implementations may wait to establish a Connection until
- * it is required. When the DbConnection isn't used anymore, it has to be closed explicitly. When a connection
- * is established, a transaction context is also created. The transaction is committed when closing the connection.
- * If it should be rolled back, rollback has to be called before closing.
- * <p>
- * DbConnections must implement the AutoCloseable interface so they can be used in the Java 7
- * try clause.
+ * Wrapper class around a plain JDBC connection providing helper functionality
+ * on SQL level.
  * @author Martin
  *
  */
-public interface DbConnection extends AutoCloseable {
+@Deprecated
+public interface DbConnection {
 	/**
 	 * Gets the unique name of the DB connection.
 	 * @return Connection name
@@ -62,29 +56,11 @@ public interface DbConnection extends AutoCloseable {
 	public DbQueryRunner getQueryRunner();
 	
 	/**
-	 * Gets an EntityManager instance that is backing this DbConnection.
-	 * Don't use the getTransaction of the EntityManager manually as this is
-	 * handled by the DbConnection instance.
-	 * @return EntityManager instance
-	 */
-	public EntityManager getEntityManager();
-	
-	/**
-	 * Gets the raw JDBC connection wrapped by this DbConnection instance.
+	 * Gets the raw JDBC connection of the current Spring transaction scope.
 	 * <p>
-	 * Don't use the transaction and close methods of the Connection directly as this
-	 * is handled by the DbConnection instance.
+	 * Make sure you use it in a Spring transaction scope and don't call any
+	 * close or transaction methods explicitly.
 	 * @return Connection instance
 	 */
 	public Connection getConnection();
-	
-	/**
-	 * Rolls back any changes.
-	 */
-	public void rollback();
-	
-	/*
-	 * 'Override' the AutoCloaseable close not to throw an Exception.
-	 */
-	public void close();
-}
+}	

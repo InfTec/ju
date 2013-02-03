@@ -5,7 +5,7 @@
         http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd"
 	version="2.0">
 
-	<persistence-unit name="ESW MyTTS">
+	<persistence-unit name="ESW MyTTS //TODO: refactor">
 		<provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
 
 		<properties>
@@ -23,30 +23,25 @@
 		</properties>
 	</persistence-unit>
 	
-	<persistence-unit name="Derby InMemory-DB">
+	<persistence-unit name="Derby db-util">
 		<provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
 
-		<class>ch.inftec.ju.db.data.entity.Team</class>
-		<class>ch.inftec.ju.db.data.entity.Player</class>
+		<class>ch.inftec.ju.db.data.entity.CustomObject</class>
 
 		<properties>
 
 			<property name="eclipselink.target-database" value="Derby" />
 			<property name="eclipselink.ddl-generation" value="create-tables" />
 			<property name="eclipselink.logging.level.sql" value="FINE"/>
- 			<property name="eclipselink.logging.parameters" value="true"/>			
+ 			<property name="eclipselink.logging.parameters" value="true"/>
+ 			<property name="eclipselink.weaving" value="false"/> <!-- TODO: Try to enable weaving -->
 
-			<property name="javax.persistence.jdbc.url" value="jdbc:derby:memory:juPersTestDB;create=true" />
 			<property name="javax.persistence.jdbc.driver" value="org.apache.derby.jdbc.EmbeddedDriver" />
-			<property name="javax.persistence.jdbc.user" value="sa" />
-			<property name="javax.persistence.jdbc.password" value="" />
 
-			<property name="ch.inftec.ju.flags" value="connection,test" />
-			
 		</properties>
 	</persistence-unit>
 
-	<persistence-unit name="PU_mementoObject">
+	<persistence-unit name="PU_mementoObject //TODO: refactor">
 		<provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
 
 		<mapping-file>META-INF/orm-mementoObject.xml</mapping-file>

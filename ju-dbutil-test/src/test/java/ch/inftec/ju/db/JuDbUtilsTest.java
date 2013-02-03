@@ -3,6 +3,9 @@ package ch.inftec.ju.db;
 import junit.framework.Assert;
 
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.github.springtestdbunit.annotation.DatabaseSetup;
 
 import ch.inftec.ju.testing.db.AbstractBaseDbTest;
 import ch.inftec.ju.testing.db.data.repo.TestingEntityRepo;
@@ -13,20 +16,20 @@ import ch.inftec.ju.testing.db.data.repo.TestingEntityRepo;
  *
  */
 public class JuDbUtilsTest extends AbstractBaseDbTest {
+	@Autowired
+	private TestingEntityRepo testingEntityRepo;
+	
 	/**
 	 * Tests the lookup of a Spring JPA repository.
 	 */
+	@DatabaseSetup("/datasets/singleTestingEntityData.xml")
 	@Test
 	public void getJpaRepository() {
-		this.loadDataSet(DefaultDataSet.SINGLE_TESTING_ENTITY);
-		
-		TestingEntityRepo testingEntityRepo = JuDbUtils.getJpaRepository(this.em, TestingEntityRepo.class);
-		Assert.assertNotNull(testingEntityRepo);
-		Assert.assertTrue(testingEntityRepo.exists(1L));		
+		Assert.assertNotNull(this.testingEntityRepo);
+		Assert.assertTrue(this.testingEntityRepo.exists(1L));		
 		
 		// There was a problem using dynamic queries where EclipseLink wouldn't create
 		// the associated NamedQuery and set the transaction to rollback.
-		Assert.assertEquals(1L, testingEntityRepo.getByName("Test1").getId().longValue());
-		Assert.assertFalse(this.em.getTransaction().getRollbackOnly());
+		Assert.assertEquals(1L, this.testingEntityRepo.getByName("Test1").getId().longValue());
 	}
 }

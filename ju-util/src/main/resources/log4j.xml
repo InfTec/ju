@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE log4j:configuration PUBLIC "-//APACHE//DTD LOG4J 1.2//EN" "log4j.dtd">
+<!DOCTYPE log4j:configuration PUBLIC "-//APACHE//DTD LOG4J 1.2//EN" "http://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/xml/doc-files/log4j.dtd">
 <!--
  Licensed to the Apache Software Foundation (ASF) under one or more
  contributor license agreements.  See the NOTICE file distributed with
@@ -23,7 +23,7 @@
 	<appender name="STDOUT" class="org.apache.log4j.ConsoleAppender">
            <layout class="org.apache.log4j.PatternLayout">
              <param name="ConversionPattern"
-		    value="%d %-5p [%t] %C{2} (%F:%L) - %m%n"/>
+		    value="%d %-5p [%t] %C (%F:%L) - %m%n"/>
            </layout>	    
 	</appender>
 	
@@ -31,8 +31,18 @@
 	  <priority value="info" />
 	</category>
 	
+	<!-- Limit Spring -->
+	<category name="org.springframework">
+	  <priority value="info" />
+	</category>
+	
+	<!-- Displays JdbcTemplate debug messages -->
+	<category name="org.springframework.jdbc.core.JdbcTemplate">
+	  <priority value="debug" />
+	</category>
+	
 	<root>
-	   <priority value ="info" />
+	   <priority value ="DEBUG" />
    	   <appender-ref ref="STDOUT" />
 	</root>
 	

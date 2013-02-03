@@ -9,38 +9,41 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import ch.inftec.ju.db.JuDbUtils;
 import ch.inftec.ju.db.auth.repo.AuthRoleRepo;
 import ch.inftec.ju.db.auth.repo.AuthUserRepo;
+
+import com.github.springtestdbunit.annotation.DatabaseSetup;
 
 /**
  * Contains tests for the Authentication functionality.
  * @author Martin
  *
  */
-@ContextConfiguration(classes={AuthenticationTest.Configuration.class})
+@ContextConfiguration(classes={AuthenticationTest.Config.class})
 @RunWith(SpringJUnit4ClassRunner.class)
 public class AuthenticationTest extends AbstractAuthBaseDbTest {
 	@Autowired
 	private JuUserDetailsService service;
 	
+	@Autowired
+	private AuthUserRepo userRepo;
+	
+	@Autowired
+	private AuthRoleRepo roleRepo;
+	
+	@DatabaseSetup("/datasets/auth/singleUser.xml")
 	@Test
 	public void authRepositoryTest() {
-		this.loadDataSet("/datasets/auth/singleUser.xml");
-		
-		AuthUserRepo userRepo = JuDbUtils.getJpaRepository(this.em, AuthUserRepo.class);
 		Assert.assertNotNull(userRepo);
 		Assert.assertTrue(userRepo.exists(-1L));
 		
-		AuthRoleRepo roleRepo = JuDbUtils.getJpaRepository(this.em, AuthRoleRepo.class);
 		Assert.assertEquals(-1L, roleRepo.getByNameAndUsersId("role1", -1L).getId().longValue());
 		Assert.assertNull(roleRepo.getByNameAndUsersId("unassignedRole", -1L));
 	}
 	
+	@DatabaseSetup("/datasets/auth/singleUser.xml")
 	@Test
 	public void juUserDetailsService() {
-		this.loadDataSet("/datasets/auth/singleUser.xml");
-		
 		// Load existing user
 		UserDetails userDetails1 = this.service.loadUserByUsername("user1");
 		Assert.assertEquals("user1", userDetails1.getUsername());
@@ -55,8 +58,6 @@ public class AuthenticationTest extends AbstractAuthBaseDbTest {
 		// Check if the data has been stored to the DB
 		this.reInitConnection(true);
 		
-		AuthUserRepo userRepo = JuDbUtils.getJpaRepository(this.em, AuthUserRepo.class);
-		AuthRoleRepo roleRepo = JuDbUtils.getJpaRepository(this.em, AuthRoleRepo.class);
 		Assert.assertNotNull(userRepo.getByName("user2"));
 		Assert.assertNotNull(roleRepo.getByName("NEW_ROLE"));		
 	}

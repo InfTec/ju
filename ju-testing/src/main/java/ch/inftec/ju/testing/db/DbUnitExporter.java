@@ -13,21 +13,22 @@ import ch.inftec.ju.db.DbConnectionFactoryLoader;
 import ch.inftec.ju.util.JuRuntimeException;
 
 public class DbUnitExporter {
+	// TODO: Refactor
 	public static void main(String[] args) {
-		DbConnectionFactory factory = DbConnectionFactoryLoader.createInstance();
-		try (DbConnection dbConn = factory.openDbConnection("ESW Localdev")) {
-			IDatabaseConnection connection = new DatabaseConnection(dbConn.getConnection());
-			
-			// partial database export
-	        QueryDataSet partialDataSet = new QueryDataSet(connection);
-	        //partialDataSet.addTable("FOO", "SELECT * FROM TABLE WHERE COL='VALUE'");
-	        partialDataSet.addTable("CONTACTROLE");
-	        partialDataSet.addTable("ATTRIBUTEVALUE");
-	        partialDataSet.addTable("ATTRIBUTETYPE");
-	        FlatXmlDataSet.write(partialDataSet, new FileOutputStream("esw.xml"));
-		} catch (Exception ex) {
-			throw new JuRuntimeException("Couldn't export database contents", ex);
-		}
+//		DbConnectionFactory factory = DbConnectionFactoryLoader.createInstance();
+//		try (DbConnection dbConn = factory.openDbConnection("ESW Localdev")) {
+//			IDatabaseConnection connection = new DatabaseConnection(dbConn.getConnection());
+//			
+//			// partial database export
+//	        QueryDataSet partialDataSet = new QueryDataSet(connection);
+//	        //partialDataSet.addTable("FOO", "SELECT * FROM TABLE WHERE COL='VALUE'");
+//	        partialDataSet.addTable("CONTACTROLE");
+//	        partialDataSet.addTable("ATTRIBUTEVALUE");
+//	        partialDataSet.addTable("ATTRIBUTETYPE");
+//	        FlatXmlDataSet.write(partialDataSet, new FileOutputStream("esw.xml"));
+//		} catch (Exception ex) {
+//			throw new JuRuntimeException("Couldn't export database contents", ex);
+//		}
 	}
 	
 	/*

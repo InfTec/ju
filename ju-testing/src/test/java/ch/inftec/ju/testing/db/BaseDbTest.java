@@ -42,7 +42,7 @@ public class BaseDbTest extends AbstractBaseDbTest {
 	 */
 	@Test
 	public void noData() {
-		new DbDataUtil(dbConn).buildAssert()
+		this.createDbDataUtil().buildAssert()
 			.expected(IOUtil.getResourceURL("BaseDbTest_noData.xml"))
 			.assertEqualsAll();
 	}
@@ -50,10 +50,14 @@ public class BaseDbTest extends AbstractBaseDbTest {
 	@Test
 	public void singleTestingEntityData() {
 		Assert.assertEquals(0, em.createQuery("select t from TestingEntity t").getResultList().size());
-		this.loadDataSet(DefaultDataSet.SINGLE_TESTING_ENTITY);
+		
+		this.createDbDataUtil().buildImport()
+			.from("/datasets/singleTestingEntityData.xml")
+			.executeInsert();
+		
 		Assert.assertEquals(1, em.createQuery("select t from TestingEntity t").getResultList().size());
 		
-		new DbDataUtil(dbConn).buildAssert()
+		this.createDbDataUtil().buildAssert()
 			.expected(IOUtil.getResourceURL("BaseDbTest_singleTestingEntityData.xml"))
 			.assertEqualsTable("TestingEntity", "id");
 	}

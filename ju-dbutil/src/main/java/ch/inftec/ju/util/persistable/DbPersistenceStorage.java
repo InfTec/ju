@@ -2,7 +2,12 @@ package ch.inftec.ju.util.persistable;
 
 import java.util.List;
 
-import ch.inftec.ju.db.DbConnection;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
+import ch.inftec.ju.db.ConnectionInfo;
 import ch.inftec.ju.util.JuStringUtils;
 import ch.inftec.ju.util.persistable.GenericMemento.MementoAttribute;
 import ch.inftec.ju.util.persistable.GenericMementoUtils.GenericMementoBuilder;
@@ -24,18 +29,14 @@ import ch.inftec.ju.util.persistable.GenericMementoUtils.GenericMementoBuilder;
  *
  */
 public final class DbPersistenceStorage implements MementoStorage {
-	private final DbConnection dbConn;
+	@PersistenceContext
+	private EntityManager em;
+	
+	@Autowired
+	private ConnectionInfo connectionInfo; 
 	
 	public static final String ATTR_CONNECTION_NAME = ".connectionName";
 	public static final String ATTR_EXECUTION_TIME = ".executionTime";
-	
-	/**
-	 * Creates a new storage using the specified DbConnection.
-	 * @param dbConnection DbConnection
-	 */
-	public DbPersistenceStorage(DbConnection dbConnection) {
-		this.dbConn = dbConnection;
-	}
 	
 	@Override
 	public Long persistMemento(GenericMemento memento, String type) {
@@ -43,7 +44,7 @@ public final class DbPersistenceStorage implements MementoStorage {
 		
 		MementoObject mo = this.createMementoObject(memento, type);
 		
-		this.dbConn.getEntityManager().persist(mo);
+		this.em.persist(mo);
 		id = mo.getId();
 
 		return id;
@@ -51,7 +52,7 @@ public final class DbPersistenceStorage implements MementoStorage {
 	
 	@Override
 	public GenericMementoItem loadMemento(Long id) {
-		MementoObject mo = this.dbConn.getEntityManager().find(MementoObject.class, id);
+		MementoObject mo =this.em.find(MementoObject.class, id);
 		
 		GenericMementoBuilder builder = GenericMementoUtils.builder();
 		this.buildGenericMemento(mo, builder);
@@ -122,6 +123,6 @@ public final class DbPersistenceStorage implements MementoStorage {
 	@Override
 	public String toString() {
 		return JuStringUtils.toString(DbPersistenceStorage.class,
-				"connectionName", this.dbConn.getName());
+				"connectionName", this.connectionInfo.getName());
 	}
 }

@@ -8,10 +8,14 @@ import javax.persistence.Id;
 public class CustomObject {
 	@Id
 	@GeneratedValue
-	private long id;
+	private Long id;
 	
 	private String text;
 
+	public Long getId() {
+		return this.id;
+	}
+	
 	public String getText() {
 		return text;
 	}

@@ -23,6 +23,7 @@ import ch.inftec.ju.util.JuCollectionUtils;
  * @author tgdmemae
  *
  */
+@Deprecated
 class DbConnectionFactoryImpl implements DbConnectionFactory {	
 	/**
 	 * HashMap containing the connection's flags. The linked hash map makes sure the
@@ -82,8 +83,9 @@ class DbConnectionFactoryImpl implements DbConnectionFactory {
 
 	@Override
 	public DbConnection openDbConnection(String name) {
-		EntityManagerFactory emf = this.getEntityManagerFactory(name);
-		return new DbConnectionImpl(name, this.schemaNames.get(name), emf);
+		return null;
+//		EntityManagerFactory emf = this.getEntityManagerFactory(name);
+//		return new DbConnectionImpl(name, this.schemaNames.get(name), emf);
 	}
 
 	/**

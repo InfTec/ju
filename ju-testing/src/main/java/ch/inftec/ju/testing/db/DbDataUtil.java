@@ -4,6 +4,7 @@ import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.net.URL;
+import java.sql.Connection;
 
 import org.dbunit.Assertion;
 import org.dbunit.database.DatabaseConnection;
@@ -16,8 +17,10 @@ import org.dbunit.operation.DatabaseOperation;
 import org.eclipse.persistence.internal.oxm.record.DOMInputSource;
 import org.w3c.dom.Document;
 
-import ch.inftec.ju.db.DbConnection;
+import ch.inftec.ju.db.ConnectionInfo;
 import ch.inftec.ju.db.JuDbException;
+import ch.inftec.ju.util.IOUtil;
+import ch.inftec.ju.util.ReflectUtils;
 import ch.inftec.ju.util.XString;
 import ch.inftec.ju.util.xml.XmlOutputConverter;
 
@@ -33,12 +36,12 @@ public class DbDataUtil {
 	private final IDatabaseConnection iConnection;
 	
 	/**
-	 * Creates a new DbDataUtil instance using the specified DbConnection.
-	 * @param dbConnection DbConnection instance
+	 * Creates a new DbDataUtil instance using the specified Connection.
+	 * @param connection Connection instance
 	 */
-	public DbDataUtil(DbConnection dbConnection) {
+	public DbDataUtil(Connection connection, ConnectionInfo connectionInfo) {
 		try {
-			this.iConnection = new DatabaseConnection(dbConnection.getConnection(), dbConnection.getSchemaName());
+			this.iConnection = new DatabaseConnection(connection, connectionInfo.getSchema());
 		} catch (Exception ex) {
 			throw new JuDbException("Couldn't initialize DatabaseConnection", ex);
 		}
@@ -191,6 +194,16 @@ public class DbDataUtil {
 		
 		private ImportBuilder(IDatabaseConnection iConnection) {
 			this.iConnection = iConnection;
+		}
+		
+		/**
+		 * Imports DB data from the specified XML
+		 * @param resourcePath Resource path, either absolute or relative to the current class
+		 * @return ImportBuilder
+		 */
+		public ImportBuilder from(String resourcePath) {
+			URL url = IOUtil.getResourceURL(resourcePath, ReflectUtils.getCallingClass());
+			return from(url);
 		}
 		
 		/**

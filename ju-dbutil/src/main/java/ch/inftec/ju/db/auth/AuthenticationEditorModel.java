@@ -5,9 +5,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import ch.inftec.ju.db.DbConnection;
 import ch.inftec.ju.db.JuDbException;
-import ch.inftec.ju.db.JuDbUtils;
 import ch.inftec.ju.db.auth.entity.AuthRole;
 import ch.inftec.ju.db.auth.entity.AuthUser;
 import ch.inftec.ju.db.auth.repo.AuthUserRepo;
@@ -22,23 +20,24 @@ import ch.inftec.ju.util.JuCollectionUtils;
  *
  */
 public class AuthenticationEditorModel {
-	@Autowired
-	private DbConnection dbConn;
+//	@PersistenceContext
+//	private EntityManager em;
 	
 	@Autowired
 	private RoleProvider roleProvider;
+	
+	@Autowired
+	private AuthUserRepo userRepo;
+	
+	@Autowired
+	private AuthDao authDao;
 	
 	/**
 	 * Gets a list of all available users.
 	 * @return List of users, sorted by the UserName
 	 */
 	public List<AuthUser> getUsers() {
-		try {
-			AuthUserRepo userRepo = JuDbUtils.getJpaRepository(this.dbConn.getEntityManager(), AuthUserRepo.class);
-			return userRepo.findAll();
-		} finally {
-			this.dbConn.close();
-		}
+		return this.userRepo.findAll();
 	}
 	
 	/**
@@ -46,12 +45,7 @@ public class AuthenticationEditorModel {
 	 * @return List of user names, sorted alphabetically
 	 */
 	public List<String> getUserNames() {
-		try {
-			AuthUserRepo userRepo = JuDbUtils.getJpaRepository(this.dbConn.getEntityManager(), AuthUserRepo.class);
-			return userRepo.findAllNames();
-		} finally {
-			this.dbConn.close();
-		}
+		return this.userRepo.findAllNames();
 	}
 	
 	/**
@@ -66,12 +60,9 @@ public class AuthenticationEditorModel {
 		
 		AuthUser newUser = new AuthUser();
 		newUser.setName(userName);
-		try {
-			this.dbConn.getEntityManager().persist(newUser);
-			return newUser;
-		} finally {
-			this.dbConn.close();
-		}
+		this.userRepo.save(newUser);
+		
+		return newUser;
 	}
 	
 	/**
@@ -121,26 +112,20 @@ public class AuthenticationEditorModel {
 	public void setRoles(AuthUser user, List<String> roles) {
 		List<String> currentRoles = this.getRoles(user);
 		
-		try {
-			AuthDao authDao = new AuthDao(this.dbConn.getEntityManager());
-			
-			for (String role : JuCollectionUtils.emptyForNull(roles)) {
-				if (currentRoles.contains(role)) {
-					// Just leave the role as is
-					currentRoles.remove(role);
-					continue;
-				} else {
-					// Add the new role
-					authDao.addRole(user, role);
-				}
+		for (String role : JuCollectionUtils.emptyForNull(roles)) {
+			if (currentRoles.contains(role)) {
+				// Just leave the role as is
+				currentRoles.remove(role);
+				continue;
+			} else {
+				// Add the new role
+				this.authDao.addRole(user, role);
 			}
-			
-			// Remove any remaining role the user had previously
-			for (String role : JuCollectionUtils.emptyForNull(currentRoles)) {
-				authDao.removeRole(user, role);
-			}
-		} finally {
-			this.dbConn.close();
+		}
+		
+		// Remove any remaining role the user had previously
+		for (String role : JuCollectionUtils.emptyForNull(currentRoles)) {
+			this.authDao.removeRole(user, role);
 		}
 	}
 }

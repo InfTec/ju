@@ -1,13 +1,15 @@
 package ch.inftec.ju.db.auth.entity;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
+import javax.persistence.OrderBy;
 
 import ch.inftec.ju.db.AbstractPersistenceObject;
 import ch.inftec.ju.util.JuStringUtils;
@@ -26,8 +28,12 @@ public class AuthRole extends AbstractPersistenceObject implements Comparable<Au
 	@Column(unique=true, nullable=false)
 	private String name;
 	
-	@ManyToMany(mappedBy="roles")
-	private Set<AuthUser> users = new HashSet<>();
+	// Note: JPA only supports Set, but EclipseLink will allow TreeSet (as long as it
+	// can instantiate it - SortedSet wouldn't work...)
+	// We have to fetch eagerly, though...
+	@ManyToMany(mappedBy="roles", fetch=FetchType.EAGER)
+	@OrderBy("name")
+	private TreeSet<AuthUser> users = new TreeSet<>();
 
 	public Long getId() {
 		return id;
@@ -45,7 +51,7 @@ public class AuthRole extends AbstractPersistenceObject implements Comparable<Au
 		this.name = name;
 	}
 
-	public Set<AuthUser> getUsers() {
+	public SortedSet<AuthUser> getUsers() {
 		return users;
 	}
 
