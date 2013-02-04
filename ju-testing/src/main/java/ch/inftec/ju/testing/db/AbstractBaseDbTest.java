@@ -4,10 +4,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceContext;
 import javax.sql.DataSource;
 
-import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -93,7 +93,7 @@ public abstract class AbstractBaseDbTest {
 	 */
 	@PersistenceContext
 	protected EntityManager em;
-
+	
 	@Autowired
 	private DataSource dataSource;
 	
@@ -163,6 +163,8 @@ public abstract class AbstractBaseDbTest {
 	 * has been modified outside the EntityManager.
 	 */
 	protected final void reInitConnection(boolean evictCache) {
+		this.em.clear();
+		if (evictCache) this.em.getEntityManagerFactory().getCache().evictAll();
 //		try {
 //			this.closeConnection();
 //			this.dbConn = this.openDbConnection();
