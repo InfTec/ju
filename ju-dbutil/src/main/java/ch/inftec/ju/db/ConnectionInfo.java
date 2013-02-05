@@ -9,7 +9,7 @@ import javax.swing.Icon;
  * @author Martin
  *
  */
-public interface ConnectionInfo {
+public interface ConnectionInfo extends Comparable<ConnectionInfo> {
 	/**
 	 * Gets the (human readable) name for the connection. That is the logic name
 	 * that can be displayed in an application and does not have to be relatec to the

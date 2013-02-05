@@ -4,6 +4,8 @@ import java.awt.Image;
 
 import javax.swing.Icon;
 
+import org.apache.commons.lang3.ObjectUtils;
+
 /**
  * Class containing connection information to connect to an
  * Oracle database.
@@ -111,5 +113,10 @@ public class ConnectionInfoImpl implements ConnectionInfo {
 	@Override
 	public String toString() {
 		return this.getName();
+	}
+	
+	@Override
+	public int compareTo(ConnectionInfo o) {
+		return ObjectUtils.compare(this.getName(), o == null ? null : o.getName());
 	}
 }
