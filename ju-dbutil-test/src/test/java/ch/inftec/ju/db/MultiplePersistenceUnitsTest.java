@@ -5,11 +5,16 @@ import javax.persistence.PersistenceContext;
 
 import junit.framework.Assert;
 
+import org.eclipse.persistence.sessions.server.ServerSession;
+import org.eclipse.persistence.tools.schemaframework.SchemaManager;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
+
+import ch.inftec.ju.testing.db.data.entity.Team;
+import ch.inftec.ju.testing.db.data.repo.TeamRepo;
 
 /**
  * Test class to see how multiple persistenceUnits and dataSources (including
@@ -22,11 +27,51 @@ public class MultiplePersistenceUnitsTest {
 		@PersistenceContext
 		private EntityManager entityManager;
 		
+		@Autowired
+		private TeamRepo teamRepo;
+		
+		@Transactional // Must be transactional to unwrap session
 		public void createDb() {
-			// MetaModel will trigger DB creation
-			this.entityManager.getMetamodel();
+			ServerSession s = this.entityManager.unwrap(ServerSession.class);
+			SchemaManager sm = new SchemaManager(s);
+			sm.createDefaultTables(true);
 		}
 		
+		public int teamCount() {
+			return (int) this.teamRepo.count();
+		}
+		
+		public String teamName(Long id) {
+			return this.teamRepo.findOne(id).getName();
+		}
+		
+		public Long insertTeam(String name, boolean throwException) {
+			Long id = this.doInsertTeam(name);
+			
+			if (throwException) {
+				throw new RuntimeException("No Rollback");
+			}
+			
+			return id;
+		}
+		
+		@Transactional
+		public Long insertTeamTx(String name, boolean throwException) {
+			Long id = this.doInsertTeam(name);
+			
+			if (throwException) {
+				throw new RuntimeException("Rollback");
+			}
+			
+			return id;
+		}
+		
+		private Long doInsertTeam(String name) {
+			Team t = new Team();
+			t.setName(name);
+			this.teamRepo.save(t);
+			return t.getId();
+		}
 	}
 	
 	/**
@@ -77,8 +122,11 @@ public class MultiplePersistenceUnitsTest {
 	@Test
 	public void multiplePersistenceUnits() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("classpath:/ch/inftec/ju/db/MultiplePersistenceUnitsTest-context.xml");
+		
 		EntityManagerTest entityManagerTest = context.getBean(EntityManagerTest.class);
 		entityManagerTest.createDb();
+		
+		// JDBC tests
 		
 		JdbcTemplateTest jdbcTemplateTest = context.getBean(JdbcTemplateTest.class);
 		
@@ -104,6 +152,29 @@ public class MultiplePersistenceUnitsTest {
 			Assert.assertEquals("No Rollback", ex.getMessage());
 		}
 		Assert.assertEquals("Team-3-noRb", jdbcTemplateTest.teamName(-3L));
+		
+		// EntityManager tests
+		Assert.assertEquals("Team-1", entityManagerTest.teamName(-1L));
+		Assert.assertEquals(3, entityManagerTest.teamCount());
+		
+		// Access Team DB (with transaction, with and without rollback)
+		try {
+			entityManagerTest.insertTeamTx("Team-2-rb", true);
+		} catch (RuntimeException ex) {
+			Assert.assertEquals("Rollback", ex.getMessage());			
+		}
+		Assert.assertEquals(3, entityManagerTest.teamCount());
+		Long et2 = entityManagerTest.insertTeamTx("Team-2", false);
+		Assert.assertEquals("Team-2", jdbcTemplateTest.teamName(et2));
+		Assert.assertEquals(4, jdbcTemplateTest.teamCount());
+		
+		// Try access with exception and no transaction
+		try {
+			entityManagerTest.insertTeam("Team-3-noRb", true);
+		} catch (RuntimeException ex) {
+			Assert.assertEquals("No Rollback", ex.getMessage());
+		}
+		Assert.assertEquals(5, jdbcTemplateTest.teamCount());
 		
 		context.close();
 	}
