@@ -127,4 +127,5 @@
 	<bean id="entityManagerTest" class="ch.inftec.ju.db.MultiplePersistenceUnitsTest.EntityManagerTest"/>
 	<bean id="jdbcTemplateTest" class="ch.inftec.ju.db.MultiplePersistenceUnitsTest.JdbcTemplateTest"/>
 	<bean id="entityManagerTestingEntityTest" class="ch.inftec.ju.db.MultiplePersistenceUnitsTest.EntityManagerTestingEntityTest"/>
+	<bean id="inheritingEntityManagerTest" class="ch.inftec.ju.db.MultiplePersistenceUnitsTest.InheritingEntityManagerTest"/>
 </beans>

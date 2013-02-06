@@ -20,6 +20,9 @@ import ch.inftec.ju.testing.db.data.repo.TestingEntityRepo;
 /**
  * Test class to see how multiple persistenceUnits and dataSources (including
  * the corresponding transactions) are handled.
+ * <p>
+ * Note: Even though one can have multiple PersistenceUnits defined, one need to explicitly
+ * define which one to inject EVERY TIME a PersistenceContext is used.
  * @author Martin
  *
  */
@@ -82,17 +85,26 @@ public class MultiplePersistenceUnitsTest {
 		@Autowired
 		private TestingEntityRepo testingEntityRepo;
 		
+		@Autowired
+		private InheritingEntityManagerTest inheritingEmTest;
+		
 		public int testingEntityCount() {
 			return (int) this.testingEntityRepo.count();
 		}
+		
+		public int inheritedTestingEntityCount() {
+			return this.inheritingEmTest.testingEntityCount();
+		}
 	}
 	
-//	public static class InheritingEntityManagerTest {
-//		@PersistenceContext
-//		private EntityManager entityManager;
-//		
-//		public 
-//	}
+	public static class InheritingEntityManagerTest {
+		@PersistenceContext(unitName="TestingEntity PU") // PersistenceContext is not "inherited"...
+		private EntityManager entityManager;
+		
+		public int testingEntityCount() {
+			return (int) this.entityManager.createQuery("select t from TestingEntity t").getResultList().size();
+		} 
+	}
 	
 	/**
 	 * JdbcTemplate tests, using raw SQL
@@ -199,6 +211,9 @@ public class MultiplePersistenceUnitsTest {
 		// Test different PersistenceUnit
 		EntityManagerTestingEntityTest emTeTest = context.getBean(EntityManagerTestingEntityTest.class);
 		Assert.assertEquals(0, emTeTest.testingEntityCount());
+		
+		// Test EntityManager inheritance
+		Assert.assertEquals(0, emTeTest.inheritedTestingEntityCount());
 		
 		context.close();
 	}
