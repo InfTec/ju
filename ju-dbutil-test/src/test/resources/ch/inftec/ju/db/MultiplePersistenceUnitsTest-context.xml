@@ -28,12 +28,6 @@
 	<!-- Define persistence.xml, URL and PersistenceUnitName and so on... -->
 	
 	<!-- DB1 (TeamPlayer DB) -->
-	<bean id="persistenceXmlPathTeamPlayer" class="java.lang.String">
-		<constructor-arg type="java.lang.String" value="classpath:ch/inftec/ju/db/MultiplePersistenceUnitsTest-persistence.xml"/>
-	</bean>
-	<bean id="persistenceUnitTeamPlayer" class="java.lang.String">
-		<constructor-arg type="java.lang.String" value="TeamPlayer PU"/>
-	</bean>
 	<bean id="connectionInfoTeamPlayer" class="ch.inftec.ju.db.ConnectionInfoImpl">
 		<property name="name" value="TeamPlayer DB"/>
 		<property name="connectionString" value="jdbc:derby:memory:multiplePuTestTeamPlayer;create=true"/>
@@ -54,8 +48,8 @@
 	<bean id="entityManagerFactoryTeamPlayer"
 		class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
 		<property name="dataSource" ref="dataSourceTeamPlayer"/>
-		<property name="persistenceXmlLocation" value="#{persistenceXmlPathTeamPlayer}"/>
-		<property name="persistenceUnitName" value="#{persistenceUnitTeamPlayer}"/>
+		<property name="persistenceXmlLocation" value="classpath:ch/inftec/ju/db/MultiplePersistenceUnitsTest-persistence.xml"/>
+		<property name="persistenceUnitName" value="TeamPlayer PU"/>
 		
 		<property name="jpaVendorAdapter">
 			<bean class="org.springframework.orm.jpa.vendor.EclipseLinkJpaVendorAdapter"/>
@@ -64,16 +58,15 @@
 
 	<!-- Define the TransactionManager -->
 	<bean id="transactionManager"
-		class="org.springframework.orm.jpa.JpaTransactionManager"/>
+		class="org.springframework.orm.jpa.JpaTransactionManager">
+		<property name="entityManagerFactory" ref="entityManagerFactoryTeamPlayer"/>
+	</bean>
 	
 	<!-- Define JdbcTemplate -->
 	<bean id="jdbcTemplateTeamPlayer"
 		class="org.springframework.jdbc.core.JdbcTemplate">
 		<property name="dataSource" ref="dataSourceTeamPlayer"/>	
 	</bean>
-
-	<!-- Define JuDbUtils -->
-	<bean id="juDbUtils" class="ch.inftec.ju.db.JuDbUtils"/>
 
 	<!-- Define Repositories -->
 	<jpa:repositories 
@@ -82,7 +75,56 @@
 		<repository:exclude-filter type="assignable" expression="ch.inftec.ju.testing.db.data.repo.TestingEntityRepo"/>
 	</jpa:repositories>
 	
+	<!-- DB2 (TestingEntity DB) -->
+	<bean id="connectionInfoTestingEntity" class="ch.inftec.ju.db.ConnectionInfoImpl">
+		<property name="name" value="TestingEntity DB"/>
+		<property name="connectionString" value="jdbc:derby:memory:multiplePuTestTestingEntity;create=true"/>
+		<property name="userName" value="sa"/>
+		<property name="password" value=""/>
+	</bean>
+		
+	<bean id="dataSourceTestingEntity" 
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource" primary="true">
+		
+		<property name="url" value="#{connectionInfoTestingEntity.connectionString}" />
+		<property name="username" value="#{connectionInfoTestingEntity.userName}" />
+		<property name="password" value="#{connectionInfoTestingEntity.password}" />
+	</bean>
+
+	<bean id="entityManagerFactoryTestingEntity"
+		class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+		<property name="dataSource" ref="dataSourceTestingEntity"/>
+		<property name="persistenceXmlLocation" value="classpath:ch/inftec/ju/db/MultiplePersistenceUnitsTest-persistence.xml"/>
+		<property name="persistenceUnitName" value="TestingEntity PU"/>
+		
+		<property name="jpaVendorAdapter">
+			<bean class="org.springframework.orm.jpa.vendor.EclipseLinkJpaVendorAdapter"/>
+		</property>
+	</bean>
+
+<!-- 	<bean id="transactionManagerTestingEntity" -->
+<!-- 		class="org.springframework.orm.jpa.JpaTransactionManager"> -->
+<!-- 		<property name="entityManagerFactory" ref="entityManagerFactoryTestingEntity"/> -->
+<!-- 	</bean> -->
+	
+<!-- 	<bean id="jdbcTemplateTestingEntity" -->
+<!-- 		class="org.springframework.jdbc.core.JdbcTemplate"> -->
+<!-- 		<property name="dataSource" ref="dataSourceTestingEntity"/>	 -->
+<!-- 	</bean> -->
+
+	<jpa:repositories 
+			base-package="ch.inftec.ju.testing.db.data.repo"
+			entity-manager-factory-ref="entityManagerFactoryTestingEntity">
+		<repository:exclude-filter type="assignable" expression="ch.inftec.ju.testing.db.data.repo.PlayerRepo"/>
+		<repository:exclude-filter type="assignable" expression="ch.inftec.ju.testing.db.data.repo.TeamRepo"/>
+	</jpa:repositories>
+
+	<!-- Define JuDbUtils 
+	<bean id="juDbUtils" class="ch.inftec.ju.db.JuDbUtils">
+		<propert-->
+	
 	<!-- Define test beans -->
 	<bean id="entityManagerTest" class="ch.inftec.ju.db.MultiplePersistenceUnitsTest.EntityManagerTest"/>
 	<bean id="jdbcTemplateTest" class="ch.inftec.ju.db.MultiplePersistenceUnitsTest.JdbcTemplateTest"/>
+	<bean id="entityManagerTestingEntityTest" class="ch.inftec.ju.db.MultiplePersistenceUnitsTest.EntityManagerTestingEntityTest"/>
 </beans>

@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import ch.inftec.ju.testing.db.data.entity.Team;
 import ch.inftec.ju.testing.db.data.repo.TeamRepo;
+import ch.inftec.ju.testing.db.data.repo.TestingEntityRepo;
 
 /**
  * Test class to see how multiple persistenceUnits and dataSources (including
@@ -24,7 +25,7 @@ import ch.inftec.ju.testing.db.data.repo.TeamRepo;
  */
 public class MultiplePersistenceUnitsTest {
 	public static class EntityManagerTest {
-		@PersistenceContext
+		@PersistenceContext(unitName="TeamPlayer PU")
 		private EntityManager entityManager;
 		
 		@Autowired
@@ -74,20 +75,39 @@ public class MultiplePersistenceUnitsTest {
 		}
 	}
 	
+	public static class EntityManagerTestingEntityTest {
+		@PersistenceContext(unitName="TestingEntity PU")
+		private EntityManager entityManager;
+		
+		@Autowired
+		private TestingEntityRepo testingEntityRepo;
+		
+		public int testingEntityCount() {
+			return (int) this.testingEntityRepo.count();
+		}
+	}
+	
+//	public static class InheritingEntityManagerTest {
+//		@PersistenceContext
+//		private EntityManager entityManager;
+//		
+//		public 
+//	}
+	
 	/**
 	 * JdbcTemplate tests, using raw SQL
 	 * @author Martin
 	 *
 	 */
 	public static class JdbcTemplateTest {
-		@PersistenceContext
+		@PersistenceContext(unitName="TeamPlayer PU")
 		private EntityManager entityManager;
 		
 		@Autowired
 		private JdbcTemplate jdbcTemplate;
 		
-		@Autowired
-		private JuDbUtils juDbUtils;
+//		@Autowired
+//		private JuDbUtils juDbUtils;
 		
 		public int teamCount() {
 			return jdbcTemplate.queryForInt("select count(*) from Team");
@@ -175,6 +195,10 @@ public class MultiplePersistenceUnitsTest {
 			Assert.assertEquals("No Rollback", ex.getMessage());
 		}
 		Assert.assertEquals(5, jdbcTemplateTest.teamCount());
+		
+		// Test different PersistenceUnit
+		EntityManagerTestingEntityTest emTeTest = context.getBean(EntityManagerTestingEntityTest.class);
+		Assert.assertEquals(0, emTeTest.testingEntityCount());
 		
 		context.close();
 	}

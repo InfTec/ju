@@ -12,9 +12,6 @@
 		<class>ch.inftec.ju.testing.db.data.entity.Player</class>
 
 		<properties>
-			<!-- Use EclipseLink specific SessionCustomizer to set cache for sequence tables to 1 to be able to predict primary key IDs -->
-			<property name="eclipselink.session.customizer" value="ch.inftec.ju.testing.db.EclipseLinkSessionCustomizer"/>
-
 			<property name="eclipselink.target-database" value="Derby" />
 			<property name="eclipselink.ddl-generation" value="create-tables" />
 			<property name="eclipselink.logging.level.sql" value="FINE"/>
@@ -25,24 +22,22 @@
 
 		</properties>
 	</persistence-unit>
-	
+
 	<persistence-unit name="TestingEntity PU">
 		<provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
 
 		<class>ch.inftec.ju.testing.db.data.entity.TestingEntity</class>
 
 		<properties>
-			<!-- Use EclipseLink specific SessionCustomizer to set cache for sequence tables to 1 to be able to predict primary key IDs -->
-			<property name="eclipselink.session.customizer" value="ch.inftec.ju.testing.db.EclipseLinkSessionCustomizer"/>
-
 			<property name="eclipselink.target-database" value="Derby" />
 			<property name="eclipselink.ddl-generation" value="create-tables" />
 			<property name="eclipselink.logging.level.sql" value="FINE"/>
  			<property name="eclipselink.logging.parameters" value="true"/>
- 			<property name="eclipselink.weaving" value="false"/> <!-- TODO: Try to enable weaving -->
+ 			<property name="eclipselink.weaving" value="false"/>
 
 			<property name="javax.persistence.jdbc.driver" value="org.apache.derby.jdbc.EmbeddedDriver" />
 
 		</properties>
 	</persistence-unit>
+	 -->
 </persistence>
