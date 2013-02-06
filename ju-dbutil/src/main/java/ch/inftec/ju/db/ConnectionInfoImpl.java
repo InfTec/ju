@@ -6,6 +6,8 @@ import javax.swing.Icon;
 
 import org.apache.commons.lang3.ObjectUtils;
 
+import ch.inftec.ju.util.JuStringUtils;
+
 /**
  * Class containing connection information to connect to an
  * Oracle database.
@@ -112,7 +114,7 @@ public class ConnectionInfoImpl implements ConnectionInfo {
 
 	@Override
 	public String toString() {
-		return this.getName();
+		return JuStringUtils.toString(this, "name", this.getName());
 	}
 	
 	@Override

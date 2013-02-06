@@ -34,9 +34,9 @@ import ch.inftec.ju.util.JuObjectUtils;
 public class JuDbUtils {
 	// TODO: Refactor, remove Apache DbUtils...
 	static Logger log = LoggerFactory.getLogger(JuDbUtils.class);
-	
+
 	@Autowired
-	private DataSource dataSource;
+	private DataSource dataSource;	
 	
 	@Autowired
 	private ConnectionInfo connectionInfo;
