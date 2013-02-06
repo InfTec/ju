@@ -13,10 +13,8 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.transaction.NoTransactionException;
-import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import ch.inftec.ju.testing.db.data.entity.Team;
@@ -85,6 +83,17 @@ public class MultiplePersistenceUnitsTest {
 			return id;
 		}
 		
+		@Transactional(propagation=Propagation.REQUIRES_NEW)
+		public Long insertTeamNewTx(String name, boolean throwException) {
+			Long id = this.doInsertTeam(name);
+			
+			if (throwException) {
+				throw new RuntimeException("Rollback");
+			}
+			
+			return id;
+		}
+		
 		@Transactional
 		public void tryToSwitchConnectionInfoBetweenTx(ConnectionInfo connectionInfo) {
 			this.insertTeam("switchTest1", false);
@@ -98,6 +107,11 @@ public class MultiplePersistenceUnitsTest {
 			this.insertTeam("switchTest3", false);
 		}
 		
+		@Transactional
+		public Long tryToSwitchConnectionInfoForNewTransactionTx(ConnectionInfo connectionInfo) {
+			ConnectionInfoContextHolder.setConnectionInfo(connectionInfo);
+			return this.insertTeamNewTx("switchTestNewTx", false);
+		}
 		
 		public boolean transactionStatusTest() {
 			return TransactionSynchronizationManager.isActualTransactionActive();
@@ -297,6 +311,10 @@ public class MultiplePersistenceUnitsTest {
 		// Check if the object was created in ci2
 		ConnectionInfoContextHolder.setConnectionInfo(ci2);
 		Assert.assertTrue(entityManagerTest.exists("switchTest3"));
+		
+		// Try to switch DB for a new transaction
+		Long etDb1b = entityManagerTest.tryToSwitchConnectionInfoForNewTransactionTx(ci1);
+		Assert.assertEquals("switchTestNewTx", entityManagerTest.teamName(etDb1b));
 		
 		// Check transaction status
 		Assert.assertFalse(entityManagerTest.transactionStatusTest());

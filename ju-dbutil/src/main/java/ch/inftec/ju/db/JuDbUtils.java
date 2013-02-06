@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.support.DatabaseMetaDataCallback;
 import org.springframework.jdbc.support.JdbcUtils;
 import org.springframework.jdbc.support.MetaDataAccessException;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import ch.inftec.ju.util.IOUtil;
 import ch.inftec.ju.util.JuObjectUtils;
@@ -40,6 +41,14 @@ public class JuDbUtils {
 	
 	@Autowired
 	private ConnectionInfo connectionInfo;
+	
+	/**
+	 * Gets whether a Spring transaction is active in our current context.
+	 * @return True if we are within a Spring transaction, false if we're not.
+	 */
+	public static boolean isSpringTransactionActive() {
+		return TransactionSynchronizationManager.isActualTransactionActive();
+	}
 	
 	/**
 	 * Commits and closes a connection.
