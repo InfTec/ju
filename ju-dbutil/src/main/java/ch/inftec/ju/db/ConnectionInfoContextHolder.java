@@ -33,6 +33,25 @@ public class ConnectionInfoContextHolder {
 		contextHolder.set(connectionInfo);
 	}
 
+	/**
+	 * Sets the ConnectionInfo to be used by its name. If it doesn't exist, a
+	 * runtime exception is thrown
+	 * <p>
+	 * If we set the ConnectionInfo within a transaction, it will be applied to the next
+	 * Transaction that is started - or to any database interaction without a transaction.
+	 * @param connectionInfoName New ConnectionInfo name
+	 */
+	public static void setConnectionInfoByName(String connectionInfoName) {
+		for (ConnectionInfo connectionInfo : availableConnectionInfos) {
+			if (connectionInfoName.equals(connectionInfo.getName())) {
+				ConnectionInfoContextHolder.setConnectionInfo(connectionInfo);
+				return;
+			}
+		}
+		
+		throw new JuDbException("No ConnectionInfo available by the name " + connectionInfoName);
+	}
+	
 	public static ConnectionInfo getConnectionInfo() {
 		return contextHolder.get();
 	}

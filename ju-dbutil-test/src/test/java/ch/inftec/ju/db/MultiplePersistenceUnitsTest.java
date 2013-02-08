@@ -314,6 +314,7 @@ public class MultiplePersistenceUnitsTest {
 		
 		// Try to switch DB for a new transaction
 		Long etDb1b = entityManagerTest.tryToSwitchConnectionInfoForNewTransactionTx(ci1);
+		// The new transaction will indeed use the new ConnectionInfo...
 		Assert.assertEquals("switchTestNewTx", entityManagerTest.teamName(etDb1b));
 		
 		// Check transaction status
