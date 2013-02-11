@@ -1,11 +1,13 @@
 package ch.inftec.ju.db;
 
 import java.awt.Image;
+import java.net.URL;
 
 import javax.swing.Icon;
 
 import org.apache.commons.lang3.ObjectUtils;
 
+import ch.inftec.ju.util.GuiUtils;
 import ch.inftec.ju.util.JuStringUtils;
 
 /**
@@ -102,6 +104,10 @@ public class ConnectionInfoImpl implements ConnectionInfo {
 	public void setIcon(Icon icon) {
 		this.icon = icon;
 	}
+	
+	public void setIconUrl(URL iconUrl) {
+		this.icon = GuiUtils.loadIconResource(iconUrl);
+	}
 
 	@Override
 	public Image getImage() {
@@ -110,6 +116,10 @@ public class ConnectionInfoImpl implements ConnectionInfo {
 
 	public void setImage(Image image) {
 		this.image = image;
+	}
+	
+	public void setImageUrl(URL imageUrl) {
+		this.image = GuiUtils.loadIconResource(imageUrl).getImage();
 	}
 
 	@Override

@@ -74,4 +74,17 @@ public class ConnectionInfoContextHolder {
 	public static Set<ConnectionInfo> getAvailableConnectionInfos() {
 		return availableConnectionInfos;
 	}
+	
+	/**
+	 * Checks if the ConnectionInfo with the specified name is available.
+	 * @param name Name of the ConnectionInfo
+	 * @return True if the ConnectionInfo exists, false otherwise
+	 */
+	public static boolean hasConnectionInfo(String name) {
+		for (ConnectionInfo connectionInfo : getAvailableConnectionInfos()) {
+			if (connectionInfo.getName().equals(name)) return true;
+		}
+		
+		return false;
+	}
 }

@@ -14,6 +14,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
+import ch.inftec.ju.db.JuDbUtils;
 import ch.inftec.ju.db.auth.UnknownUserHandler.NewUserInfo;
 import ch.inftec.ju.db.auth.entity.AuthRole;
 import ch.inftec.ju.db.auth.entity.AuthUser;
@@ -43,9 +44,6 @@ public class JuUserDetailsService implements UserDetailsService {
 	@PersistenceContext
 	private EntityManager em;
 	
-	@Autowired
-	private AuthUserRepo authUserRepo;
-	
 	@Autowired(required=false)
 	private UnknownUserHandler unknownUserHandler;
 	
@@ -54,7 +52,9 @@ public class JuUserDetailsService implements UserDetailsService {
 	
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-		AuthUser authUser = this.authUserRepo.getByName(username);
+		AuthUserRepo authUserRepo = JuDbUtils.getJpaRepository(this.em, AuthUserRepo.class);
+		
+		AuthUser authUser = authUserRepo.getByName(username);
 		
 		if (authUser == null) {
 			if (this.unknownUserHandler != null) {
@@ -63,7 +63,7 @@ public class JuUserDetailsService implements UserDetailsService {
 				if (newUserInfo != null) {
 					// Create the user
 					authUser = new AuthUser();
-					this.authUserRepo.save(authUser);
+					authUserRepo.save(authUser);
 					authUser.setName(username);
 					authUser.setPassword(newUserInfo.getPassword());
 					for (String newAuth : newUserInfo.getAuthorities()) {

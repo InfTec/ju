@@ -10,12 +10,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.persistence.EntityManager;
 import javax.sql.DataSource;
 
 import org.apache.commons.dbutils.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
 import org.springframework.jdbc.support.DatabaseMetaDataCallback;
 import org.springframework.jdbc.support.JdbcUtils;
 import org.springframework.jdbc.support.MetaDataAccessException;
@@ -48,6 +50,17 @@ public class JuDbUtils {
 	 */
 	public static boolean isSpringTransactionActive() {
 		return TransactionSynchronizationManager.isActualTransactionActive();
+	}
+	
+	/**
+	 * Gets the specified JpaRepository interface.
+	 * @param em Backing EntityManager
+	 * @param repositoryClass Repository interface class
+	 * @return JPA repository interface
+	 */
+	public static <T> T getJpaRepository(EntityManager em, Class<T> repositoryClass) {
+		JpaRepositoryFactory repositoryFactory = new JpaRepositoryFactory(em);
+		return repositoryFactory.getRepository(repositoryClass);
 	}
 	
 	/**

@@ -83,6 +83,16 @@ public final class GuiUtils {
 	}
 
 	/**
+	 * Loads an icon by an URL.
+	 * @param resourceUrl URL to the icon
+	 * @return
+	 */
+	public static ImageIcon loadIconResource(URL resourceUrl) {
+		ImageIcon icon = new ImageIcon(resourceUrl);
+		return icon;
+	}
+	
+	/**
 	 * Loads the icon in the specified resource.
 	 * @param resourcePath File name of the icon's resource, relative to the calling class
 	 * @return ImageIcon instance
@@ -108,8 +118,7 @@ public final class GuiUtils {
 		if (url == null) {
 			throw new IllegalArgumentException("Icon resource not found: " + resourcePath + " (relative to " + relativeClass + ")");
 		} else {
-			ImageIcon icon = new ImageIcon(url);
-			return icon;
+			return GuiUtils.loadIconResource(url);
 		}
 	}
 	
