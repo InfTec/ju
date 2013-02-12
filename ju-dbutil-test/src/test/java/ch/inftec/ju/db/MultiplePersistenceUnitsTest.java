@@ -39,6 +39,9 @@ public class MultiplePersistenceUnitsTest {
 		@Autowired
 		private TeamRepo teamRepo;
 		
+		@Autowired
+		private ConnectionInfoContextHolder contextHolder;
+		
 		@Transactional // Must be transactional to unwrap session
 		public void createDb() {
 			ServerSession s = this.entityManager.unwrap(ServerSession.class);
@@ -97,19 +100,19 @@ public class MultiplePersistenceUnitsTest {
 		@Transactional
 		public void tryToSwitchConnectionInfoBetweenTx(ConnectionInfo connectionInfo) {
 			this.insertTeam("switchTest1", false);
-			ConnectionInfoContextHolder.setConnectionInfo(connectionInfo);
+			this.contextHolder.setConnectionInfo(connectionInfo);
 			this.insertTeam("switchTest2", false);
 		}
 		
 		@Transactional
 		public void tryToSwitchConnectionInfoBeforeTx(ConnectionInfo connectionInfo) {
-			ConnectionInfoContextHolder.setConnectionInfo(connectionInfo);
+			this.contextHolder.setConnectionInfo(connectionInfo);
 			this.insertTeam("switchTest3", false);
 		}
 		
 		@Transactional
 		public Long tryToSwitchConnectionInfoForNewTransactionTx(ConnectionInfo connectionInfo) {
-			ConnectionInfoContextHolder.setConnectionInfo(connectionInfo);
+			this.contextHolder.setConnectionInfo(connectionInfo);
 			return this.insertTeamNewTx("switchTestNewTx", false);
 		}
 		
@@ -171,6 +174,9 @@ public class MultiplePersistenceUnitsTest {
 		private EntityManager entityManager;
 		
 		@Autowired
+		private ConnectionInfoContextHolder contextHolder;
+		
+		@Autowired
 		private JdbcTemplate jdbcTemplate;
 		
 //		@Autowired
@@ -209,6 +215,7 @@ public class MultiplePersistenceUnitsTest {
 	@Test
 	public void multiplePersistenceUnits() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("classpath:/ch/inftec/ju/db/MultiplePersistenceUnitsTest-context.xml");
+		ConnectionInfoContextHolder contextHolder = context.getBean(ConnectionInfoContextHolder.class);
 		
 		EntityManagerTest entityManagerTest = context.getBean(EntityManagerTest.class);
 		entityManagerTest.createDb();
@@ -271,7 +278,7 @@ public class MultiplePersistenceUnitsTest {
 		Assert.assertEquals(0, emTeTest.inheritedTestingEntityCount());
 		
 		// Test DataSource switching
-		List<ConnectionInfo> availableConnections = JuCollectionUtils.asList(ConnectionInfoContextHolder.getAvailableConnectionInfos());
+		List<ConnectionInfo> availableConnections = JuCollectionUtils.asList(contextHolder.getAvailableConnectionInfos());
 		ConnectionInfo ci1 = availableConnections.get(0);
 		ConnectionInfo ci2 = availableConnections.get(1);
 		
@@ -279,12 +286,12 @@ public class MultiplePersistenceUnitsTest {
 		Assert.assertEquals("TeamPlayer DB2", ci2.getName());
 		
 		// Insert Entity in DB1
-		ConnectionInfoContextHolder.setConnectionInfo(ci1);
+		contextHolder.setConnectionInfo(ci1);
 		Long etDb1a = entityManagerTest.insertTeam("DB1 a", false);
 		Assert.assertEquals("DB1 a", entityManagerTest.teamName(etDb1a));
 		
 		// Switch to DB2 and make sure it isn't there
-		ConnectionInfoContextHolder.setConnectionInfo(ci2);
+		contextHolder.setConnectionInfo(ci2);
 		entityManagerTest.createDb();
 		Assert.assertFalse(entityManagerTest.exists(etDb1a));
 		
@@ -300,7 +307,7 @@ public class MultiplePersistenceUnitsTest {
 		Assert.assertFalse(entityManagerTest.exists("switchTest2"));
 		
 		// Check if the objects have been created in ci2
-		ConnectionInfoContextHolder.setConnectionInfo(ci2);
+		contextHolder.setConnectionInfo(ci2);
 		Assert.assertTrue(entityManagerTest.exists("switchTest1"));
 		Assert.assertTrue(entityManagerTest.exists("switchTest2"));
 
@@ -309,7 +316,7 @@ public class MultiplePersistenceUnitsTest {
 		// change the DataSource within a transactional method...
 		Assert.assertFalse(entityManagerTest.exists("switchTest3"));
 		// Check if the object was created in ci2
-		ConnectionInfoContextHolder.setConnectionInfo(ci2);
+		contextHolder.setConnectionInfo(ci2);
 		Assert.assertTrue(entityManagerTest.exists("switchTest3"));
 		
 		// Try to switch DB for a new transaction

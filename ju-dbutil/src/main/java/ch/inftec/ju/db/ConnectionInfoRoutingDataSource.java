@@ -9,14 +9,18 @@ import javax.sql.DataSource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
 
 public class ConnectionInfoRoutingDataSource extends AbstractRoutingDataSource {
 	final Logger logger = LoggerFactory.getLogger(ConnectionInfoRoutingDataSource.class);
 	
+	@Autowired
+	private ConnectionInfoContextHolder contextHolder;
+	
 	@Override
 	protected Object determineCurrentLookupKey() {
-		ConnectionInfo connectionInfo = ConnectionInfoContextHolder.getConnectionInfo();
+		ConnectionInfo connectionInfo = this.contextHolder.getConnectionInfo();
 		logger.debug("Determining lookup key -> " + connectionInfo);
 		
 		return connectionInfo;
@@ -26,7 +30,7 @@ public class ConnectionInfoRoutingDataSource extends AbstractRoutingDataSource {
 	@SuppressWarnings("unchecked")
 	public void setTargetDataSources(@SuppressWarnings("rawtypes") Map targetDataSources) {
 		Set<ConnectionInfo> connectionInfos = targetDataSources.keySet();
-		ConnectionInfoContextHolder.setAvailableConnectionInfos(connectionInfos);
+		this.contextHolder.setAvailableConnectionInfos(connectionInfos);
 		
 		super.setTargetDataSources(targetDataSources);
 	}

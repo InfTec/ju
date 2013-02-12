@@ -5,6 +5,7 @@ import java.awt.Image;
 import javax.swing.Icon;
 
 import org.apache.commons.lang3.ObjectUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import ch.inftec.ju.util.JuRuntimeException;
 
@@ -18,11 +19,14 @@ import ch.inftec.ju.util.JuRuntimeException;
  *
  */
 public class ContextConnectionInfo implements ConnectionInfo {
+	@Autowired
+	private ConnectionInfoContextHolder contextHolder;
+	
 	private ConnectionInfo getConnectionInfo() {
-		if (ConnectionInfoContextHolder.getConnectionInfo() == null) {
+		if (this.contextHolder.getConnectionInfo() == null) {
 			throw new JuRuntimeException("No ConnectionInfo set in ContextHolder");
 		}
-		return ConnectionInfoContextHolder.getConnectionInfo();
+		return this.contextHolder.getConnectionInfo();
 	}
 	
 	@Override

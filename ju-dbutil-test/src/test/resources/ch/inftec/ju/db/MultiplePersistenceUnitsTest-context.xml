@@ -64,6 +64,7 @@
 		<property name="defaultTargetDataSource" ref="dataSourceTeamPlayer1" />
 		<property name="lenientFallback" value="false"/> <!-- Only use default data source if non is specified (null) -->
 	</bean>
+	<bean id="connectionInfoContextHolder" class="ch.inftec.ju.db.ConnectionInfoContextHolder"/>
 
 	<!-- Define and configure the EntityManagerFactory -->
 	<bean id="entityManagerFactoryTeamPlayer"

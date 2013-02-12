@@ -35,7 +35,7 @@
 		<constructor-arg type="java.lang.String" value="classpath:ch/inftec/ju/db/auth/authPersistence.xml"/>
 	</bean>
 	<bean id="juPersistenceUnitName" class="java.lang.String">
-		<constructor-arg type="java.lang.String" value="Derby Auth InMemory-DB"/>
+		<constructor-arg type="java.lang.String" value="juAuth"/>
 	</bean>
 	
 	<bean id="juConnectionInfo" class="ch.inftec.ju.db.ConnectionInfoImpl">

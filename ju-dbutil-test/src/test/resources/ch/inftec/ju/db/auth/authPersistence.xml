@@ -5,7 +5,7 @@
         http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd"
 	version="2.0">
 
-	<persistence-unit name="Derby Auth InMemory-DB">
+	<persistence-unit name="juAuth">
 		<provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
 
 		<class>ch.inftec.ju.db.auth.entity.AuthUser</class>

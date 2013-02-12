@@ -40,8 +40,7 @@ import ch.inftec.ju.db.auth.repo.AuthUserRepo;
  *
  */
 public class JuUserDetailsService implements UserDetailsService {
-	// TODO: Use name or qualifier / getter/setter
-	@PersistenceContext
+	@PersistenceContext(unitName="juAuth")
 	private EntityManager em;
 	
 	@Autowired(required=false)

@@ -15,7 +15,7 @@ import ch.inftec.ju.db.auth.repo.AuthUserRepo;
  *
  */
 public class AuthDao {
-	@PersistenceContext
+	@PersistenceContext(unitName="juAuth")
 	private EntityManager em;
 	
 	/**
