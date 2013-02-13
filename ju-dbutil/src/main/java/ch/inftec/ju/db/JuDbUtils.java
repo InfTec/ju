@@ -11,7 +11,7 @@ import java.util.Collections;
 import java.util.List;
 
 import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
+import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
 import org.apache.commons.dbutils.DbUtils;
@@ -20,6 +20,7 @@ import org.eclipse.persistence.tools.schemaframework.SchemaManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Required;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
 import org.springframework.jdbc.support.DatabaseMetaDataCallback;
 import org.springframework.jdbc.support.JdbcUtils;
@@ -48,8 +49,12 @@ public class JuDbUtils {
 	@Autowired
 	private ConnectionInfo connectionInfo;
 	
-	@PersistenceContext
-	private EntityManager em;
+	private EntityManagerFactory emf;
+	
+	@Required
+	public void setEntityManagerFactory(EntityManagerFactory emf) {
+		this.emf = emf;
+	}
 	
 	/**
 	 * Gets whether a Spring transaction is active in our current context.
@@ -77,7 +82,8 @@ public class JuDbUtils {
 	 */
 	@Transactional
 	public void createDefaultTables() {
-		ServerSession s = this.em.unwrap(ServerSession.class);
+		EntityManager em = this.emf.createEntityManager();
+		ServerSession s = em.unwrap(ServerSession.class);
 		SchemaManager sm = new SchemaManager(s);
 		sm.createDefaultTables(true);
 	}
