@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 import ch.inftec.ju.db.JuDbException;
 import ch.inftec.ju.db.auth.entity.AuthRole;
@@ -19,6 +20,7 @@ import ch.inftec.ju.util.JuCollectionUtils;
  * @author Martin
  *
  */
+@Transactional(value="transactionManagerJuAuth")
 public class AuthenticationEditorModel {
 //	@PersistenceContext
 //	private EntityManager em;
