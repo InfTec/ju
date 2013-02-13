@@ -12,7 +12,7 @@ import ch.inftec.ju.util.IOUtil;
  * @author Martin
  *
  */
-public class BaseDbTest extends AbstractBaseDbTest {
+public class BaseDbTest extends DefaultContextAbstractBaseDbTest {
 	/**
 	 * Test case to assert that primary key sequences will be reset to
 	 * produce predictable IDs.

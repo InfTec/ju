@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import ch.inftec.ju.db.JuDbUtils;
 import ch.inftec.ju.testing.db.AbstractBaseDbTest;
+import ch.inftec.ju.testing.db.DefaultContextAbstractBaseDbTest;
 import ch.inftec.ju.testing.db.data.entity.Player;
 import ch.inftec.ju.util.JuCollectionUtils;
 
@@ -22,7 +23,7 @@ import com.github.springtestdbunit.annotation.DatabaseSetup;
  *
  */
 @DatabaseSetup("/datasets/fullData.xml")
-public class TestDbTest extends AbstractBaseDbTest {
+public class TestDbTest extends DefaultContextAbstractBaseDbTest {
 	
 	@Autowired
 	private JuDbUtils juDbUtils;

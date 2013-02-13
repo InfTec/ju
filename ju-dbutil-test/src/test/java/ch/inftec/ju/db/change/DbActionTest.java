@@ -13,6 +13,7 @@ import com.github.springtestdbunit.annotation.DatabaseSetup;
 import ch.inftec.ju.db.DbQueryRunner;
 import ch.inftec.ju.db.DbRow;
 import ch.inftec.ju.testing.db.AbstractBaseDbTest;
+import ch.inftec.ju.testing.db.DefaultContextAbstractBaseDbTest;
 import ch.inftec.ju.util.JuStringUtils;
 import ch.inftec.ju.util.change.ChangeItem;
 import ch.inftec.ju.util.change.DbAction;
@@ -22,7 +23,7 @@ import ch.inftec.ju.util.persistable.GenericMementoUtils;
 import ch.inftec.ju.util.persistable.GenericMementoX;
 
 @DatabaseSetup("/datasets/fullData.xml")
-public class DbActionTest extends AbstractBaseDbTest {
+public class DbActionTest extends DefaultContextAbstractBaseDbTest {
 	// TODO: Refactor or remove
 	@Test
 	public void refactor() {

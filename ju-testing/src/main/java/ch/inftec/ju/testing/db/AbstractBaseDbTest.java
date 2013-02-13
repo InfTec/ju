@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceContext;
 import javax.sql.DataSource;
 
@@ -12,11 +11,8 @@ import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.ImportResource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceUtils;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContext;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -28,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import ch.inftec.ju.db.ConnectionInfo;
 import ch.inftec.ju.db.DbRow;
+import ch.inftec.ju.db.JuDbUtils;
 import ch.inftec.ju.testing.db.AbstractBaseDbTest.DbInitializerTestExecutionListener;
 import ch.inftec.ju.testing.db.data.TestDb;
 import ch.inftec.ju.util.JuCollectionUtils;
@@ -39,33 +36,20 @@ import com.github.springtestdbunit.TransactionDbUnitTestExecutionListener;
 /**
  * Base class for tests that use test database data.
  * <p>
- * Different DB implementations can be testing by extending the implementing class
- * and overriding the getTestDb method.
- * <p>
- * By default, no test data is loaded. Override the loadDefaultTestData method to
- * load test data in each test setup.
- * <p>
- * Note that test data is commited after loading to avoid transactional problems when
- * using multiple connections.
+ * Extending classes must be annotated with @ContextConfiguration and provide an
+ * appropriated Spring context.
  *
  * @author tgdmemae
  *
  */
-@ContextConfiguration(classes={AbstractBaseDbTest.Config.class})
 @Transactional
 @RunWith(SpringJUnit4ClassRunner.class)
 @TestExecutionListeners({ DependencyInjectionTestExecutionListener.class,
     DirtiesContextTestExecutionListener.class,
-    TransactionalTestExecutionListener.class,
     DbInitializerTestExecutionListener.class,
+    TransactionalTestExecutionListener.class,    
     TransactionDbUnitTestExecutionListener.class })
 public abstract class AbstractBaseDbTest {
-	// We need to load the XML context here, otherwise Spring seems to have problems
-	@ImportResource("classpath:ch/inftec/ju/testing/db/AbstractBaseDbTest-context.xml")
-	@Configuration
-	static class Config {
-	}
-
 	/**
 	 * Helper class to initialize the DB. JUnit @Before is not sufficient as this must run
 	 * before the TransactionDbUnitTestExecutionListener runs...
@@ -105,6 +89,9 @@ public abstract class AbstractBaseDbTest {
 		
 	@Autowired
 	private TestDb testDb;
+	
+	@Autowired
+	private JuDbUtils juDbUtils;
 	
 	/**
 	 * Gets an instance of a DbDataUtil for the current connection.
@@ -146,8 +133,22 @@ public abstract class AbstractBaseDbTest {
 	
 	//@Before
 	public final void resetDatabase() throws Exception {
+		this.em.getMetamodel();
 		this.testDb.resetDatabase();
 	}
+	
+	/**
+	 * This method can be overridden by extending classes if they need
+	 * to perform DB initialization code before the transaction and DbUnit
+	 * code is executed (e.g. to set up the Database.
+	 * <p>
+	 * This method will be called once for a connection.
+	 * <p>
+	 * The default JPA default tables are already created prior to this method.
+	 */
+	protected void doInitDatabase() {
+	}
+	
 //	
 //	@After
 //	public final void closeConnection() throws Exception {

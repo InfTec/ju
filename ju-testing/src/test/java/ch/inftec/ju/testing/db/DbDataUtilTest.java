@@ -18,7 +18,7 @@ import com.github.springtestdbunit.annotation.DatabaseSetup;
  *
  */
 @DatabaseSetup("/datasets/fullData.xml")
-public class DbDataUtilTest extends AbstractBaseDbTest {
+public class DbDataUtilTest extends DefaultContextAbstractBaseDbTest {
 	/**
 	 * Tests the data export function writing DB data to an XML file.
 	 */

@@ -1,7 +1,9 @@
 package ch.inftec.ju.testing.db.data;
 
-import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
+import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.sql.DataSource;
@@ -10,12 +12,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.DataSourceUtils;
 
 import ch.inftec.ju.db.ConnectionInfo;
 import ch.inftec.ju.db.JuDbException;
-import ch.inftec.ju.testing.db.DbDataUtil;
-import ch.inftec.ju.util.IOUtil;
+import ch.inftec.ju.db.JuDbUtils;
 
 /**
  * Helper class to handle TestDb instances.
@@ -62,14 +62,14 @@ public final class TestDbUtils {
 //			return testDb;				
 //		}
 //	}
-	
-	private static class DefaultDerbyTestDb extends AbstractTestDb {
-		@Override
-		protected void resetPlatformSpecificData() throws JuDbException {
-			// Reset sequence to guarantee predictable primary key values
-			this.jdbcTemplate.update("UPDATE SEQUENCE SET SEQ_COUNT=? WHERE SEQ_NAME=?", 9, "SEQ_GEN");
-		}
-	}
+//	
+//	private static class DefaultDerbyTestDb extends AbstractTestDb {
+//		@Override
+//		protected void resetPlatformSpecificData() throws JuDbException {
+//			// Reset sequence to guarantee predictable primary key values
+//			this.jdbcTemplate.update("UPDATE SEQUENCE SET SEQ_COUNT=? WHERE SEQ_NAME=?", 9, "SEQ_GEN");
+//		}
+//	}
 	
 	/**
 	 * Base class for test databases.
@@ -78,6 +78,8 @@ public final class TestDbUtils {
 	 */
 	abstract static class AbstractTestDb implements TestDb {
 		final Logger log = LoggerFactory.getLogger(AbstractTestDb.class);
+		
+		private static List<ConnectionInfo> initializedConnections = new ArrayList<>();
 		
 		@PersistenceContext
 		private EntityManager em;
@@ -89,21 +91,16 @@ public final class TestDbUtils {
 		private ConnectionInfo connectionInfo;
 		
 		@Autowired
+		private JuDbUtils juDbUtils;
+		
+		@Autowired
 		private DataSource dataSource;
 		
-		private String noDataXmlImportFile;
-
-		/**
-		 * Extending classes can use this method to set a noDataXmlImportFile.
-		 * <p>
-		 * If specified, this data will be automatically be imported as deleteAll
-		 * at the beginning of the clearData invocation.
-		 * <p>
-		 * If not set, this implementation will also not call resetPlatformSpecificData.
-		 * @param noDataXmlImportFile Path to the noDataXmlImportFile or null if none should be used
-		 */
-		protected final void setNoDataXmlImportFile(String noDataXmlImportFile) {
-			this.noDataXmlImportFile = noDataXmlImportFile;
+		@PostConstruct
+		private void init() {
+			log.info("Creating tables for {}", this.connectionInfo);
+			this.juDbUtils.createDefaultTables();
+			this.createTables();
 		}
 		
 		/**
@@ -125,10 +122,19 @@ public final class TestDbUtils {
 		}
 		
 		@Override
+		public void initDb() throws JuDbException {
+			if (!initializedConnections.contains(this.connectionInfo)) {
+				// Create default JPA tables
+				log.debug("Initializing DB {}", this.connectionInfo);
+				initializedConnections.add(this.connectionInfo);
+				this.juDbUtils.createDefaultTables();
+				
+				this.createTables();
+			}
+		}
+		
+		@Override
 		public void resetDatabase() throws JuDbException {
-			// Derby seems to rollback table creation as well
-			// TODO: Refactor for Oracle...
-			this.createTables();
 			this.resetPlatformSpecificData();
 			
 //			if (noDataXmlImportFile != null) {

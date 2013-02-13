@@ -8,7 +8,7 @@ import ch.inftec.ju.testing.db.data.repo.TestingEntityRepo;
 
 import com.github.springtestdbunit.annotation.DatabaseSetup;
 
-public class DbUnitTest extends AbstractBaseDbTest {
+public class DbUnitTest extends DefaultContextAbstractBaseDbTest {
 	@Autowired
 	private TestingEntityRepo testingEntityRepo;
 		
