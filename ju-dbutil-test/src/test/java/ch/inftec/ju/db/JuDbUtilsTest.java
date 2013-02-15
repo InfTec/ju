@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.github.springtestdbunit.annotation.DatabaseSetup;
 
 import ch.inftec.ju.testing.db.AbstractBaseDbTest;
+import ch.inftec.ju.testing.db.DefaultContextAbstractBaseDbTest;
 import ch.inftec.ju.testing.db.data.repo.TestingEntityRepo;
 
 /**
@@ -15,7 +16,7 @@ import ch.inftec.ju.testing.db.data.repo.TestingEntityRepo;
  * @author Martin
  *
  */
-public class JuDbUtilsTest extends AbstractBaseDbTest {
+public class JuDbUtilsTest extends DefaultContextAbstractBaseDbTest {
 	@Autowired
 	private TestingEntityRepo testingEntityRepo;
 	

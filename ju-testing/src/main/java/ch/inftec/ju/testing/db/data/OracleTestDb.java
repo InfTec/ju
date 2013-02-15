@@ -11,10 +11,6 @@ import ch.inftec.ju.testing.db.data.TestDbUtils.AbstractTestDb;
 class OracleTestDb extends AbstractTestDb {
 	private static OracleTestDb instance;
 	
-	public OracleTestDb() throws JuDbException {
-		this.setNoDataXmlImportFile("/datasets/noData.xml");
-	}
-	
 	public static OracleTestDb getInstance() throws JuDbException {
 		if (OracleTestDb.instance == null) {
 			OracleTestDb.instance = new OracleTestDb();

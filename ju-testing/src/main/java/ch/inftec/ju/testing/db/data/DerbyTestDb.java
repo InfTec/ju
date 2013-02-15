@@ -9,10 +9,6 @@ import ch.inftec.ju.testing.db.data.TestDbUtils.AbstractTestDb;
  *
  */
 class DerbyTestDb extends AbstractTestDb {
-	DerbyTestDb() throws JuDbException {
-		this.setNoDataXmlImportFile("/datasets/noData.xml");
-	}
-
 	@Override
 	protected void createTables() throws JuDbException {
 		this.jdbcTemplate.update("CREATE TABLE TEST_A ("

@@ -11,10 +11,8 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.ImportResource;
 
-import ch.inftec.ju.testing.db.AbstractBaseDbTest;
+import ch.inftec.ju.testing.db.DefaultContextAbstractBaseDbTest;
 import ch.inftec.ju.testing.db.data.entity.Player;
 import ch.inftec.ju.testing.db.data.entity.Team;
 import ch.inftec.ju.testing.db.data.entity.TestingEntity;
@@ -28,14 +26,8 @@ import com.github.springtestdbunit.annotation.DatabaseSetup;
  *
  */
 @DatabaseSetup("/datasets/fullData.xml")
-public class JpaTest extends AbstractBaseDbTest {
+public class JpaTest extends DefaultContextAbstractBaseDbTest {
 	// TODO: Refactor concurrent tests...
-	
-	@Configuration
-	// TODO: Spring Data v1.2 should support the annotation EnableJpaRepositories
-	@ImportResource("classpath:/ch/inftec/ju/db/RepoScan-context.xml")
-	static class Config {
-	}
 	
 	@Autowired
 	private TestingEntityRepo testingEntityRepo;

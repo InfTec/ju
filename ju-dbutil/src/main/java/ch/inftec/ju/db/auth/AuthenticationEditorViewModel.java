@@ -6,23 +6,26 @@ import java.util.List;
 
 import javax.annotation.PostConstruct;
 
+import org.jdesktop.observablecollections.ObservableCollections;
+import org.jdesktop.observablecollections.ObservableList;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import ch.inftec.ju.db.auth.AuthenticationEditorViewModel.UserInfo.RoleInfo;
 import ch.inftec.ju.db.auth.AuthenticationEditorViewModel.UserInfo.RoleState;
 import ch.inftec.ju.db.auth.entity.AuthUser;
+import ch.inftec.ju.util.event.AbstractViewModel;
 
 /**
  * View model for the AuthenticationEditorModel.
  * @author Martin
  *
  */
-public class AuthenticationEditorViewModel {
+public class AuthenticationEditorViewModel extends AbstractViewModel {
 	@Autowired
 	private AuthenticationEditorModel model;
 	
 	private UserInfo selectedUserInfo;
-	private ArrayList<UserInfo> userInfos = new ArrayList<>();
+	private ObservableList<UserInfo> userInfos = ObservableCollections.observableList(new ArrayList<UserInfo>());
 	
 	@PostConstruct
 	private void initUserInfos() {
@@ -45,6 +48,12 @@ public class AuthenticationEditorViewModel {
 		this.selectedUserInfo = this.userInfos.size() > 0
 				? this.userInfos.get(0)
 				: null;
+	}
+	
+	//FIXME Remove!
+	public void createUser(String name) {
+		AuthUser user = this.model.addUser(name);
+		this.userInfos.add(new UserInfo(user));
 	}
 	
 	/**
@@ -77,8 +86,8 @@ public class AuthenticationEditorViewModel {
 		return this.selectedUserInfo;
 	}
 	
-	public List<UserInfo> getUserInfos() {
-		return Collections.unmodifiableList(this.userInfos);
+	public ObservableList<UserInfo> getUserInfos() {
+		return this.userInfos;
 	}
 	
 	public static class UserInfo {

@@ -11,16 +11,21 @@ import java.util.Collections;
 import java.util.List;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
 import org.apache.commons.dbutils.DbUtils;
+import org.eclipse.persistence.sessions.server.ServerSession;
+import org.eclipse.persistence.tools.schemaframework.SchemaManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Required;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
 import org.springframework.jdbc.support.DatabaseMetaDataCallback;
 import org.springframework.jdbc.support.JdbcUtils;
 import org.springframework.jdbc.support.MetaDataAccessException;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import ch.inftec.ju.util.IOUtil;
@@ -44,6 +49,13 @@ public class JuDbUtils {
 	@Autowired
 	private ConnectionInfo connectionInfo;
 	
+	private EntityManagerFactory emf;
+	
+	@Required
+	public void setEntityManagerFactory(EntityManagerFactory emf) {
+		this.emf = emf;
+	}
+	
 	/**
 	 * Gets whether a Spring transaction is active in our current context.
 	 * @return True if we are within a Spring transaction, false if we're not.
@@ -61,6 +73,19 @@ public class JuDbUtils {
 	public static <T> T getJpaRepository(EntityManager em, Class<T> repositoryClass) {
 		JpaRepositoryFactory repositoryFactory = new JpaRepositoryFactory(em);
 		return repositoryFactory.getRepository(repositoryClass);
+	}
+
+	/**
+	 * Creates JPA default tables for the current EntityManager.
+	 * <p>
+	 * Only works with EclipseLink currently.
+	 */
+	@Transactional
+	public void createDefaultTables() {
+		EntityManager em = this.emf.createEntityManager();
+		ServerSession s = em.unwrap(ServerSession.class);
+		SchemaManager sm = new SchemaManager(s);
+		sm.createDefaultTables(true);
 	}
 	
 	/**

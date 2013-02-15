@@ -142,9 +142,6 @@
 		<repository:exclude-filter type="assignable" expression="ch.inftec.ju.testing.db.data.repo.TeamRepo"/>
 	</jpa:repositories>
 
-	<!-- Define JuDbUtils 
-	<bean id="juDbUtils" class="ch.inftec.ju.db.JuDbUtils">
-		<propert-->
 	
 	<!-- Define test beans -->
 	<bean id="entityManagerTest" class="ch.inftec.ju.db.MultiplePersistenceUnitsTest.EntityManagerTest"/>
