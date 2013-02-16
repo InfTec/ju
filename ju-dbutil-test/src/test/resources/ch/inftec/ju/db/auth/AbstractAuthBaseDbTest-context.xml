@@ -34,6 +34,7 @@
 	
 	<!-- Custom Authentication Provider -->
 	<bean id="juUserDetailsService" class="ch.inftec.ju.db.auth.JuUserDetailsService"/>
+	<bean id="authenticationEditorModel" class="ch.inftec.ju.db.auth.AuthenticationEditorModel"/>
 	
 	<!-- Define a test implementation for UnknownUserHandler -->
 	<bean id="myUnknownUserHandler" class="ch.inftec.ju.db.auth.MyUnknownUserHandler"/>

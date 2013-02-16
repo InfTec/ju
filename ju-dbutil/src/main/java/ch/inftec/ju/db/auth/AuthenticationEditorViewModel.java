@@ -11,6 +11,7 @@ import javafx.collections.ObservableList;
 
 import javax.annotation.PostConstruct;
 
+import org.joda.time.LocalDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import ch.inftec.ju.db.auth.entity.AuthUser;
@@ -119,6 +120,20 @@ public class AuthenticationEditorViewModel extends AbstractViewModel {
 		
 		public String getName() {
 			return this.user.getName();
+		}
+		
+		public String getLastLogingInfo() {
+			int loginCount = user.getLoginCount() == null ? 0 : user.getLoginCount();
+			
+			String loginString = "unknown";
+			if (user.getLastLogin() != null) {
+				LocalDateTime dateTime = new LocalDateTime(user.getLastLogin());
+				loginString = dateTime.toString();
+			}
+			
+			String logingInfo = String.format("%d logins. Last: %s", loginCount, loginString);
+			
+			return logingInfo;
 		}
 				
 		public Map<String, MemoryBooleanProperty> getRoles() {

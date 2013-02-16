@@ -58,7 +58,9 @@ public class JuUserDetailsService implements UserDetailsService {
 			if (authUser == null) {
 				throw new UsernameNotFoundException("No such user: " + username);
 			}
-		}			
+		} else {
+			this.authenticationEditorModel.updateLoginCount(authUser);
+		}
 		
 		List<GrantedAuthority> grantedAuths = new ArrayList<>();
 		for (AuthRole authRole : authUser.getRoles()) {

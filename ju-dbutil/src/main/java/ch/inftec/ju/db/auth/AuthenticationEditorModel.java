@@ -1,6 +1,7 @@
 package ch.inftec.ju.db.auth;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,6 +71,9 @@ public class AuthenticationEditorModel {
 		AuthUser newUser = new AuthUser();
 		newUser.setName(userName);
 		newUser.setPassword(password);
+		newUser.setLoginCount(1);
+		newUser.setLastLogin(new Date());
+		
 		this.userRepo.save(newUser);
 		
 		return newUser;
@@ -151,5 +155,10 @@ public class AuthenticationEditorModel {
 		for (String role : JuCollectionUtils.emptyForNull(currentRoles)) {
 			this.authDao.removeRole(user, role);
 		}
+	}
+	
+	public void updateLoginCount(AuthUser user) {
+		user.setLastLogin(new Date());
+		user.setLoginCount(user.getLoginCount() != null ? user.getLoginCount() + 1 : 1);
 	}
 }
