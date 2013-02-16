@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,8 +27,8 @@ import ch.inftec.ju.util.JuRuntimeException;
  */
 @Transactional(value="transactionManagerJuAuth")
 public class AuthenticationEditorModel {
-//	@PersistenceContext
-//	private EntityManager em;
+	@PersistenceContext(unitName="juAuth")
+	private EntityManager em;
 	
 	@Autowired
 	private RoleProvider roleProvider;
@@ -112,6 +115,7 @@ public class AuthenticationEditorModel {
 	 * @return List of role names
 	 */
 	public List<String> getRoles(AuthUser user) {
+		this.em.merge(user);
 		List<String> roles = new ArrayList<>();
 		for (AuthRole role : user.getRoles()) {
 			roles.add(role.getName());
@@ -133,11 +137,12 @@ public class AuthenticationEditorModel {
 	 * <p>
 	 * This method will remove any roles that the user currently has, but that are not
 	 * specified in the roles list.
-	 * @param user
+	 * @param u
 	 * @param roles All roles the user should have, including the current roles that
 	 * shouldn't be deleted
 	 */
 	public void setRoles(AuthUser user, List<String> roles) {
+		this.em.merge(user);		
 		List<String> currentRoles = this.getRoles(user);
 		
 		for (String role : JuCollectionUtils.emptyForNull(roles)) {
@@ -160,5 +165,6 @@ public class AuthenticationEditorModel {
 	public void updateLoginCount(AuthUser user) {
 		user.setLastLogin(new Date());
 		user.setLoginCount(user.getLoginCount() != null ? user.getLoginCount() + 1 : 1);
+		this.userRepo.save(user);
 	}
 }
