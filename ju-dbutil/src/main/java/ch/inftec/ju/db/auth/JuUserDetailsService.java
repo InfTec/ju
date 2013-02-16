@@ -3,9 +3,6 @@ package ch.inftec.ju.db.auth;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -14,11 +11,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
-import ch.inftec.ju.db.JuDbUtils;
 import ch.inftec.ju.db.auth.UnknownUserHandler.NewUserInfo;
 import ch.inftec.ju.db.auth.entity.AuthRole;
 import ch.inftec.ju.db.auth.entity.AuthUser;
-import ch.inftec.ju.db.auth.repo.AuthUserRepo;
 
 /**
  * Custom implementation of the Spring UserDetailsService.
@@ -40,20 +35,15 @@ import ch.inftec.ju.db.auth.repo.AuthUserRepo;
  *
  */
 public class JuUserDetailsService implements UserDetailsService {
-	@PersistenceContext(unitName="juAuth")
-	private EntityManager em;
-	
 	@Autowired(required=false)
 	private UnknownUserHandler unknownUserHandler;
 	
 	@Autowired
-	private AuthDao authDao;
+	private AuthenticationEditorModel authenticationEditorModel;
 	
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-		AuthUserRepo authUserRepo = JuDbUtils.getJpaRepository(this.em, AuthUserRepo.class);
-		
-		AuthUser authUser = authUserRepo.getByName(username);
+		AuthUser authUser = this.authenticationEditorModel.getUser(username);
 		
 		if (authUser == null) {
 			if (this.unknownUserHandler != null) {
@@ -61,13 +51,7 @@ public class JuUserDetailsService implements UserDetailsService {
 				NewUserInfo newUserInfo = this.unknownUserHandler.handleUser(username);
 				if (newUserInfo != null) {
 					// Create the user
-					authUser = new AuthUser();
-					authUserRepo.save(authUser);
-					authUser.setName(username);
-					authUser.setPassword(newUserInfo.getPassword());
-					for (String newAuth : newUserInfo.getAuthorities()) {
-						this.authDao.addRole(authUser, newAuth);
-					}
+					authUser = this.authenticationEditorModel.addUser(username, newUserInfo.getPassword(), newUserInfo.getAuthorities());
 				}
 			}
 			

@@ -73,6 +73,7 @@
 
 	<!-- Define the TransactionManager -->
 	<bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager"/>
+	<alias name="transactionManager" alias="transactionManagerJuAuth"/>
 		
 	<!-- ################################## -->
 	<!-- Define Ju specific helpers objects -->

@@ -11,6 +11,7 @@ import ch.inftec.ju.db.auth.entity.AuthRole;
 import ch.inftec.ju.db.auth.entity.AuthUser;
 import ch.inftec.ju.db.auth.repo.AuthUserRepo;
 import ch.inftec.ju.util.JuCollectionUtils;
+import ch.inftec.ju.util.JuRuntimeException;
 
 /**
  * Model to manage users and roles for Authentication Services.
@@ -53,18 +54,39 @@ public class AuthenticationEditorModel {
 	/**
 	 * Adds the specified user.
 	 * @param userName
+	 * @param password
 	 */
-	public AuthUser addUser(String userName) {
+	public AuthUser addUser(String userName, String password) {
 		// Make sure the user doesn't exist yet
+		// TODO: Use AssertUtil
 		if (this.getUser(userName) != null) {
 			throw new JuDbException("User already exists: " + userName);
 		}
+		if (password == null) {
+			throw new JuRuntimeException("Password must not be null");
+		}
+		
 		
 		AuthUser newUser = new AuthUser();
 		newUser.setName(userName);
+		newUser.setPassword(password);
 		this.userRepo.save(newUser);
 		
 		return newUser;
+	}
+	
+	/**
+	 * Adds a new user and assigns the specified roles.
+	 * @param userName Username
+	 * @param password Password (non-null)
+	 * @param roles roles to be assigned
+	 * @return Added user
+	 */
+	public AuthUser addUser(String userName, String password, List<String> roles) {
+		AuthUser authUser = addUser(userName, password);
+		setRoles(authUser, roles);
+		
+		return authUser;
 	}
 	
 	/**

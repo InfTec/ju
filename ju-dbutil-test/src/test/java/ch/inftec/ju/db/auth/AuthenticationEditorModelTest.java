@@ -12,13 +12,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import com.github.springtestdbunit.annotation.DatabaseSetup;
-
 import ch.inftec.ju.db.auth.AuthenticationEditorViewModel.UserInfo;
-import ch.inftec.ju.db.auth.AuthenticationEditorViewModel.UserInfo.RoleInfo;
-import ch.inftec.ju.db.auth.AuthenticationEditorViewModel.UserInfo.RoleState;
 import ch.inftec.ju.db.auth.entity.AuthUser;
+import ch.inftec.ju.fx.property.MemoryBooleanProperty;
 import ch.inftec.ju.util.TestUtils;
+
+import com.github.springtestdbunit.annotation.DatabaseSetup;
 
 /**
  * Contains tests for the Authentication functionality.
@@ -70,7 +69,7 @@ public class AuthenticationEditorModelTest extends AbstractAuthBaseDbTest {
 		TestUtils.assertCollectionEquals(this.authModel.getRoles(u1.get(0)), "role1");
 		
 		// Add a new user
-		AuthUser u2 = this.authModel.addUser("newUser");
+		AuthUser u2 = this.authModel.addUser("newUser", "password");
 		TestUtils.assertCollectionEquals(this.authModel.getUserNames(), "newUser", "user1");
 		
 		// Make sure it doesn't have any roles
@@ -95,30 +94,32 @@ public class AuthenticationEditorModelTest extends AbstractAuthBaseDbTest {
 		
 		// Read / modify the one existing user
 		
-		UserInfo u1 = this.authVm.getSelectedUserInfo();
+		Assert.assertEquals(1, this.authVm.getUserInfos().size());
+		UserInfo u1 = this.authVm.getUserInfos().get(0);
 		Assert.assertEquals("user1", u1.getName());
 		
 		TestUtils.assertCollectionEquals(this.authVm.getUserInfos(), u1);
-		Assert.assertEquals(3, u1.getRoleInfos().size());		
-		Assert.assertFalse(u1.hasChange());
+		Assert.assertEquals(3, u1.getRoles().size());		
+		Assert.assertFalse(u1.hasChanged());
 		
-		RoleInfo r1 = u1.getRoleInfos().get(0);
-		Assert.assertEquals("role1", r1.getName());
-		Assert.assertFalse(r1.hasChange());
-		Assert.assertEquals(RoleState.ASSIGNED, r1.getCurrentState());
-		Assert.assertEquals(RoleState.ASSIGNED, r1.getPlannedState());
+		MemoryBooleanProperty p1 = u1.getRoles().get("role1");
+		Assert.assertTrue(p1.get());
+		Assert.assertFalse(p1.hasChanged());
+		Assert.assertFalse(this.authVm.hasRolesChanged());
 
-		r1.setPlannedState(RoleState.UNASSIGNED);
-		Assert.assertTrue(r1.hasChange());
-		Assert.assertTrue(u1.hasChange());
+		p1.set(false);
+		Assert.assertTrue(p1.hasChanged());
+		Assert.assertTrue(u1.hasChanged());
+		Assert.assertTrue(this.authVm.hasRolesChanged());
 		
-		RoleInfo r2 = u1.getRoleInfos().get(1);
-		r2.setPlannedState(RoleState.ASSIGNED);
+		MemoryBooleanProperty p2 = u1.getRoles().get("newRole");
+		p2.set(true);
 		
 		this.authVm.save();
+		Assert.assertFalse(this.authVm.hasRolesChanged());
 		
-		UserInfo u1New = this.authVm.getSelectedUserInfo();
-		Assert.assertEquals(RoleState.UNASSIGNED, u1New.getRoleInfos().get(0).getCurrentState());
-		Assert.assertEquals(RoleState.ASSIGNED, u1New.getRoleInfos().get(1).getCurrentState());
+		UserInfo u1New = this.authVm.getUserInfos().get(0);
+		Assert.assertFalse(u1New.getRoles().get("role1").get());
+		Assert.assertTrue(u1New.getRoles().get("newRole").get());
 	}
 }
