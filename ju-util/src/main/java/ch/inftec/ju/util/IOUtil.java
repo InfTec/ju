@@ -342,7 +342,7 @@ public final class IOUtil {
 			
 			return props;
 		} catch (Exception ex) {
-			throw new JuException("Couldn't load properties from resource: " + resourcePath);
+			throw new JuException("Couldn't load properties from resource: " + resourcePath, ex);
 		}		
 	}
 	
