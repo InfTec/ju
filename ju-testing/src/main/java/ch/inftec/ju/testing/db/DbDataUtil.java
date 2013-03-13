@@ -36,8 +36,28 @@ public class DbDataUtil {
 	private final IDatabaseConnection iConnection;
 	
 	/**
-	 * Creates a new DbDataUtil instance using the specified Connection.
+	 * Creates a new DbDataUtil instance using the specifiec Connection.
+	 * <p>
+	 * If you need to specify a DB Schema, use the DbDataUtil(Connection, String) constructor.
 	 * @param connection Connection instance
+	 */
+	public DbDataUtil(Connection connection) {
+		this(connection, (String)null);
+	}
+	
+	public DbDataUtil(Connection connection, String schema) {
+		try {
+			this.iConnection = new DatabaseConnection(connection, schema);
+		} catch (Exception ex) {
+			throw new JuDbException("Couldn't initialize DatabaseConnection", ex);
+		}
+	}
+	
+	/**
+	 * Creates a new DbDataUtil instance using the specified Connection and the Schema
+	 * from the ConnectionInfo
+	 * @param connection Connection instance
+	 * @param ConnectionInfo to get the Schema to use
 	 */
 	public DbDataUtil(Connection connection, ConnectionInfo connectionInfo) {
 		try {
