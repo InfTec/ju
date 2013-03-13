@@ -73,5 +73,7 @@ class OracleTestDb extends AbstractTestDb {
 	protected void resetPlatformSpecificData() throws JuDbException {
 		this.jdbcTemplate.update("DELETE FROM TEST_DATATYPES");		
 		this.jdbcTemplate.update("INSERT INTO TEST_DATATYPES (ID, INTEGERNUMBER, VARCHARTEXT, CLOBTEXT, DATEFIELD) VALUES (1, 1, 'one', 'oneClob', to_date('03.12.1980', 'dd.mm.yyyy'))");
+		
+		this.jdbcTemplate.update("UPDATE SEQUENCE SET SEQ_COUNT=? WHERE SEQ_NAME=?", 9, "SEQ_GEN");
 	}
 }

@@ -10,6 +10,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
+import ch.inftec.ju.util.AssertUtil;
 import ch.inftec.ju.util.JuRuntimeException;
 
 /**
@@ -50,6 +51,8 @@ public class JuFxUtils {
 	}
 	
 	public static JFXPanel createJFXPanel(URL paneFxmlUrl) {
+		AssertUtil.assertNotNull("FXML URL must not be null", paneFxmlUrl);
+		
 		try {
 			final Pane pane = FXMLLoader.load(paneFxmlUrl);
 			final JFXPanel fxPanel = new JFXPanel();

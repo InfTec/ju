@@ -183,8 +183,13 @@ public class JuDbUtils {
 					
 					List<String> tableNames = new ArrayList<>();
 					while (rs.next()) {
-						String tableName = rs.getString("TABLE_NAME");
-						tableNames.add(tableName.toUpperCase());
+						String tableName = rs.getString("TABLE_NAME").toUpperCase();
+						// We check if the TableName already exists in the list as
+						// Oracle seems to return the same table names multiple times on some
+						// Schemas...
+						if (!tableNames.contains(tableName)) {
+							tableNames.add(tableName);
+						}
 					}
 					rs.close();
 					
