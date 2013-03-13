@@ -14,7 +14,6 @@ import org.dbunit.dataset.IDataSet;
 import org.dbunit.dataset.xml.FlatXmlDataSet;
 import org.dbunit.dataset.xml.FlatXmlDataSetBuilder;
 import org.dbunit.operation.DatabaseOperation;
-import org.eclipse.persistence.internal.oxm.record.DOMInputSource;
 import org.w3c.dom.Document;
 
 import ch.inftec.ju.db.ConnectionInfo;
@@ -238,21 +237,6 @@ public class DbDataUtil {
 				return this;
 			} catch (Exception ex) {
 				throw new JuDbException("Couldn't import data from XML: xmlUrl", ex);
-			}
-		}
-		
-		/**
-		 * Imports DB data from the specified XML Document
-		 * @param xmlUrl URL to XML file location
-		 */
-		public ImportBuilder from(Document doc) {
-			try {
-				flatXmlDataSet = new FlatXmlDataSetBuilder()
-					.setColumnSensing(true)
-					.build(new DOMInputSource(doc));
-				return this;
-			} catch (Exception ex) {
-				throw new JuDbException("Couldn't import data from XML Document", ex);
 			}
 		}
 		
