@@ -87,7 +87,7 @@ public abstract class AbstractBaseDbTest {
 	@Autowired
 	protected JdbcTemplate jdbcTemplate;
 		
-	@Autowired
+	@Autowired(required=false)
 	private TestDb testDb;
 	
 	@Autowired
@@ -134,7 +134,10 @@ public abstract class AbstractBaseDbTest {
 	//@Before
 	public final void resetDatabase() throws Exception {
 		this.em.getMetamodel();
-		this.testDb.resetDatabase();
+		
+		if (this.testDb != null) {
+			this.testDb.resetDatabase();
+		}
 	}
 	
 	/**
