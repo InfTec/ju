@@ -20,6 +20,43 @@ import ch.inftec.ju.util.JuRuntimeException;
  */
 public class JuFxUtils {
 	/**
+	 * Loads a pane from the specified URL.
+	 * <p>
+	 * Returns an info object that allows to access the controller and the pane.
+	 * @param paneFxmlUrl FXML URL
+	 * @param controllerClass Controller class
+	 * @return PaneInfo instance
+	 */
+	public static <T> PaneInfo<T> loadPane(URL paneFxmlUrl, Class<T> controllerClass) {
+		try {
+			FXMLLoader loader = new FXMLLoader(paneFxmlUrl);
+			Pane pane = (Pane)loader.load();
+			T controller = loader.getController();
+			return new PaneInfo<T>(pane, controller);
+		} catch (Exception ex) {
+			throw new JuRuntimeException("Couldn't load pane from URL " + paneFxmlUrl, ex);
+		}
+	}
+	
+	public static final class PaneInfo<T> {
+		private final Pane pane;
+		private final T controller;
+		
+		private PaneInfo(Pane pane, T controller) {
+			this.pane = pane;
+			this.controller = controller;
+		}
+		
+		public T getController() {
+			return controller;
+		}
+		
+		public Pane getPane() {
+			return pane;
+		}
+	}
+	
+	/**
 	 * Starts a JavaFX application with the specified pane in the primary
 	 * stage.
 	 * <p>
@@ -28,7 +65,24 @@ public class JuFxUtils {
 	 */
 	public static void startApplication(final String title, URL paneFxmlUrl) {
 		try {
-			ApplicationImpl.pane = FXMLLoader.load(paneFxmlUrl);
+			Pane pane = FXMLLoader.load(paneFxmlUrl);
+			JuFxUtils.startApplication(title, pane);
+		} catch (Exception ex) {
+			throw new JuRuntimeException("Couldn't launch JavaFX application", ex);
+		}
+	}
+	
+	/**
+	 * Starts a JavaFX application with the specified pane in the primary
+	 * state.
+	 * <p>
+	 * This method should only be used once in an Application.
+	 * @param title Title of the main scene
+	 * @param pane Pane of the main scene
+	 */
+	public static void startApplication(final String title, final Pane pane) {
+		try {
+			ApplicationImpl.pane = pane;
 			ApplicationImpl.title = title;
 			ApplicationImpl.launch(ApplicationImpl.class);
 		} catch (Exception ex) {
@@ -105,5 +159,16 @@ public class JuFxUtils {
 	            }
 	        }
 	    };
+	}
+	
+	/**
+	 * Initializes the Java FX toolkit.
+	 * <p>
+	 * This needs to be done to use some of the Java FX functionality like
+	 * concurrency classes when we haven't already got a Java FX scene or application
+	 * running.
+	 */
+	public static void initializeFxToolkit() {
+		new JFXPanel();
 	}
 }

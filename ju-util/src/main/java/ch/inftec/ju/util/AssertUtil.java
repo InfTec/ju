@@ -23,6 +23,14 @@ public class AssertUtil {
 		}
 	}
 	
+	public static void assertNull(Object obj) {
+		AssertUtil.assertNull("Object was not null", obj);
+	}
+	
+	public static void assertNull(String message, Object obj) {
+		if (obj != null) throw new JuRuntimeException(message);
+	}
+	
 	public static void assertNotNull(Object obj) {
 		AssertUtil.assertNotNull("Object was null", obj);
 	}
