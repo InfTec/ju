@@ -9,8 +9,8 @@
 <AnchorPane id="AnchorPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="91.0" prefWidth="285.0" xmlns:fx="http://javafx.com/fxml" fx:controller="ch.inftec.ju.fx.concurrent.TaskExecutorController">
   <children>
     <Label fx:id="txtTitle" layoutX="14.0" layoutY="14.0" text="Task Title" />
-    <ProgressIndicator layoutX="235.0" layoutY="14.0" />
+    <ProgressIndicator fx:id="piProgress" layoutX="235.0" layoutY="14.0" />
     <Label fx:id="txtMessage" layoutX="14.0" layoutY="32.0" text="Task Message" />
-    <Button fx:id="btnCancel" layoutX="115.0" layoutY="56.0" mnemonicParsing="false" onAction="#cancel" text="Cancel" />
+    <Button fx:id="btnCancel" layoutX="115.0" layoutY="56.0" mnemonicParsing="false" onAction="#clicked" text="Cancel" />
   </children>
 </AnchorPane>

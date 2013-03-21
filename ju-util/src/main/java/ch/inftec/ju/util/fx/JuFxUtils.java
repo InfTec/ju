@@ -19,6 +19,8 @@ import ch.inftec.ju.util.JuRuntimeException;
  *
  */
 public class JuFxUtils {
+	private static boolean fxInitialized = false;
+	
 	/**
 	 * Loads a pane from the specified URL.
 	 * <p>
@@ -169,6 +171,28 @@ public class JuFxUtils {
 	 * running.
 	 */
 	public static void initializeFxToolkit() {
-		new JFXPanel();
+		if (!fxInitialized) {
+			new JFXPanel();
+		}
+		fxInitialized = true;
+	}
+	
+	/**
+	 * Runs the Runnable in the FX thread.
+	 * <p>
+	 * If we already ARE in the FX thread, it is run immediately. Otherwise,
+	 * it is added to the event queue and invoked later.
+	 * @param runnable Runnable containing code to be run in the FX thread
+	 * @return True if the code was run right away (we ARE in the FX thread),
+	 * false it it will be run later
+	 */
+	public static boolean runInFxThread(Runnable runnable) {
+		if (Platform.isFxApplicationThread()) {
+			runnable.run();
+			return true;
+		} else {
+			Platform.runLater(runnable);
+			return false;
+		}
 	}
 }

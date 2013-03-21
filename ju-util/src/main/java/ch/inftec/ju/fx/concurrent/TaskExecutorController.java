@@ -3,22 +3,22 @@ package ch.inftec.ju.fx.concurrent;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-import javafx.concurrent.Task;
-import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressIndicator;
 import ch.inftec.ju.util.AssertUtil;
+import ch.inftec.ju.util.fx.JuFxUtils;
 
 public class TaskExecutorController implements Initializable {
 	@FXML private Label txtTitle;
 	@FXML private Label txtMessage;
+	@FXML private ProgressIndicator piProgress;
 	@FXML private Button btnCancel;
 	
-	private Task<?> task;
+	private TaskExecutorViewModel model;
 	
 	@Override
 	public void initialize(URL url, ResourceBundle res) {
@@ -27,27 +27,31 @@ public class TaskExecutorController implements Initializable {
 		this.txtMessage.setText("xxx");
 	}
 	
-	public void setTask(Task<?> task) {
-		AssertUtil.assertNull("Controller may only be initialized once", this.task);
-		this.task = task;
+	public void setModel(TaskExecutorViewModel model) {
+		AssertUtil.assertNull("Model may only be initialized once", this.model);
+		this.model = model;
 		
-		final EventHandler<WorkerStateEvent> eh = new EventHandler<WorkerStateEvent>() {
+		// Make sure the model is initialized in the FX thread, otherwise
+		// the Task will complain...
+		JuFxUtils.runInFxThread(new Runnable() {
 			@Override
-			public void handle(WorkerStateEvent ev) {
-				if (ev.getEventType() == WorkerStateEvent.WORKER_STATE_SUCCEEDED) {
-					btnCancel.disableProperty().set(true);
-					btnCancel.setText("Done");
-				}
+			public void run() {
+				initModel();
 			}
-		};
-		this.task.setOnSucceeded(eh);
-		
-		this.txtTitle.textProperty().bind(this.task.titleProperty());
-		this.txtMessage.textProperty().bind(this.task.messageProperty());
+		});
 	}
+	
+	private void initModel() {
+		this.txtTitle.textProperty().bind(model.titleProperty());
+		this.txtMessage.textProperty().bind(model.messageProperty());
 		
-	public void cancel(ActionEvent ev) {
-		btnCancel.disableProperty().set(true);
-		btnCancel.setText("Cancelling...");
+		this.piProgress.progressProperty().bind(model.progressProperty());
+		
+		this.btnCancel.textProperty().bind(model.buttonTextProperty());
+		this.btnCancel.disableProperty().bind(model.buttonDisabledProperty());
+	}
+	
+	public void clicked(ActionEvent ev) {
+		this.model.performAction();
 	}
 }
