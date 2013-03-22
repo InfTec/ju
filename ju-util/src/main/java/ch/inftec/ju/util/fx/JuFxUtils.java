@@ -196,7 +196,7 @@ public class JuFxUtils {
 	 */
 	public static Parent getRoot(Node node) {
 		Parent parent = node.getParent();
-		while (parent != null) {
+		while (parent.getParent() != null) {
 			parent = parent.getParent();
 		}
 		return parent;

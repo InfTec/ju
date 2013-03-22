@@ -2,15 +2,40 @@
 
 <?import java.lang.*?>
 <?import java.util.*?>
+<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.paint.*?>
+<?import javafx.scene.text.*?>
 
-<AnchorPane id="AnchorPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="91.0" prefWidth="285.0" xmlns:fx="http://javafx.com/fxml" fx:controller="ch.inftec.ju.fx.concurrent.TaskExecutorController">
-  <children>
-    <Label fx:id="txtTitle" layoutX="14.0" layoutY="14.0" text="Task Title" />
-    <ProgressIndicator fx:id="piProgress" layoutX="235.0" layoutY="14.0" />
-    <Label fx:id="txtMessage" layoutX="14.0" layoutY="32.0" text="Task Message" />
-    <Button fx:id="btnCancel" layoutX="115.0" layoutY="56.0" mnemonicParsing="false" onAction="#cancel" text="Cancel" />
-  </children>
-</AnchorPane>
+<BorderPane id="BorderPane" maxHeight="-Infinity" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="27.0000084472631" prefWidth="224.0" xmlns:fx="http://javafx.com/fxml" fx:controller="ch.inftec.ju.fx.concurrent.TaskExecutorController">
+  <bottom>
+    <ProgressBar fx:id="pbProgress" maxWidth="1.7976931348623157E308" />
+  </bottom>
+  <center>
+    <HBox prefHeight="100.0" prefWidth="200.0">
+      <children>
+        <Label fx:id="txtTitle" text="Task Title">
+          <font>
+            <Font name="System Bold" size="12.0" fx:id="x2" />
+          </font>
+          <HBox.margin>
+            <Insets right="10.0" fx:id="x1" />
+          </HBox.margin>
+        </Label>
+        <Label fx:id="txtMessage" text="Task Message" />
+      </children>
+    </HBox>
+  </center>
+  <left>
+    <VBox alignment="CENTER_LEFT" prefHeight="200.0" BorderPane.margin="$x1" />
+  </left>
+  <right>
+    <StackPane alignment="TOP_RIGHT">
+      <children>
+        <Hyperlink fx:id="hlError" font="$x2" onAction="#showError" text="Error" textFill="RED" />
+        <Hyperlink fx:id="hlCancel" onAction="#cancel" text="Cancel" textFill="RED" />
+      </children>
+    </StackPane>
+  </right>
+</BorderPane>

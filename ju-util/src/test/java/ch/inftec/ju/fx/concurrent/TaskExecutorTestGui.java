@@ -6,6 +6,7 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
@@ -35,7 +36,7 @@ public class TaskExecutorTestGui {
 	private Pane createExecutorPane(String res) {
 		PaneInfo<TaskExecutorController> paneInfo = JuFxUtils.loadPane(IOUtil.getResourceURL("TaskExecutor.fxml"), TaskExecutorController.class);
 		TaskExecutorController controller = paneInfo.getController();
-		MyTask task = new MyTask(res);
+		MyTask task = new MyTask(res, false);
 		controller.executeTask(task, new EventHandler<WorkerStateEvent>() {
 			public void handle(WorkerStateEvent event) {
 				logger.info("Done: " + event.getSource().getValue());
@@ -74,13 +75,45 @@ public class TaskExecutorTestGui {
 			});
 	}
 	
+	@Test
+	public void backgroundLoader() {
+		final BackgroundLoader backgroundLoader = new BackgroundLoader();
+		
+		final BorderPane pane = new BorderPane();
+		pane.setPrefSize(100, 100);
+		
+		final Button btnRunTask = new Button("Run Task");
+		btnRunTask.setOnAction(new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(ActionEvent ev) {
+				MyTask task = new MyTask("Task " + System.currentTimeMillis(), System.currentTimeMillis() % 2 == 0);
+				backgroundLoader.execute(task, new BackgroundLoaderCallback() {
+					@Override
+					public void loadingDone(Object data) {
+						logger.debug("Loading done: " + data);
+					}
+				});
+			}
+		});
+		
+		pane.setTop(btnRunTask);
+		pane.setCenter(backgroundLoader.getNotificationNode());	
+		
+		JuFxUtils.startApplication()
+			.title("TaskExecutor")
+			.pane(pane)
+			.start();
+	}
+	
 	private static class MyTask extends Task<String> {
 		private final String val;
+		private final boolean throwException;
 		
-		private MyTask(String val) {
+		private MyTask(String val, boolean throwException) {
 			this.updateProgress(0, 100);
 			this.updateTitle(val);
 			this.val = val;
+			this.throwException = throwException;
 		}
 		
 		@Override
@@ -92,6 +125,11 @@ public class TaskExecutorTestGui {
 			this.updateMessage("Almost done...");
 			this.updateProgress(60, 100);
 			Thread.sleep(2000);
+			
+			if (this.throwException) {
+				throw new RuntimeException(val);
+			}
+			
 			this.updateProgress(100, 100);
 			return this.val;
 		}

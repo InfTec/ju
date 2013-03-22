@@ -9,9 +9,9 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Button;
+import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
-import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.ProgressBar;
 import ch.inftec.ju.util.AssertUtil;
 import ch.inftec.ju.util.fx.JuFxUtils;
 
@@ -24,8 +24,9 @@ import ch.inftec.ju.util.fx.JuFxUtils;
 public class TaskExecutorController implements Initializable {
 	@FXML private Label txtTitle;
 	@FXML private Label txtMessage;
-	@FXML private ProgressIndicator piProgress;
-	@FXML private Button btnCancel;
+	@FXML private ProgressBar pbProgress;
+	@FXML private Hyperlink hlCancel;
+	@FXML private Hyperlink hlError;
 	
 	private TaskExecutorViewModel model;
 	
@@ -64,10 +65,10 @@ public class TaskExecutorController implements Initializable {
 				txtTitle.textProperty().bind(model.titleProperty());
 				txtMessage.textProperty().bind(model.messageProperty());
 				
-				piProgress.progressProperty().bind(model.progressProperty());
+				pbProgress.progressProperty().bind(model.progressProperty());
 
-				btnCancel.textProperty().bind(model.buttonTextProperty());
-				btnCancel.disableProperty().bind(model.buttonDisabledProperty());
+				hlError.visibleProperty().bind(model.exceptionProperty().isNotNull());
+				hlCancel.visibleProperty().bind(model.cancelEnabledProperty());
 				
 				// Run the task
 				model.start();
@@ -77,5 +78,10 @@ public class TaskExecutorController implements Initializable {
 	
 	public void cancel(ActionEvent ev) {
 		model.cancel();
+	}
+	
+	public void showError(ActionEvent ev) {
+		// Show Error
+		System.err.println("Error");
 	}
 }

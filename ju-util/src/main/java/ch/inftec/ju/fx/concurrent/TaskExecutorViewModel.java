@@ -4,11 +4,10 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyDoubleProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.EventHandler;
@@ -27,10 +26,10 @@ class TaskExecutorViewModel {
 	
 	private final Task<?> task;
 	
-	private StringProperty buttonTextProperty = new SimpleStringProperty();
-	private BooleanProperty buttonDisabledProperty = new SimpleBooleanProperty();
-	
+	private BooleanProperty cancelEnabledProperty = new SimpleBooleanProperty();
+		
 	private ObjectProperty<EventHandler<WorkerStateEvent>> onDoneProperty = new SimpleObjectProperty<>();
+	private ObjectProperty<Throwable> exceptionProperty = new SimpleObjectProperty<>();
 	
 	TaskExecutorViewModel(final Task<?> task) {
 		this.task = task;
@@ -70,12 +69,12 @@ class TaskExecutorViewModel {
 		return this.task.messageProperty();
 	}
 	
-	public ReadOnlyStringProperty buttonTextProperty() {
-		return this.buttonTextProperty;
+	public ReadOnlyBooleanProperty cancelEnabledProperty() {
+		return this.cancelEnabledProperty;
 	}
 	
-	public ReadOnlyBooleanProperty buttonDisabledProperty() {
-		return this.buttonDisabledProperty;
+	public ReadOnlyObjectProperty<Throwable> exceptionProperty() {
+		return this.exceptionProperty;
 	}
 	
 	public void setOnDone(EventHandler<WorkerStateEvent> handler) {
@@ -84,18 +83,12 @@ class TaskExecutorViewModel {
 	
 	private void updateValues() {
 		if (this.task.isRunning()) {
-			this.buttonTextProperty.setValue("Cancel");
-			this.buttonDisabledProperty.set(false);
-		} else if (this.task.isCancelled()) {
-			this.buttonTextProperty.setValue("Cancelled");
-			this.buttonDisabledProperty.set(true);
-		} else if (this.task.isDone()) {
-			this.buttonTextProperty.setValue("Done");
-			this.buttonDisabledProperty.set(true);
+			this.cancelEnabledProperty.set(true);
 		} else {
-			this.buttonTextProperty.setValue("Run");
-			this.buttonDisabledProperty.set(false);
+			this.cancelEnabledProperty.set(false);
 		}
+		
+		this.exceptionProperty.set(this.task.getException());
 	}
 	
 	public void start() {
