@@ -126,9 +126,10 @@ public class JuFxUtils {
 	/**
 	 * Creates a JFXPanel that contains the specified pane.
 	 * @param pane Pane
+	 * @param initializer Callback method to inizialize the pane further in the FX application thread.
 	 * @return JFXPanel to be used in a Swing app
 	 */
-	public static JFXPanel createJFXPanel(final Pane pane) {
+	public static JFXPanel createJFXPanel(final Pane pane, final PaneInitializer initializer) {
 		final JFXPanel fxPanel = new JFXPanel();
 		fxPanel.setPreferredSize(new Dimension((int)pane.getPrefWidth(), (int)pane.getPrefHeight()));
 		
@@ -140,6 +141,10 @@ public class JuFxUtils {
 		Platform.runLater(JuFxUtils.getFxWrapper(new Runnable() {
 			@Override
 			public void run() {
+				if (initializer != null) {
+					initializer.init(pane);
+				}
+				
 				Scene scene = new Scene(pane);
 				fxPanel.setScene(scene);
 			}
@@ -148,12 +153,12 @@ public class JuFxUtils {
 		return fxPanel;
 	}
 	
-	public static JFXPanel createJFXPanel(URL paneFxmlUrl) {
+	public static JFXPanel createJFXPanel(URL paneFxmlUrl, PaneInitializer initializer) {
 		AssertUtil.assertNotNull("FXML URL must not be null", paneFxmlUrl);
 		
 		try {
 			Pane pane = FXMLLoader.load(paneFxmlUrl);
-			return JuFxUtils.createJFXPanel(pane);
+			return JuFxUtils.createJFXPanel(pane, initializer);
 		} catch (Exception ex) {
 			throw new JuRuntimeException("Couldn't create JFXPanel", ex);
 		}

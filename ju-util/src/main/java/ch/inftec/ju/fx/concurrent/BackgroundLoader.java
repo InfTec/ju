@@ -38,6 +38,7 @@ public class BackgroundLoader {
 		if (this.scrollPane == null) {
 			this.scrollPane = new ScrollPane();
 			this.scrollPane.setFitToWidth(true);
+			this.scrollPane.setFitToHeight(true);
 			
 			this.borderPane.setCenter(this.getNodeParent());
 			
@@ -54,17 +55,22 @@ public class BackgroundLoader {
 		return this.vBox;
 	}
 	
-	public void execute(Task<?> task, final BackgroundLoaderCallback callback) {
-		final PaneInfo<TaskExecutorController> paneInfo = JuFxUtils.loadPane(IOUtil.getResourceURL("TaskExecutor.fxml", TaskExecutorController.class), TaskExecutorController.class);
-		TaskExecutorController controller = paneInfo.getController();
-		
-		controller.executeTask(task, new EventHandler<WorkerStateEvent>() {
-			public void handle(WorkerStateEvent event) {
-				paneInfo.getPane().setUserData(event);
-				taskDone(event, callback, paneInfo.getPane());
-			};
+	public void execute(final Task<?> task, final BackgroundLoaderCallback callback) {
+		JuFxUtils.runInFxThread(new Runnable() {
+			@Override
+			public void run() {
+				final PaneInfo<TaskExecutorController> paneInfo = JuFxUtils.loadPane(IOUtil.getResourceURL("TaskExecutor.fxml", TaskExecutorController.class), TaskExecutorController.class);
+				TaskExecutorController controller = paneInfo.getController();
+				
+				controller.executeTask(task, new EventHandler<WorkerStateEvent>() {
+					public void handle(WorkerStateEvent event) {
+						paneInfo.getPane().setUserData(event);
+						taskDone(event, callback, paneInfo.getPane());
+					};
+				});
+				getNodeParent().getChildren().add(0, paneInfo.getPane());		
+			}
 		});
-		this.getNodeParent().getChildren().add(0, paneInfo.getPane());		
 	}
 	
 	private void taskDone(WorkerStateEvent event, final BackgroundLoaderCallback callback, final Pane pane) {
