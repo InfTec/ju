@@ -35,10 +35,14 @@ public class DetailMessageViewModel {
 	 */
 	public static DetailMessageViewModel createByThrowable(Throwable ex) {
 		DetailMessageViewModel model = new DetailMessageViewModel();
-		model.titleProperty().set(ex.getClass().getSimpleName());
-		model.messageProperty().set(ex.getMessage());
-		model.detailedMessageProperty().set(JuStringUtils.getStackTrace(ex));
-		
+		if (ex != null) {
+			model.titleProperty().set(ex.getClass().getSimpleName());
+			model.messageProperty().set(ex.getMessage());
+			model.detailedMessageProperty().set(JuStringUtils.getStackTrace(ex));
+		} else {
+			model.title.set("Exception");
+			model.messageProperty().set("No Exception details available");
+		}
 		return model;
 	}
 }

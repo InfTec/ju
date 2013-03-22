@@ -8,6 +8,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
+import ch.inftec.ju.fx.DetailMessageViewModel;
 import ch.inftec.ju.util.AssertUtil;
 import ch.inftec.ju.util.fx.JuFxUtils;
 
@@ -70,7 +71,7 @@ public class TaskExecutorController {
 	}
 	
 	public void showError(ActionEvent ev) {
-		// Show Error
-		System.err.println("Error");
+		DetailMessageViewModel model = DetailMessageViewModel.createByThrowable(this.model.exceptionProperty().get());
+		JuFxUtils.showDetailMessageDialog(model);
 	}
 }
