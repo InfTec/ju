@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.paint.*?>
+<?import javafx.scene.text.*?>
+
+<BorderPane id="BorderPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" xmlns:fx="http://javafx.com/fxml" fx:controller="ch.inftec.ju.fx.DetailMessageController">
+  <bottom>
+    <Button fx:id="btnClose" defaultButton="true" mnemonicParsing="false" onAction="#close" text="OK" BorderPane.alignment="CENTER_RIGHT" />
+  </bottom>
+  <center>
+    <TextArea id="txtStackTrace" fx:id="txaDetailMessage" editable="false" prefWidth="200.0" text="Stack Trace&#10;  at abc" wrapText="true">
+      <BorderPane.margin>
+        <Insets bottom="10.0" top="10.0" />
+      </BorderPane.margin>
+    </TextArea>
+  </center>
+  <padding>
+    <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+  </padding>
+  <top>
+    <Label fx:id="lblMessage" text="Exception Message">
+      <font>
+        <Font name="System Bold" size="12.0" />
+      </font>
+    </Label>
+  </top>
+</BorderPane>

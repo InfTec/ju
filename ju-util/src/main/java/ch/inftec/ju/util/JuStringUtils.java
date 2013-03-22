@@ -1,5 +1,7 @@
 package ch.inftec.ju.util;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -176,5 +178,20 @@ public final class JuStringUtils {
 		}
 		
 		return b.toString();
+	}
+	
+	/**
+	 * Gets the stack trace of the specified Throwable as a String
+	 * @param t Throwable
+	 * @return Stacktrace
+	 */
+	public static String getStackTrace(Throwable t) {
+		try (StringWriter w = new StringWriter()) {
+			PrintWriter pw = new PrintWriter(w);
+			t.printStackTrace(pw);
+			return w.toString();
+		} catch (Exception ex) {
+			throw new JuRuntimeException("Couldn't get stacktrace", ex);
+		}
 	}
 }

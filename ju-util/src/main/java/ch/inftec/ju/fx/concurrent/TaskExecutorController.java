@@ -1,14 +1,10 @@
 package ch.inftec.ju.fx.concurrent;
 
-import java.net.URL;
-import java.util.ResourceBundle;
-
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
@@ -21,7 +17,7 @@ import ch.inftec.ju.util.fx.JuFxUtils;
  * @author tgdmemae
  *
  */
-public class TaskExecutorController implements Initializable {
+public class TaskExecutorController {
 	@FXML private Label txtTitle;
 	@FXML private Label txtMessage;
 	@FXML private ProgressBar pbProgress;
@@ -29,13 +25,6 @@ public class TaskExecutorController implements Initializable {
 	@FXML private Hyperlink hlError;
 	
 	private TaskExecutorViewModel model;
-	
-	@Override
-	public void initialize(URL url, ResourceBundle res) {
-		System.err.println("Initializing");
-		
-		this.txtMessage.setText("xxx");
-	}
 	
 	/**
 	 * Executes the specified task in this controller.

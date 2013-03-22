@@ -2,17 +2,28 @@ package ch.inftec.ju.util.fx;
 
 import java.awt.Dimension;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Pane;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.Window;
+import ch.inftec.ju.fx.DetailMessageController;
+import ch.inftec.ju.fx.DetailMessageViewModel;
 import ch.inftec.ju.util.AssertUtil;
+import ch.inftec.ju.util.IOUtil;
 import ch.inftec.ju.util.JuRuntimeException;
 
 /**
@@ -89,9 +100,17 @@ public class JuFxUtils {
 		private static Pane pane;
 		private static String title;
 		private static ApplicationInitializer initializer;
+		private static List<Node> nodes = new ArrayList<>();
 		
 		@Override
 		public void start(Stage primaryStage) throws Exception {
+			if (pane == null) {
+				pane = new FlowPane();
+			}
+			for (Node node : nodes) {
+				pane.getChildren().add(node);
+			}
+			
 			Scene scene = new Scene(pane);
 			
 			primaryStage.setTitle(title);
@@ -202,6 +221,34 @@ public class JuFxUtils {
 		return parent;
 	}
 	
+	/**
+	 * Tries to close the window that contains the specified node.
+	 * @param node Node in the window
+	 * @return True if the window could be closed
+	 */
+	public static boolean closeWindow(Node node) {
+		if (node != null && node.getScene() != null) {
+			Window window = node.getScene().getWindow();
+			if (window instanceof Stage) {
+				((Stage) window).close();
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public static void showDetailMessageDialog(DetailMessageViewModel model) {
+		PaneInfo<DetailMessageController> paneInfo = JuFxUtils.loadPane(IOUtil.getResourceURL("DetailMessage.fxml", DetailMessageController.class), DetailMessageController.class);
+		paneInfo.getController().setModel(model);		
+		
+		Stage stage = new Stage();
+		stage.setScene(new Scene(paneInfo.getPane()));
+		stage.sizeToScene();
+		stage.initModality(Modality.APPLICATION_MODAL);
+		stage.titleProperty().bind(model.titleProperty());
+		stage.showAndWait();
+	}
+	
 	public static class ApplicationStarter {
 		public ApplicationStarter title(String title) {
 			ApplicationImpl.title = title;
@@ -219,6 +266,15 @@ public class JuFxUtils {
 			} catch (Exception ex) {
 				throw new JuRuntimeException("Couldn't launch JavaFX application", ex);
 			}
+			
+			return this;
+		}
+		
+		public ApplicationStarter button(String text, EventHandler<ActionEvent> eventHandler) {
+			Button btn = new Button(text);
+			btn.setOnAction(eventHandler);
+			
+			ApplicationImpl.nodes.add(btn);
 			
 			return this;
 		}
