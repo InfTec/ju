@@ -1,6 +1,5 @@
 package ch.inftec.ju.fx.concurrent;
 
-import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
@@ -19,9 +18,11 @@ import org.slf4j.LoggerFactory;
 
 /**
  * ViewModel for Task execution tracking.
+ * <p>
+ * Used by {@link TaskExecutorController}.<link>
  * @author tgdmemae
  */
-public class TaskExecutorViewModel {
+class TaskExecutorViewModel {
 	private final Logger logger = LoggerFactory.getLogger(TaskExecutorViewModel.class);
 	
 	private final Task<?> task;
@@ -31,7 +32,7 @@ public class TaskExecutorViewModel {
 	
 	private ObjectProperty<EventHandler<WorkerStateEvent>> onDoneProperty = new SimpleObjectProperty<>();
 	
-	public TaskExecutorViewModel(final Task<?> task) {
+	TaskExecutorViewModel(final Task<?> task) {
 		this.task = task;
 		this.init();
 	}
@@ -49,6 +50,7 @@ public class TaskExecutorViewModel {
 				}
 			}
 		};
+		this.task.setOnRunning(eventHandler);
 		this.task.setOnCancelled(eventHandler);
 		this.task.setOnFailed(eventHandler);
 		this.task.setOnSucceeded(eventHandler);		
@@ -84,6 +86,9 @@ public class TaskExecutorViewModel {
 		if (this.task.isRunning()) {
 			this.buttonTextProperty.setValue("Cancel");
 			this.buttonDisabledProperty.set(false);
+		} else if (this.task.isCancelled()) {
+			this.buttonTextProperty.setValue("Cancelled");
+			this.buttonDisabledProperty.set(true);
 		} else if (this.task.isDone()) {
 			this.buttonTextProperty.setValue("Done");
 			this.buttonDisabledProperty.set(true);
@@ -93,17 +98,16 @@ public class TaskExecutorViewModel {
 		}
 	}
 	
-	/**
-	 * Performs an action, depending on the state of the task.
-	 * <p>
-	 * If the task is running, it is cancelled. Otherwise, it is started.
-	 */
-	public void performAction() {
+	public void start() {
 		if (!this.task.isRunning()) {
 			Thread th = new Thread(task);
 			th.setDaemon(true);
-			th.start();
-		} else if (!this.task.isDone() && !this.task.isCancelled()) {
+			th.start();			
+		}
+	}
+	
+	public void cancel() {
+		if (!this.task.isDone() && !this.task.isCancelled()) {
 			this.task.cancel();
 		}
 	}

@@ -7,6 +7,8 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
@@ -20,6 +22,23 @@ import ch.inftec.ju.util.JuRuntimeException;
  */
 public class JuFxUtils {
 	private static boolean fxInitialized = false;
+	{
+		JuFxUtils.initializeFxToolkit();
+	}
+	
+	/**
+	 * Initializes the Java FX toolkit.
+	 * <p>
+	 * This needs to be done to use some of the Java FX functionality like
+	 * concurrency classes when we haven't already got a Java FX scene or application
+	 * running.
+	 */
+	public static void initializeFxToolkit() {
+		if (!fxInitialized) {
+			new JFXPanel();
+		}
+		fxInitialized = true;
+	}
 	
 	/**
 	 * Loads a pane from the specified URL.
@@ -59,42 +78,17 @@ public class JuFxUtils {
 	}
 	
 	/**
-	 * Starts a JavaFX application with the specified pane in the primary
-	 * stage.
-	 * <p>
-	 * This method should only be used onces in an Application.
-	 * @param paneFxmlUrl URL to pane FXML file
+	 * Gets a builder to configure and start a JavaFX application.
+	 * @return ApplicationStarter
 	 */
-	public static void startApplication(final String title, URL paneFxmlUrl) {
-		try {
-			Pane pane = FXMLLoader.load(paneFxmlUrl);
-			JuFxUtils.startApplication(title, pane);
-		} catch (Exception ex) {
-			throw new JuRuntimeException("Couldn't launch JavaFX application", ex);
-		}
-	}
-	
-	/**
-	 * Starts a JavaFX application with the specified pane in the primary
-	 * state.
-	 * <p>
-	 * This method should only be used once in an Application.
-	 * @param title Title of the main scene
-	 * @param pane Pane of the main scene
-	 */
-	public static void startApplication(final String title, final Pane pane) {
-		try {
-			ApplicationImpl.pane = pane;
-			ApplicationImpl.title = title;
-			ApplicationImpl.launch(ApplicationImpl.class);
-		} catch (Exception ex) {
-			throw new JuRuntimeException("Couldn't launch JavaFX application", ex);
-		}
+	public static ApplicationStarter startApplication() {
+		return new ApplicationStarter();
 	}
 	
 	public static class ApplicationImpl extends Application {
 		private static Pane pane;
 		private static String title;
+		private static ApplicationInitializer initializer;
 		
 		@Override
 		public void start(Stage primaryStage) throws Exception {
@@ -103,31 +97,44 @@ public class JuFxUtils {
 			primaryStage.setTitle(title);
 			primaryStage.setScene(scene);
 			primaryStage.show();
+			
+			if (ApplicationImpl.initializer != null) {
+				ApplicationImpl.initializer.init(primaryStage);
+			}
 		}
+	}
+	
+	/**
+	 * Creates a JFXPanel that contains the specified pane.
+	 * @param pane Pane
+	 * @return JFXPanel to be used in a Swing app
+	 */
+	public static JFXPanel createJFXPanel(final Pane pane) {
+		final JFXPanel fxPanel = new JFXPanel();
+		fxPanel.setPreferredSize(new Dimension((int)pane.getPrefWidth(), (int)pane.getPrefHeight()));
+		
+		/**
+		 * Seems like we need to initialize the Scene later in the
+		 * JavaFX thread:
+		 * http://docs.oracle.com/javafx/2/swing/swing-fx-interoperability.htm#CHDIEEJE
+		 */
+		Platform.runLater(JuFxUtils.getFxWrapper(new Runnable() {
+			@Override
+			public void run() {
+				Scene scene = new Scene(pane);
+				fxPanel.setScene(scene);
+			}
+		}));
+								
+		return fxPanel;
 	}
 	
 	public static JFXPanel createJFXPanel(URL paneFxmlUrl) {
 		AssertUtil.assertNotNull("FXML URL must not be null", paneFxmlUrl);
 		
 		try {
-			final Pane pane = FXMLLoader.load(paneFxmlUrl);
-			final JFXPanel fxPanel = new JFXPanel();
-			fxPanel.setPreferredSize(new Dimension((int)pane.getPrefWidth(), (int)pane.getPrefHeight()));
-			
-			/**
-			 * Seems like we need to initialize the Scene later in the
-			 * JavaFX thread:
-			 * http://docs.oracle.com/javafx/2/swing/swing-fx-interoperability.htm#CHDIEEJE
-			 */
-			Platform.runLater(JuFxUtils.getFxWrapper(new Runnable() {
-				@Override
-				public void run() {
-					Scene scene = new Scene(pane);
-					fxPanel.setScene(scene);
-				}
-			}));
-									
-			return fxPanel;
+			Pane pane = FXMLLoader.load(paneFxmlUrl);
+			return JuFxUtils.createJFXPanel(pane);
 		} catch (Exception ex) {
 			throw new JuRuntimeException("Couldn't create JFXPanel", ex);
 		}
@@ -164,20 +171,6 @@ public class JuFxUtils {
 	}
 	
 	/**
-	 * Initializes the Java FX toolkit.
-	 * <p>
-	 * This needs to be done to use some of the Java FX functionality like
-	 * concurrency classes when we haven't already got a Java FX scene or application
-	 * running.
-	 */
-	public static void initializeFxToolkit() {
-		if (!fxInitialized) {
-			new JFXPanel();
-		}
-		fxInitialized = true;
-	}
-	
-	/**
 	 * Runs the Runnable in the FX thread.
 	 * <p>
 	 * If we already ARE in the FX thread, it is run immediately. Otherwise,
@@ -193,6 +186,55 @@ public class JuFxUtils {
 		} else {
 			Platform.runLater(runnable);
 			return false;
+		}
+	}
+	
+	/**
+	 * Gets the root the node.
+	 * @param node Node to get root of
+	 * @return Stage of the node or null if it isn't displayed on a stage
+	 */
+	public static Parent getRoot(Node node) {
+		Parent parent = node.getParent();
+		while (parent != null) {
+			parent = parent.getParent();
+		}
+		return parent;
+	}
+	
+	public static class ApplicationStarter {
+		public ApplicationStarter title(String title) {
+			ApplicationImpl.title = title;
+			return this;
+		}
+		
+		public ApplicationStarter pane(Pane pane) {
+			ApplicationImpl.pane = pane;
+			return this;
+		}
+		
+		public ApplicationStarter pane(URL paneFxmlUrl) {
+			try {
+				ApplicationImpl.pane = FXMLLoader.load(paneFxmlUrl);
+			} catch (Exception ex) {
+				throw new JuRuntimeException("Couldn't launch JavaFX application", ex);
+			}
+			
+			return this;
+		}
+		
+		public void start() {
+			this.start(null);
+		}
+
+		/**
+		 * Starts the application and runs the initializer code
+		 * in the JavaFX application thread.
+		 * @param initializer Initializer
+		 */
+		public void start(ApplicationInitializer initializer) {
+			ApplicationImpl.initializer = initializer;
+			ApplicationImpl.launch(ApplicationImpl.class);
 		}
 	}
 }

@@ -11,6 +11,6 @@
     <Label fx:id="txtTitle" layoutX="14.0" layoutY="14.0" text="Task Title" />
     <ProgressIndicator fx:id="piProgress" layoutX="235.0" layoutY="14.0" />
     <Label fx:id="txtMessage" layoutX="14.0" layoutY="32.0" text="Task Message" />
-    <Button fx:id="btnCancel" layoutX="115.0" layoutY="56.0" mnemonicParsing="false" onAction="#clicked" text="Cancel" />
+    <Button fx:id="btnCancel" layoutX="115.0" layoutY="56.0" mnemonicParsing="false" onAction="#cancel" text="Cancel" />
   </children>
 </AnchorPane>

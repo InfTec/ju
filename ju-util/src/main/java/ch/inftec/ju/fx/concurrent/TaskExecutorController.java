@@ -3,7 +3,10 @@ package ch.inftec.ju.fx.concurrent;
 import java.net.URL;
 import java.util.ResourceBundle;
 
+import javafx.concurrent.Task;
+import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
@@ -12,6 +15,12 @@ import javafx.scene.control.ProgressIndicator;
 import ch.inftec.ju.util.AssertUtil;
 import ch.inftec.ju.util.fx.JuFxUtils;
 
+/**
+ * Controller class that can be used to execute a JavaFX class providing
+ * visual feedback (and cancellation option) on a Pane.
+ * @author tgdmemae
+ *
+ */
 public class TaskExecutorController implements Initializable {
 	@FXML private Label txtTitle;
 	@FXML private Label txtMessage;
@@ -27,31 +36,46 @@ public class TaskExecutorController implements Initializable {
 		this.txtMessage.setText("xxx");
 	}
 	
-	public void setModel(TaskExecutorViewModel model) {
-		AssertUtil.assertNull("Model may only be initialized once", this.model);
-		this.model = model;
-		
+	/**
+	 * Executes the specified task in this controller.
+	 * @param task Task that hasn't been started yet.
+	 * @param doneEventHandlerFx EventHandler that is called when the task is done (either cancelled or successfully completed).
+	 * The handler will run in the FX application thread
+	 */
+	public void executeTask(final Task<?> task, EventHandler<WorkerStateEvent> doneEventHandler) {
+		AssertUtil.assertNull("Controller supports only one task execution", this.model);
+		this.initModel(task, doneEventHandler);
+	}
+	
+	private void initModel(final Task<?> task, final EventHandler<WorkerStateEvent> doneEventHandler) {
 		// Make sure the model is initialized in the FX thread, otherwise
 		// the Task will complain...
+		
 		JuFxUtils.runInFxThread(new Runnable() {
 			@Override
 			public void run() {
-				initModel();
+				// Not working, results in java.lang.OutOfMemoryError: Java heap space
+//				AssertUtil.assertEquals(State.READY, task.getState());
+				
+				model = new TaskExecutorViewModel(task);
+				model.setOnDone(doneEventHandler);
+				
+				
+				txtTitle.textProperty().bind(model.titleProperty());
+				txtMessage.textProperty().bind(model.messageProperty());
+				
+				piProgress.progressProperty().bind(model.progressProperty());
+
+				btnCancel.textProperty().bind(model.buttonTextProperty());
+				btnCancel.disableProperty().bind(model.buttonDisabledProperty());
+				
+				// Run the task
+				model.start();
 			}
 		});
 	}
 	
-	private void initModel() {
-		this.txtTitle.textProperty().bind(model.titleProperty());
-		this.txtMessage.textProperty().bind(model.messageProperty());
-		
-		this.piProgress.progressProperty().bind(model.progressProperty());
-		
-		this.btnCancel.textProperty().bind(model.buttonTextProperty());
-		this.btnCancel.disableProperty().bind(model.buttonDisabledProperty());
-	}
-	
-	public void clicked(ActionEvent ev) {
-		this.model.performAction();
+	public void cancel(ActionEvent ev) {
+		model.cancel();
 	}
 }
