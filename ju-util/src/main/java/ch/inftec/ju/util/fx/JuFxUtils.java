@@ -317,9 +317,28 @@ public class JuFxUtils {
 			// Use JuFxUtils.dialog()
 		}
 		
+		/**
+		 * Displays a simple message with an ok button.
+		 * @param title
+		 * @param message
+		 */
 		public void showMessage(String title, String message) {
 			DetailMessageViewModel model = new DetailMessageViewModel();
 			model.messageProperty().set(message);
+			
+			Pane pane = DetailMessageController.loadPane(model);
+			this.showModal(title, pane);
+		}
+		
+		/**
+		 * Displays an exception. The message is displayed as
+		 * the main message, along with the detailed StackTrace
+		 * in a TextField.
+		 * @param title
+		 * @param t
+		 */
+		public void showException(String title, Throwable t) {
+			DetailMessageViewModel model = DetailMessageViewModel.createByThrowable(t);
 			
 			Pane pane = DetailMessageController.loadPane(model);
 			this.showModal(title, pane);

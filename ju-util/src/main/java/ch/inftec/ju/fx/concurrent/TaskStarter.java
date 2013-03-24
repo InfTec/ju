@@ -52,6 +52,11 @@ public final class TaskStarter {
 		controller.executeTask(task, new EventHandler<WorkerStateEvent>() {
 			@Override
 			public void handle(WorkerStateEvent ev) {
+				if (WorkerStateEvent.WORKER_STATE_FAILED == ev.getEventType()) {
+					// Display exception
+					JuFxUtils.dialog().showException("Exception", ev.getSource().getException());
+				}
+				
 				JuFxUtils.closeWindow(paneInfo.getPane());
 				
 				callback.loadingDone(ev.getSource().getValue());

@@ -18,4 +18,16 @@ public class TaskStarterTestGui {
 			}
 		});
 	}
+	
+	@Test
+	public void taskStarterException() {
+		MyTask task = new MyTask("MyRes", true);
+		
+		new TaskStarter().start(task, new BackgroundLoaderCallback() {
+			@Override
+			public void loadingDone(Object data) {
+				logger.info("Logging done: " + data);
+			}
+		});
+	}
 }
