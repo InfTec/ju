@@ -1,6 +1,5 @@
 package ch.inftec.ju.fx.concurrent;
 
-import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -21,12 +20,10 @@ import ch.inftec.ju.util.fx.JuFxUtils;
 import ch.inftec.ju.util.fx.JuFxUtils.PaneInfo;
 
 public class TaskExecutorTestGui {
-	private static final Logger logger = LoggerFactory.getLogger(TaskExecutorTestGui.class);
+	static final Logger logger = LoggerFactory.getLogger(TaskExecutorTestGui.class);
 	
 	@Test
 	public void taskExecutorPane() {
-		JuFxUtils.initializeFxToolkit();
-		
 		JuFxUtils.startApplication()
 			.title("Task Executor")
 			.pane(this.createExecutorPane("test"))
@@ -103,35 +100,5 @@ public class TaskExecutorTestGui {
 			.title("TaskExecutor")
 			.pane(pane)
 			.start();
-	}
-	
-	private static class MyTask extends Task<String> {
-		private final String val;
-		private final boolean throwException;
-		
-		private MyTask(String val, boolean throwException) {
-			this.updateProgress(0, 100);
-			this.updateTitle(val);
-			this.val = val;
-			this.throwException = throwException;
-		}
-		
-		@Override
-		protected String call() throws Exception {
-			logger.debug("call");
-			this.updateMessage("Computing...");
-			this.updateProgress(20, 100);
-			Thread.sleep(1000);
-			this.updateMessage("Almost done...");
-			this.updateProgress(60, 100);
-			Thread.sleep(2000);
-			
-			if (this.throwException) {
-				throw new RuntimeException(val);
-			}
-			
-			this.updateProgress(100, 100);
-			return this.val;
-		}
 	}
 }

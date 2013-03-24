@@ -104,6 +104,8 @@ public class JuFxUtils {
 		
 		@Override
 		public void start(Stage primaryStage) throws Exception {
+			JuFxUtils.fxInitialized = true;
+			
 			if (pane == null) {
 				pane = new FlowPane();
 			}
@@ -115,11 +117,12 @@ public class JuFxUtils {
 			
 			primaryStage.setTitle(title);
 			primaryStage.setScene(scene);
-			primaryStage.show();
 			
 			if (ApplicationImpl.initializer != null) {
 				ApplicationImpl.initializer.init(primaryStage);
 			}
+			
+			primaryStage.show();
 		}
 	}
 	
@@ -130,7 +133,9 @@ public class JuFxUtils {
 	 * @return JFXPanel to be used in a Swing app
 	 */
 	public static JFXPanel createJFXPanel(final Pane pane, final PaneInitializer initializer) {
+		JuFxUtils.fxInitialized = true;
 		final JFXPanel fxPanel = new JFXPanel();
+		
 		fxPanel.setPreferredSize(new Dimension((int)pane.getPrefWidth(), (int)pane.getPrefHeight()));
 		
 		/**
@@ -204,6 +209,8 @@ public class JuFxUtils {
 	 * false it it will be run later
 	 */
 	public static boolean runInFxThread(Runnable runnable) {
+		JuFxUtils.initializeFxToolkit();
+		
 		if (Platform.isFxApplicationThread()) {
 			runnable.run();
 			return true;
@@ -284,6 +291,11 @@ public class JuFxUtils {
 			return this;
 		}
 		
+		/**
+		 * Starts the application.
+		 * <p>
+		 * The method will not return until the stage has been closed.
+		 */
 		public void start() {
 			this.start(null);
 		}
@@ -291,6 +303,8 @@ public class JuFxUtils {
 		/**
 		 * Starts the application and runs the initializer code
 		 * in the JavaFX application thread.
+		 * <p>
+		 * The start method won't return until the stage has been closed.
 		 * @param initializer Initializer
 		 */
 		public void start(ApplicationInitializer initializer) {
