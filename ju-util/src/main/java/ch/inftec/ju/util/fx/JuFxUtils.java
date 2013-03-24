@@ -253,12 +253,7 @@ public class JuFxUtils {
 		PaneInfo<DetailMessageController> paneInfo = JuFxUtils.loadPane(IOUtil.getResourceURL("DetailMessage.fxml", DetailMessageController.class), DetailMessageController.class);
 		paneInfo.getController().setModel(model);		
 		
-		Stage stage = new Stage();
-		stage.setScene(new Scene(paneInfo.getPane()));
-		stage.sizeToScene();
-		stage.initModality(Modality.APPLICATION_MODAL);
-		stage.titleProperty().bind(model.titleProperty());
-		stage.showAndWait();
+		JuFxUtils.dialog().showModal(model.titleProperty().get(), paneInfo.getPane());
 	}
 	
 	public static class ApplicationStarter {
@@ -310,6 +305,33 @@ public class JuFxUtils {
 		public void start(ApplicationInitializer initializer) {
 			ApplicationImpl.initializer = initializer;
 			ApplicationImpl.launch(ApplicationImpl.class);
+		}
+	}
+	
+	public static DialogHandler dialog() {
+		return new DialogHandler();
+	}
+	
+	public static class DialogHandler {
+		private DialogHandler() {
+			// Use JuFxUtils.dialog()
+		}
+		
+		public void showMessage(String title, String message) {
+			DetailMessageViewModel model = new DetailMessageViewModel();
+			model.messageProperty().set(message);
+			
+			Pane pane = DetailMessageController.loadPane(model);
+			this.showModal(title, pane);
+		}
+		
+		public void showModal(String title, Pane pane) {
+			Stage stage = new Stage();
+			stage.setScene(new Scene(pane));
+			stage.sizeToScene();
+			stage.initModality(Modality.APPLICATION_MODAL);
+			stage.setTitle(title);
+			stage.showAndWait();
 		}
 	}
 }

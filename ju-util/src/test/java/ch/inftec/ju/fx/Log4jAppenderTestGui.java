@@ -2,14 +2,14 @@ package ch.inftec.ju.fx;
 
 import java.util.Random;
 
+import javafx.scene.layout.Pane;
+
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ch.inftec.ju.util.IOUtil;
 import ch.inftec.ju.util.ThreadUtils;
 import ch.inftec.ju.util.fx.JuFxUtils;
-import ch.inftec.ju.util.fx.JuFxUtils.PaneInfo;
 
 public class Log4jAppenderTestGui {
 	private Logger logger = LoggerFactory.getLogger(Log4jAppenderTestGui.class);
@@ -21,8 +21,7 @@ public class Log4jAppenderTestGui {
 		model.register();
 		logger.info("After adding appender");
 		
-		PaneInfo<Log4jAppenderController> paneInfo = JuFxUtils.loadPane(IOUtil.getResourceURL("Log4jAppender.fxml"), null);
-		paneInfo.getController().setModel(model);
+		Pane pane = Log4jAppenderController.loadPane(model);
 		
 		// Start a Thread that adds messages
 		Thread thread = new Thread(new Runnable() {
@@ -40,7 +39,7 @@ public class Log4jAppenderTestGui {
 		thread.start();
 		
 		JuFxUtils.startApplication()
-			.pane(paneInfo.getPane())
+			.pane(pane)
 			.title("Log4jAppender Test")
 			.start();
 		

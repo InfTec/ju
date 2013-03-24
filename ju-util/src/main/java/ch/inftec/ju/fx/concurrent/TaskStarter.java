@@ -3,12 +3,13 @@ package ch.inftec.ju.fx.concurrent;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.EventHandler;
-import javafx.scene.control.TextArea;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import ch.inftec.ju.fx.Log4jAppenderController;
+import ch.inftec.ju.fx.Log4jAppenderViewModel;
 import ch.inftec.ju.util.IOUtil;
-import ch.inftec.ju.util.JuStringUtils;
 import ch.inftec.ju.util.fx.ApplicationInitializer;
 import ch.inftec.ju.util.fx.JuFxUtils;
 import ch.inftec.ju.util.fx.JuFxUtils.PaneInfo;
@@ -39,6 +40,10 @@ public final class TaskStarter {
 	 * @param callback Callback to be called when finished
 	 */
 	public void start(final Task<?> task, final BackgroundLoaderCallback callback) {
+		// Load the Log4jAppenderViewModel first so we miss as few logs as possible
+		Log4jAppenderViewModel log4model = new Log4jAppenderViewModel();
+		log4model.register();
+		
 		final PaneInfo<TaskExecutorController> paneInfo = JuFxUtils.loadPane(IOUtil.getResourceURL("TaskExecutor.fxml", TaskExecutorController.class), TaskExecutorController.class);
 		TaskExecutorController controller = paneInfo.getController();
 		controller.executeTask(task, new EventHandler<WorkerStateEvent>() {
@@ -53,10 +58,8 @@ public final class TaskStarter {
 		BorderPane pane = new BorderPane();
 		pane.setTop(paneInfo.getPane());
 		
-		TextArea placeholder = new TextArea();
-		placeholder.setText(JuStringUtils.createLoremIpsum().getParagraphs());
-		
-		pane.setCenter(placeholder);
+		Pane log4jPane = Log4jAppenderController.loadPane(log4model);
+		pane.setCenter(log4jPane);
 		
 		JuFxUtils.startApplication()
 			.pane(pane)
