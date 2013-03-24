@@ -81,4 +81,14 @@ public class StringTest {
 		String zuluTime = JuStringUtils.toZuluDateString(cal.getTime());
 		Assert.assertEquals("1980-12-03T12:01:02.000Z", zuluTime);
 	}
+	
+	@Test
+	public void loremIpsumParagraphs() {
+		TestUtils.assertEqualsResource("StringTest_loremIpsumParagraphs.txt", JuStringUtils.createLoremIpsum().getParagraphs());
+	}
+	
+	@Test
+	public void loremIpsumWords() {
+		TestUtils.assertEqualsResource("StringTest_loremIpsumWords.txt", JuStringUtils.createLoremIpsum().getWords(15));
+	}
 }
