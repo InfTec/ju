@@ -4,8 +4,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ch.inftec.ju.util.fx.JuFxUtils;
-
 public class TaskStarterTestGui {
 	private static Logger logger = LoggerFactory.getLogger(TaskStarterTestGui.class);
 	
@@ -17,8 +15,6 @@ public class TaskStarterTestGui {
 			@Override
 			public void loadingDone(Object data) {
 				logger.info("Logging done: " + data);
-				
-				JuFxUtils.dialog().showMessage("Done", "Starting done");
 			}
 		});
 	}

@@ -3,8 +3,11 @@ package ch.inftec.ju.fx.concurrent;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Insets;
+import javafx.scene.effect.BlendMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import ch.inftec.ju.fx.Log4jAppenderController;
@@ -57,10 +60,13 @@ public final class TaskStarter {
 		
 		BorderPane pane = new BorderPane();
 		pane.setTop(paneInfo.getPane());
+		BorderPane.setMargin(paneInfo.getPane(), new Insets(10));
 		
 		Pane log4jPane = Log4jAppenderController.loadPane(log4model);
-		pane.setCenter(log4jPane);
 		
+		pane.setCenter(log4jPane);
+		BorderPane.setMargin(log4jPane, new Insets(10));
+				
 		JuFxUtils.startApplication()
 			.pane(pane)
 			.title(this.getTitle())
@@ -68,6 +74,9 @@ public final class TaskStarter {
 				@Override
 				public void init(Stage primaryStage) {
 					primaryStage.initStyle(StageStyle.TRANSPARENT);
+					
+					// Make the scene semi-transparent
+					primaryStage.getScene().setFill(Color.web("white", 0.5));
 				}
 			});
 	}
