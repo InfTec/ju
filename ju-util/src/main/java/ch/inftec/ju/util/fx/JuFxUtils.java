@@ -15,6 +15,7 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Pane;
 import javafx.stage.Modality;
@@ -265,6 +266,13 @@ public class JuFxUtils {
 		public ApplicationStarter pane(Pane pane) {
 			ApplicationImpl.pane = pane;
 			return this;
+		}
+		
+		public ApplicationStarter node(Node node) {
+			BorderPane borderPane = new BorderPane();
+			borderPane.setCenter(node);
+			
+			return this.pane(borderPane);
 		}
 		
 		public ApplicationStarter pane(URL paneFxmlUrl) {

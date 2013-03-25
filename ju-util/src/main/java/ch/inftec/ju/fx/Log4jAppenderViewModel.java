@@ -5,9 +5,12 @@ import java.util.List;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.log4j.AppenderSkeleton;
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.spi.LoggingEvent;
 
@@ -56,10 +59,27 @@ public class Log4jAppenderViewModel {
 	}
 	
 	public static class LogEntry {
+		private Image icon;
+		private ImageView imageView;
 		private String message;
+		
+		private LogEntry() {
+			// Only created internally
+		}
 		
 		public String getMessage() {
 			return message;
+		}
+		
+		public Image getIcon() {
+			return this.icon;
+		}
+		
+		public ImageView getImageView() {
+			if (this.imageView == null) {
+				this.imageView = new ImageView(this.icon);
+			}
+			return this.imageView;
 		}
 	}
 	
@@ -72,6 +92,20 @@ public class Log4jAppenderViewModel {
 		
 		protected void append(final LoggingEvent event) {
 			LogEntry logEntry = new LogEntry();
+			
+			// Set icon
+			if (event.getLevel() == Level.ERROR) {
+				logEntry.icon = ImageLoader.getDefaultLoader().loadImage("exclamation.png");
+			} else if (event.getLevel() == Level.WARN) {
+				logEntry.icon = ImageLoader.getDefaultLoader().loadImage("error.png");
+			} else if (event.getLevel() == Level.INFO) {
+				logEntry.icon = ImageLoader.getDefaultLoader().loadImage("information.png");
+			} else if (event.getLevel() == Level.DEBUG) {
+				logEntry.icon = ImageLoader.getDefaultLoader().loadImage("table.png");
+			} else if (event.getLevel() == Level.TRACE) {
+				logEntry.icon = ImageLoader.getDefaultLoader().loadImage("table_add.png");
+			}
+			
 			logEntry.message = ObjectUtils.toString(event.getMessage());
 			
 			model.addLogEntry(logEntry);

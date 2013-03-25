@@ -23,7 +23,7 @@ public class Log4jAppenderTestGui {
 		
 		Pane pane = Log4jAppenderController.loadPane(model);
 		
-		// Start a Thread that adds messages
+		// Start a Thread that adds info messages
 		Thread thread = new Thread(new Runnable() {
 			private Random random = new Random();
 			
@@ -37,6 +37,34 @@ public class Log4jAppenderTestGui {
 		});
 		thread.setDaemon(true);
 		thread.start();
+		
+		// Start a Thread that adds random messages
+		Thread thread2 = new Thread(new Runnable() {
+			private Random random = new Random();
+			
+			@Override
+			public void run() {
+				while (true) {
+					int type = random.nextInt(5);
+					switch (type) {
+					case 0: logger.error("Aaaaaaaaaaaaa Error"); break;
+					case 1: logger.warn("Ooops Warn"); break;
+					case 2: logger.info("Oooo Info"); break;
+					case 3: logger.debug("Iiii Debug"); break;
+					case 4: logger.trace("Uuuu Trace"); break;
+					}
+					ThreadUtils.sleep(random.nextInt(500) + 200);						
+				}
+			}
+		});
+		thread2.setDaemon(true);
+		thread2.start();
+		
+		logger.error("ERR");
+		logger.warn("WARN");
+		logger.info("INFO");
+		logger.debug("DEBUG");
+		logger.trace("TRACE");
 		
 		JuFxUtils.startApplication()
 			.pane(pane)
