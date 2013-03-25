@@ -5,6 +5,8 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 
+import ch.inftec.ju.util.JuRuntimeException;
+
 public class ImageLoaderTest {
 	@Test
 	public void loadImage() {
@@ -27,8 +29,22 @@ public class ImageLoaderTest {
 		try {
 			imageLoader.loadImage("unknown");
 			Assert.fail("Expected exception");
-		} catch (IllegalArgumentException ex) {
-			// Expected
+		} catch (JuRuntimeException ex) {
+			Assert.assertTrue(ex.getMessage().contains("unknown"));
 		}
+	}
+	
+	@Test
+	public void loadImage_def() {
+		ImageLoader imageLoader = new ImageLoader("just/some/prefix");
+		
+		Image image = imageLoader.loadImage("def:information.png");
+		
+		Assert.assertEquals(16.0, image.getWidth());
+		Assert.assertEquals(16.0, image.getHeight());
+		
+		// Use the default loader directly
+		Assert.assertSame(image, ImageLoader.getDefaultLoader().loadImage("def:information.png"));
+		Assert.assertSame(image, ImageLoader.getDefaultLoader().loadImage("information.png"));
 	}
 }

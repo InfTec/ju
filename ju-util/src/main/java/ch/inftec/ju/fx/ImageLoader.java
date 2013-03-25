@@ -19,6 +19,10 @@ import ch.inftec.ju.util.XString;
  * <p>
  * The image format is FX images. The loader provides some Swing functions for backward (Swing)
  * compatibility, though.
+ * <p>
+ * To load JU resources, there is a default ImageLoader available. Any instance of ImageLoader
+ * can load images from the default loader by using the prefix 'def:' in the (relative!)
+ * image path. e.g. 'def:information.png'
  * @author Martin
  *
  */
@@ -28,6 +32,20 @@ public class ImageLoader {
 	private final String pathPrefix;
 	
 	private HashMap<String, Image> images = new HashMap<>();
+	
+	private static final String DEFAULT_IMAGE_PREFIX = "def:"; 
+	
+	private static final ImageLoader defaultImageLoader = new ImageLoader("ch/inftec/ju/fx/images");
+	
+	/**
+	 * Gets the default ImageLoader that is used to load Images for internal
+	 * JU resources. Any implementation of ImageLoader will also try
+	 * to load images from this loader first.
+	 * @return Default ImageLoader instance
+	 */
+	public static ImageLoader getDefaultLoader() {
+		return ImageLoader.defaultImageLoader;
+	}
 	
 	/**
 	 * Creates an new ImageLoader with an empty path prefix, i.e. all
@@ -61,18 +79,26 @@ public class ImageLoader {
 	 * @throws JuRuntimeException if the image cannot be loaded
 	 */
 	public Image loadImage(String path) {
-		String fullPath = this.getFullImagePath(path);
-		if (!this.images.containsKey(fullPath)) {
-			try {
-				logger.debug("Loading image: " + fullPath);
-				Image image = new Image(fullPath);
-				this.images.put(fullPath, image);
-			} catch (Exception ex) {
-				logger.error("Couldn't load image: " + fullPath);
-				throw new JuRuntimeException("Couldn't load image: " + fullPath, ex);
+		// Check if the path references a default resource
+		if (path.startsWith(ImageLoader.DEFAULT_IMAGE_PREFIX)) {
+			String defaultPath = path.substring(ImageLoader.DEFAULT_IMAGE_PREFIX.length());
+			return ImageLoader.getDefaultLoader().loadImage(defaultPath);
+		} else {
+			// Regular image loading
+			
+			String fullPath = this.getFullImagePath(path);
+			if (!this.images.containsKey(fullPath)) {
+				try {
+					logger.debug("Loading image: " + fullPath);
+					Image image = new Image(fullPath);
+					this.images.put(fullPath, image);
+				} catch (Exception ex) {
+					logger.error("Couldn't load image: " + fullPath);
+					throw new JuRuntimeException("Couldn't load image: " + fullPath, ex);
+				}
 			}
+			
+			return this.images.get(fullPath);
 		}
-		
-		return this.images.get(fullPath);
 	}
 }
