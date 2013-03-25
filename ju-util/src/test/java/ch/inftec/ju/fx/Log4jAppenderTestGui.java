@@ -16,12 +16,27 @@ public class Log4jAppenderTestGui {
 	
 	@Test
 	public void log4jAppender() {
-		Log4jAppenderViewModel model = new Log4jAppenderViewModel();
+		Log4jAppenderModel model = new Log4jAppenderModel();
 		logger.info("Before adding appender");
-		model.register();
+		model.register().addToRootLogger();
 		logger.info("After adding appender");
 		
-		Pane pane = Log4jAppenderController.loadPane(model);
+		this.runWithModel(new Log4jAppenderViewModel(model));
+	}
+	
+	@Test
+	public void log4jAppender_max10() {
+		Log4jAppenderModel model = new Log4jAppenderModel();
+		model.maxLogEntriesProperty().set(10);
+		logger.info("Before adding appender");
+		model.register().addToRootLogger();
+		logger.info("After adding appender");
+		
+		this.runWithModel(new Log4jAppenderViewModel(model));
+	}
+	
+	private void runWithModel(Log4jAppenderViewModel viewModel) {
+		Pane pane = Log4jAppenderController.loadPane(viewModel);
 		
 		// Start a Thread that adds info messages
 		Thread thread = new Thread(new Runnable() {
@@ -70,7 +85,5 @@ public class Log4jAppenderTestGui {
 			.pane(pane)
 			.title("Log4jAppender Test")
 			.start();
-		
-
 	}
 }

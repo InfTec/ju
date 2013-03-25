@@ -10,6 +10,7 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import ch.inftec.ju.fx.Log4jAppenderController;
+import ch.inftec.ju.fx.Log4jAppenderModel;
 import ch.inftec.ju.fx.Log4jAppenderViewModel;
 import ch.inftec.ju.util.IOUtil;
 import ch.inftec.ju.util.fx.ApplicationInitializer;
@@ -27,7 +28,7 @@ import ch.inftec.ju.util.fx.JuFxUtils.PaneInfo;
  */
 public final class TaskStarter {
 	private String title = "Starting...";
-	private Log4jAppenderViewModel log4jModel;
+	private Log4jAppenderModel log4jModel;
 	
 	public String getTitle() {
 		return title;
@@ -42,14 +43,14 @@ public final class TaskStarter {
 	 * messages.
 	 * @param log4jModel
 	 */
-	public void setLog4jModel(Log4jAppenderViewModel log4jModel) {
+	public void setLog4jModel(Log4jAppenderModel log4jModel) {
 		this.log4jModel = log4jModel;
 	}
 	
-	private Log4jAppenderViewModel getLog4jModel() {
+	private Log4jAppenderModel getLog4jModel() {
 		if (this.log4jModel == null) {
-			this.log4jModel = new Log4jAppenderViewModel();
-			this.log4jModel.register();
+			this.log4jModel = new Log4jAppenderModel();
+			this.log4jModel.register().addToRootLogger();
 		}
 		return this.log4jModel;
 	}
@@ -61,7 +62,7 @@ public final class TaskStarter {
 	 */
 	public void start(final Task<?> task, final BackgroundLoaderCallback callback) {
 		// Load the Log4jAppenderViewModel first so we miss as few logs as possible
-		Log4jAppenderViewModel log4model = this.getLog4jModel();
+		Log4jAppenderViewModel log4model = new Log4jAppenderViewModel(this.getLog4jModel());
 		
 		final PaneInfo<TaskExecutorController> paneInfo = JuFxUtils.loadPane(IOUtil.getResourceURL("TaskExecutor.fxml", TaskExecutorController.class), TaskExecutorController.class);
 		TaskExecutorController controller = paneInfo.getController();

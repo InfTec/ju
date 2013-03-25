@@ -26,6 +26,7 @@ import ch.inftec.ju.fx.DetailMessageViewModel;
 import ch.inftec.ju.util.AssertUtil;
 import ch.inftec.ju.util.IOUtil;
 import ch.inftec.ju.util.JuRuntimeException;
+import ch.inftec.ju.util.ThreadUtils;
 
 /**
  * Utility class containing JavaFX related functions.
@@ -210,15 +211,73 @@ public class JuFxUtils {
 	 * false it it will be run later
 	 */
 	public static boolean runInFxThread(Runnable runnable) {
+		return JuFxUtils.runInFxThread(runnable, false);
+	}
+	
+	
+	/**
+	 * Runs the Runnable in the FX thread.
+	 * <p>
+	 * If runLater is set to true, the Runnable is added to the event queue, even
+	 * if we ARE currently in the JavaFX thread.
+	 * @param runnable Runnable containing code to be run in the FX thread
+	 * @param runLater If true, the code is always added to the event queue and executed
+	 * later, even if we are currently in the FX application thread
+	 * @return True if the code was run right away (we ARE in the FX thread),
+	 * false it it will be run later
+	 */
+	public static boolean runInFxThread(Runnable runnable, boolean runLater) {
 		JuFxUtils.initializeFxToolkit();
 		
-		if (Platform.isFxApplicationThread()) {
+		if (Platform.isFxApplicationThread() && !runLater) {
 			runnable.run();
 			return true;
 		} else {
 			Platform.runLater(runnable);
 			return false;
 		}
+	}
+	
+	/**
+	 * Runs the specified code in the JavaFX application thread, making sure
+	 * it runs through and waiting until it is done.
+	 * <p>
+	 * This may be helpful for testing for instance as the application thread seems
+	 * to be a daemon if no stage is open.
+	 * @param runnable Code to be run
+	 */
+	public static void runAndWaitInFxThread(final Runnable runnable) {
+		final ExecutionObserver observer = new ExecutionObserver();
+		
+		JuFxUtils.runInFxThread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					runnable.run();
+				} catch (Throwable ex) {
+					observer.ex = ex;
+				} finally {
+					observer.finished = true;
+				}
+			}
+		});
+		
+		while (!observer.finished) {
+			ThreadUtils.sleep(10);
+		}
+		
+		if (observer.ex != null) {
+			if (observer.ex instanceof Error) {
+				throw (Error)observer.ex;
+			} else {
+				throw new JuRuntimeException("Exception thrown while executing Runnable", observer.ex);
+			}
+		}
+	}
+	
+	private static class ExecutionObserver {
+		private Throwable ex;
+		private boolean finished = false;
 	}
 	
 	/**
