@@ -23,4 +23,17 @@ public class ThreadUtils {
 			logger.warn("Interrupted while sleeping", ex);
 		}
 	}
+	
+	/**
+	 * Joins the specified thread, breaking if an (interrupted) 
+	 * exception is thrown.
+	 * @param t
+	 */
+	public static void join(Thread t) {
+		try {
+			t.join();
+		} catch (Exception ex) {
+			logger.warn("Interrupted while joining Thread", ex);
+		}
+	}
 }

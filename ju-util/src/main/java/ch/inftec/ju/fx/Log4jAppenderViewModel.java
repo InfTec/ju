@@ -1,8 +1,10 @@
 package ch.inftec.ju.fx;
 
+import java.util.Date;
 import java.util.HashMap;
 
 import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
@@ -15,6 +17,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.spi.LoggingEvent;
 
+import ch.inftec.ju.util.JuStringUtils;
 import ch.inftec.ju.util.fx.JuFxUtils;
 
 /**
@@ -28,6 +31,7 @@ public class Log4jAppenderViewModel {
 	private HashMap<LoggingEvent, LogEntry> loggingEventMapping = new HashMap<>();
 	private ObservableList<LogEntry> logEntries = FXCollections.observableArrayList();
 	
+	private IntegerProperty displayedLogEntries = new SimpleIntegerProperty();
 	private IntegerProperty maxLogEntries = new SimpleIntegerProperty();
 	
 	/**
@@ -36,6 +40,14 @@ public class Log4jAppenderViewModel {
 	 */
 	public Log4jAppenderViewModel(Log4jAppenderModel model) {
 		this.setModel(model);
+	}
+	
+	public ReadOnlyIntegerProperty displayedLogEntriesProperty() {
+		return displayedLogEntries;
+	}
+	
+	public ReadOnlyIntegerProperty maxLogEntriesProperty() {
+		return this.maxLogEntries;
 	}
 	
 	/**
@@ -67,6 +79,8 @@ public class Log4jAppenderViewModel {
 								loggingEventMapping.put(event, logEntry);
 							}
 						}
+						
+						displayedLogEntries.set(logEntries.size());
 					}
 				});
 			}
@@ -82,40 +96,76 @@ public class Log4jAppenderViewModel {
 	}
 	
 	public static class LogEntry {
+		private static HashMap<String, Integer> threadIds = new HashMap<>();
+		
+		private final LoggingEvent event;
+		
 		private Image icon;
 		private ImageView imageView;
-		private String message;
 		
 		private LogEntry(LoggingEvent event) {
-			// Set icon
-			if (event.getLevel() == Level.ERROR) {
-				this.icon = ImageLoader.getDefaultLoader().loadImage("exclamation.png");
-			} else if (event.getLevel() == Level.WARN) {
-				this.icon = ImageLoader.getDefaultLoader().loadImage("error.png");
-			} else if (event.getLevel() == Level.INFO) {
-				this.icon = ImageLoader.getDefaultLoader().loadImage("information.png");
-			} else if (event.getLevel() == Level.DEBUG) {
-				this.icon = ImageLoader.getDefaultLoader().loadImage("table.png");
-			} else if (event.getLevel() == Level.TRACE) {
-				this.icon = ImageLoader.getDefaultLoader().loadImage("table_add.png");
+			this.event = event;
+		}
+		
+		public String getLoggerName() {
+			String name = this.event.getLoggerName();
+			int lastDot = name.lastIndexOf(".");
+			if (lastDot > 0) {
+				name = name.substring(lastDot + 1);
 			}
-			
-			this.message = ObjectUtils.toString(event.getMessage());
+			return name;
 		}
 		
 		public String getMessage() {
-			return message;
+			return ObjectUtils.toString(event.getMessage());
+		}
+		
+		public String getLevel() {
+			return this.event.getLevel().toString();
 		}
 		
 		public Image getIcon() {
+			if (this.icon == null) {
+				if (event.getLevel() == Level.ERROR) {
+					this.icon = ImageLoader.getDefaultLoader().loadImage("exclamation.png");
+				} else if (event.getLevel() == Level.WARN) {
+					this.icon = ImageLoader.getDefaultLoader().loadImage("error.png");
+				} else if (event.getLevel() == Level.INFO) {
+					this.icon = ImageLoader.getDefaultLoader().loadImage("information.png");
+				} else if (event.getLevel() == Level.DEBUG) {
+					this.icon = ImageLoader.getDefaultLoader().loadImage("table.png");
+				} else if (event.getLevel() == Level.TRACE) {
+					this.icon = ImageLoader.getDefaultLoader().loadImage("table_add.png");
+				}
+			}
+			
 			return this.icon;
 		}
 		
 		public ImageView getImageView() {
 			if (this.imageView == null) {
-				this.imageView = new ImageView(this.icon);
+				this.imageView = new ImageView(this.getIcon());
 			}
 			return this.imageView;
+		}
+		
+		public String getThreadName() {
+			return this.event.getThreadName();
+		}
+		
+		public int getThreadId() {
+			if (!threadIds.containsKey(this.getThreadName())) {
+				threadIds.put(this.getThreadName(), threadIds.size() + 1);
+			}
+			return threadIds.get(this.getThreadName());
+		}
+		
+		public long getTimeStamp() {
+			return this.event.getTimeStamp();
+		}
+		
+		public String getTime() {
+			return JuStringUtils.DATE_FORMAT_SECONDS.format(new Date(this.getTimeStamp()));
 		}
 	}
 }

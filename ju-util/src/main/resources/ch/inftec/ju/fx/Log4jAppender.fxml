@@ -2,6 +2,7 @@
 
 <?import java.lang.*?>
 <?import java.util.*?>
+<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.paint.*?>
@@ -10,9 +11,26 @@
   <center>
     <TableView id="tabLogs" fx:id="tblLogs" prefHeight="200.0" prefWidth="200.0">
       <columns>
-        <TableColumn prefWidth="75.0" style="" text="Level" fx:id="colLevel" />
-        <TableColumn prefWidth="75.0" text="Message" fx:id="colMessage" />
+        <TableColumn prefWidth="50.0" style="" text="Level" fx:id="colLevel" />
+        <TableColumn prefWidth="120.0" text="Time" fx:id="colTime" />
+        <TableColumn prefWidth="50.0" text="Thread" fx:id="colThread" />
+        <TableColumn prefWidth="100.0" text="Logger" fx:id="colLogger" />
+        <TableColumn prefWidth="400.0" style="" text="Message" fx:id="colMessage" />
       </columns>
     </TableView>
   </center>
+  <top>
+    <HBox alignment="TOP_RIGHT" prefWidth="200.0">
+      <children>
+        <Label text="Log Entries (displayed / max):">
+          <HBox.margin>
+            <Insets right="10.0" />
+          </HBox.margin>
+        </Label>
+        <Label fx:id="lblDisplayedEntries" text="10" />
+        <Label text="/" />
+        <Label fx:id="lblMaxEntries" text="1000" />
+      </children>
+    </HBox>
+  </top>
 </BorderPane>

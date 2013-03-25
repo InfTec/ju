@@ -1,6 +1,7 @@
 package ch.inftec.ju.fx;
 
 import javafx.fxml.FXML;
+import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -22,7 +23,13 @@ import ch.inftec.ju.util.fx.JuFxUtils.PaneInfo;
 public class Log4jAppenderController {
 	@FXML private TableView<LogEntry> tblLogs;
 	
+	@FXML private Label lblDisplayedEntries;
+	@FXML private Label lblMaxEntries;
+	
 	@FXML private TableColumn<LogEntry, Image> colLevel;
+	@FXML private TableColumn<LogEntry, String> colTime;
+	@FXML private TableColumn<LogEntry, Integer> colThread;
+	@FXML private TableColumn<LogEntry, String> colLogger;
 	@FXML private TableColumn<LogEntry, String> colMessage;
 	
 	private Log4jAppenderViewModel model;
@@ -42,13 +49,27 @@ public class Log4jAppenderController {
 	public void setModel(Log4jAppenderViewModel model) {
 		Assert.assertNull("Model has already been set.", this.model);
 		
+		this.model = model;
+		
+		this.lblDisplayedEntries.textProperty().bind(this.model.displayedLogEntriesProperty().asString());
+		this.lblMaxEntries.textProperty().bind(this.model.maxLogEntriesProperty().asString());
+		
 		this.tblLogs.setItems(model.getLogEntries());
 		
 		this.colLevel.setCellValueFactory(new PropertyValueFactory<LogEntry, Image>("icon"));
 		this.colLevel.setCellFactory(new ImageViewCellFactory<LogEntry>());
 		this.colLevel.setPrefWidth(50);
 		
+		this.colTime.setCellValueFactory(new PropertyValueFactory<LogEntry, String>("time"));
+		this.colTime.setPrefWidth(120);
+		
+		this.colThread.setCellValueFactory(new PropertyValueFactory<LogEntry, Integer>("threadId"));
+		this.colThread.setPrefWidth(50);
+		
+		this.colLogger.setCellValueFactory(new PropertyValueFactory<LogEntry, String>("loggerName"));
+		this.colLogger.setPrefWidth(100);
+		
 		this.colMessage.setCellValueFactory(new PropertyValueFactory<LogEntry, String>("message"));
-		this.colMessage.setPrefWidth(300);
+		this.colMessage.setPrefWidth(500);
 	}
 }
