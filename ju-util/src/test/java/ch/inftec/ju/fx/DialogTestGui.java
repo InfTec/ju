@@ -2,6 +2,7 @@ package ch.inftec.ju.fx;
 
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.layout.FlowPane;
@@ -12,6 +13,7 @@ import javafx.stage.StageStyle;
 
 import org.junit.Test;
 
+import ch.inftec.ju.util.JuStringUtils;
 import ch.inftec.ju.util.fx.JuFxUtils;
 
 public class DialogTestGui {
@@ -59,16 +61,36 @@ public class DialogTestGui {
 				model.messageProperty().set("Test Message");
 				model.detailedMessageProperty().set("Detailed message...\nRather short...");
 				
-				JuFxUtils.showDetailMessageDialog(model);
+				JuFxUtils.showDetailMessageDialog(model, (Node)ev.getSource());
 			}
 		})
-		.button("Show detail dialog long", new EventHandler<ActionEvent>() {
+		.button("Show detail dialog long message", new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent ev) {
-				Exception ex = new Exception("This is a rather long exception with a stack-trace...");
-				DetailMessageViewModel model = DetailMessageViewModel.createByThrowable(ex);
+				String message = JuStringUtils.createLoremIpsum().getWords(200);
+				String detailMessage = JuStringUtils.createLoremIpsum().getParagraphs(10);
 				
-				JuFxUtils.showDetailMessageDialog(model);
+				DetailMessageViewModel model = new DetailMessageViewModel();
+				model.titleProperty().set("Looooong");
+				model.messageProperty().set(message);
+				model.detailedMessageProperty().set(detailMessage);
+				
+				JuFxUtils.showDetailMessageDialog(model, (Node)ev.getSource());
+			}
+		})
+		.button("Show detail dialog long detail message", new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(ActionEvent ev) {
+				String message = JuStringUtils.createLoremIpsum().getWords(10);
+				String detailMessage = JuStringUtils.createLoremIpsum().getWords(500);
+				detailMessage += JuStringUtils.createLoremIpsum().getParagraphs(10);
+				
+				DetailMessageViewModel model = new DetailMessageViewModel();
+				model.titleProperty().set("Looooong");
+				model.messageProperty().set(message);
+				model.detailedMessageProperty().set(detailMessage);
+				
+				JuFxUtils.showDetailMessageDialog(model, (Node)ev.getSource());
 			}
 		})
 		.start();

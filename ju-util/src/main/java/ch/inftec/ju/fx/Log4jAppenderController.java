@@ -28,7 +28,7 @@ public class Log4jAppenderController {
 	
 	@FXML private TableColumn<LogEntry, Image> colLevel;
 	@FXML private TableColumn<LogEntry, String> colTime;
-	@FXML private TableColumn<LogEntry, Integer> colThread;
+	@FXML private TableColumn<LogEntry, String> colThread;
 	@FXML private TableColumn<LogEntry, String> colLogger;
 	@FXML private TableColumn<LogEntry, String> colMessage;
 	
@@ -58,18 +58,13 @@ public class Log4jAppenderController {
 		
 		this.colLevel.setCellValueFactory(new PropertyValueFactory<LogEntry, Image>("icon"));
 		this.colLevel.setCellFactory(new ImageViewCellFactory<LogEntry>());
-		this.colLevel.setPrefWidth(50);
 		
 		this.colTime.setCellValueFactory(new PropertyValueFactory<LogEntry, String>("time"));
-		this.colTime.setPrefWidth(120);
 		
-		this.colThread.setCellValueFactory(new PropertyValueFactory<LogEntry, Integer>("threadId"));
-		this.colThread.setPrefWidth(50);
+		this.colThread.setCellValueFactory(new PropertyValueFactory<LogEntry, String>("threadName"));
 		
 		this.colLogger.setCellValueFactory(new PropertyValueFactory<LogEntry, String>("loggerName"));
-		this.colLogger.setPrefWidth(100);
 		
 		this.colMessage.setCellValueFactory(new PropertyValueFactory<LogEntry, String>("message"));
-		this.colMessage.setPrefWidth(500);
 	}
 }

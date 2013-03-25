@@ -84,7 +84,7 @@ public class TaskExecutorTestGui {
 			@Override
 			public void handle(ActionEvent ev) {
 				MyTask task = new MyTask("Task " + System.currentTimeMillis(), System.currentTimeMillis() % 2 == 0);
-				backgroundLoader.execute(task, new BackgroundLoaderCallback() {
+				backgroundLoader.execute(task, new BackgroundLoaderCallbackAdapter() {
 					@Override
 					public void loadingDone(Object data) {
 						logger.debug("Loading done: " + data);

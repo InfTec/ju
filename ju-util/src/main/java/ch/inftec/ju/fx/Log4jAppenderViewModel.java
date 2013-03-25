@@ -63,6 +63,12 @@ public class Log4jAppenderViewModel {
 		JuFxUtils.runInFxThread(new Runnable() {
 			@Override
 			public void run() {
+				// Add the current items to the log
+				for (LoggingEvent event : model.getLogEvents()) {
+					addLoggingEvent(event);
+				}
+				displayedLogEntries.set(logEntries.size());
+				
 				// Add a ListChangeListener to the log events list to keep the lists synchronized
 				model.getLogEvents().addListener(new ListChangeListener<LoggingEvent>() {
 					@Override
@@ -74,9 +80,7 @@ public class Log4jAppenderViewModel {
 								logEntries.remove(loggingEventMapping.get(event));
 							}
 							for (LoggingEvent event : change.getAddedSubList()) {
-								LogEntry logEntry = new LogEntry(event);
-								logEntries.add(0, logEntry);
-								loggingEventMapping.put(event, logEntry);
+								addLoggingEvent(event);
 							}
 						}
 						
@@ -85,6 +89,12 @@ public class Log4jAppenderViewModel {
 				});
 			}
 		});
+	}
+	
+	private void addLoggingEvent(LoggingEvent event) {
+		LogEntry logEntry = new LogEntry(event);
+		this.logEntries.add(0, logEntry);
+		this.loggingEventMapping.put(event, logEntry);
 	}
 	
 	/**
@@ -96,8 +106,6 @@ public class Log4jAppenderViewModel {
 	}
 	
 	public static class LogEntry {
-		private static HashMap<String, Integer> threadIds = new HashMap<>();
-		
 		private final LoggingEvent event;
 		
 		private Image icon;
@@ -151,13 +159,6 @@ public class Log4jAppenderViewModel {
 		
 		public String getThreadName() {
 			return this.event.getThreadName();
-		}
-		
-		public int getThreadId() {
-			if (!threadIds.containsKey(this.getThreadName())) {
-				threadIds.put(this.getThreadName(), threadIds.size() + 1);
-			}
-			return threadIds.get(this.getThreadName());
 		}
 		
 		public long getTimeStamp() {

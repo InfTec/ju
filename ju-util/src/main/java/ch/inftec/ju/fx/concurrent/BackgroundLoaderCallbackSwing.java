@@ -8,7 +8,7 @@ import javax.swing.SwingUtilities;
  * @author Martin
  *
  */
-public abstract class BackgroundLoaderCallbackSwing implements BackgroundLoaderCallback {
+public abstract class BackgroundLoaderCallbackSwing extends BackgroundLoaderCallbackAdapter {
 	@Override
 	public void loadingDone(final Object data) {
 		SwingUtilities.invokeLater(new Runnable() {

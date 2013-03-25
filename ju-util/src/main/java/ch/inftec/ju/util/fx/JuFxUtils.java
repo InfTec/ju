@@ -11,6 +11,7 @@ import javafx.embed.swing.JFXPanel;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -21,12 +22,15 @@ import javafx.scene.layout.Pane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import javafx.stage.WindowEvent;
 import ch.inftec.ju.fx.DetailMessageController;
 import ch.inftec.ju.fx.DetailMessageViewModel;
 import ch.inftec.ju.util.AssertUtil;
 import ch.inftec.ju.util.IOUtil;
 import ch.inftec.ju.util.JuRuntimeException;
 import ch.inftec.ju.util.ThreadUtils;
+
+import com.sun.glass.ui.Screen;
 
 /**
  * Utility class containing JavaFX related functions.
@@ -309,11 +313,23 @@ public class JuFxUtils {
 		return false;
 	}
 	
-	public static void showDetailMessageDialog(DetailMessageViewModel model) {
+	/**
+	 * Gets the Window of the specified node.
+	 * @param node Node to get window of
+	 * @return Window that contains the node or null if the node is in not window
+	 */
+	public static Window getWindow(Node node) {
+		if (node != null && node.getScene() != null) {
+			return node.getScene().getWindow();
+		}
+		return null;
+	}
+	
+	public static void showDetailMessageDialog(DetailMessageViewModel model, Node parent) {
 		PaneInfo<DetailMessageController> paneInfo = JuFxUtils.loadPane(IOUtil.getResourceURL("DetailMessage.fxml", DetailMessageController.class), DetailMessageController.class);
 		paneInfo.getController().setModel(model);		
 		
-		JuFxUtils.dialog().showModal(model.titleProperty().get(), paneInfo.getPane());
+		JuFxUtils.dialog().parent(parent).showModal(model.titleProperty().get(), paneInfo.getPane());
 	}
 	
 	public static class ApplicationStarter {
@@ -380,8 +396,15 @@ public class JuFxUtils {
 	}
 	
 	public static class DialogHandler {
+		private Node parent;
+		
 		private DialogHandler() {
 			// Use JuFxUtils.dialog()
+		}
+		
+		public DialogHandler parent(Node node) {
+			this.parent = node;
+			return this;
 		}
 		
 		/**
@@ -413,11 +436,68 @@ public class JuFxUtils {
 		
 		public void showModal(String title, Pane pane) {
 			Stage stage = new Stage();
-			stage.setScene(new Scene(pane));
-			stage.sizeToScene();
+			stage.setScene(new Scene(pane));			
 			stage.initModality(Modality.APPLICATION_MODAL);
 			stage.setTitle(title);
+			
+			// We need to apply the size after the stage is visible, otherwise we won't get any
+			// usable preferred size information.
+			stage.setOnShown(new EventHandler<WindowEvent>() {
+				@Override
+				public void handle(WindowEvent ev) {
+					sizeReasonably((Stage) ev.getSource(), parent);
+				}
+			});
+
 			stage.showAndWait();
+		}
+		
+		/**
+		 * Sizes the stage to the screen, then makes sure it is not bigger than the
+		 * screen and it doesn't overlap it.
+		 * <p>
+		 * If possible, centers on the parent.
+		 * @param stage
+		 * @param parent
+		 */
+		private void sizeReasonably(Stage stage, Node parent) {
+			// Get the Screen to display the dialog
+			Screen screen = null;
+			Window window = JuFxUtils.getWindow(parent);
+			if (window != null) {
+				screen = Screen.getScreenForLocation((int)window.getX(), (int)window.getY());
+			}
+			if (screen == null) {
+				screen = Screen.getMainScreen();
+			}
+			
+			// Get the preferred size of the stage
+			Rectangle2D prefRect = new Rectangle2D(stage.getX(), stage.getY(), stage.getWidth(), stage.getHeight());
+			//stage.sizeToScene(); // Just gets NaNs, so we'll get to the scene's parent
+			
+			// Make sure the dialog doesn't exceed 70% of the screen size
+			
+			// Create the unpositioned rectangle for the dialog
+			Rectangle2D rect = new Rectangle2D(
+					screen.getX(),
+					screen.getY(),
+					Math.min(prefRect.getWidth(), screen.getWidth() * 0.7),
+					Math.min(prefRect.getHeight(), screen.getHeight() * 0.7));
+			
+			// Position the rectangle (center over parent, then make sure it's contained in the screen)
+			
+			Rectangle2D screenBounds = new Rectangle2D(screen.getX(), screen.getY(), screen.getWidth(), screen.getHeight());
+			Rectangle2D parentBounds = window != null
+				? new Rectangle2D(window.getX(), window.getY(), window.getWidth(), window.getHeight())
+				: screenBounds;
+
+			rect = GeoFx.center(rect, parentBounds);
+			rect = GeoFx.moveToBounds(rect, screenBounds);
+			
+			stage.setX(rect.getMinX());
+			stage.setY(rect.getMinY());
+			stage.setWidth(rect.getWidth());
+			stage.setHeight(rect.getHeight());
 		}
 	}
 }

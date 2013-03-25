@@ -72,6 +72,6 @@ public class TaskExecutorController {
 	
 	public void showError(ActionEvent ev) {
 		DetailMessageViewModel model = DetailMessageViewModel.createByThrowable(this.model.exceptionProperty().get());
-		JuFxUtils.showDetailMessageDialog(model);
+		JuFxUtils.showDetailMessageDialog(model, this.hlError);
 	}
 }

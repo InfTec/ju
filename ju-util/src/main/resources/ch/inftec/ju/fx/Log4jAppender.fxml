@@ -13,7 +13,7 @@
       <columns>
         <TableColumn prefWidth="50.0" style="" text="Level" fx:id="colLevel" />
         <TableColumn prefWidth="120.0" text="Time" fx:id="colTime" />
-        <TableColumn prefWidth="50.0" text="Thread" fx:id="colThread" />
+        <TableColumn prefWidth="70.0" text="Thread" fx:id="colThread" />
         <TableColumn prefWidth="100.0" text="Logger" fx:id="colLogger" />
         <TableColumn prefWidth="400.0" style="" text="Message" fx:id="colMessage" />
       </columns>

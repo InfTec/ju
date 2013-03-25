@@ -26,13 +26,12 @@ public class Log4jAppenderViewModelTest {
 				// Log to a logger that was added
 				l1.info("Test1");
 				
-				LogEntry e1 = viewModel.getLogEntries().get(0);
+				final LogEntry e1 = viewModel.getLogEntries().get(0);
 				Assert.assertEquals("Test1", e1.getMessage());
 				Assert.assertEquals("INFO", e1.getLevel());
 				Assert.assertNotNull(e1.getIcon());
 				Assert.assertNotNull(e1.getImageView());
 				Assert.assertEquals("log.l1", e1.getLoggerName());
-				Assert.assertEquals(1, e1.getThreadId());
 				
 				Thread t = new Thread(new Runnable() {
 					@Override
@@ -50,7 +49,7 @@ public class Log4jAppenderViewModelTest {
 						Assert.assertEquals(2, viewModel.getLogEntries().size());
 						LogEntry e2 = viewModel.getLogEntries().get(0);
 						Assert.assertEquals("Test2", e2.getMessage());
-						Assert.assertEquals(2, e2.getThreadId());
+						Assert.assertFalse(e1.getThreadName().equals(e2.getThreadName()));
 					}
 				}, true);
 			}

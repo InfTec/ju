@@ -11,7 +11,7 @@ public class TaskStarterTestGui {
 	public void taskStarter() {
 		MyTask task = new MyTask("MyRes", false);
 		
-		new TaskStarter().start(task, new BackgroundLoaderCallback() {
+		new TaskStarter().start(task, new BackgroundLoaderCallbackAdapter() {
 			@Override
 			public void loadingDone(Object data) {
 				logger.info("Logging done: " + data);
@@ -23,7 +23,7 @@ public class TaskStarterTestGui {
 	public void taskStarterException() {
 		MyTask task = new MyTask("MyRes", true);
 		
-		new TaskStarter().start(task, new BackgroundLoaderCallback() {
+		new TaskStarter().start(task, new BackgroundLoaderCallbackAdapter() {
 			@Override
 			public void loadingDone(Object data) {
 				logger.info("Logging done: " + data);
