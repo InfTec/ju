@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import ch.inftec.ju.util.JuRuntimeException;
 import ch.inftec.ju.util.XString;
+import ch.inftec.ju.util.fx.JuFxUtils;
 
 
 /**
@@ -73,12 +74,26 @@ public class ImageLoader {
 	}
 	
 	/**
-	 * Loads the image at the specified (relative) path.
+	 * Loads the image at the specified (relative) path in the current Thread.
+	 * <p>
+	 * Use the loadImage(String, boolean) method to load the image in the background
 	 * @param path Path of the image, relative to the loader's pathPrefix.
 	 * @return FX Image instance
 	 * @throws JuRuntimeException if the image cannot be loaded
 	 */
 	public Image loadImage(String path) {
+		return this.loadImage(path, false);
+	}
+	
+	/**
+	 * Loads the specified image lazily, i.e. in a background thread.
+	 * @param path Path of the image, relative to the loader's pathPrefix.
+	 * @return FX Image instance
+	 * @throws JuRuntimeException if the image cannot be loaded
+	 */
+	public Image loadImage(String path, boolean loadInBackground) {
+		JuFxUtils.initializeFxToolkit();
+		
 		// Check if the path references a default resource
 		if (path.startsWith(ImageLoader.DEFAULT_IMAGE_PREFIX)) {
 			String defaultPath = path.substring(ImageLoader.DEFAULT_IMAGE_PREFIX.length());
@@ -89,9 +104,13 @@ public class ImageLoader {
 			String fullPath = this.getFullImagePath(path);
 			if (!this.images.containsKey(fullPath)) {
 				try {
-					logger.debug("Loading image: " + fullPath);
-					Image image = new Image(fullPath);
+					// Put the image to the hashmap before we log the debug message as the Log4jAppenderViewModel
+					// might load image resources through the ImageLoader. If we log first, we get an
+					// infinite recursion.
+					Image image = new Image(fullPath, loadInBackground);
 					this.images.put(fullPath, image);
+					
+					logger.debug(String.format("Loading image (background=%s): %s", loadInBackground, fullPath));
 				} catch (Exception ex) {
 					logger.error("Couldn't load image: " + fullPath);
 					throw new JuRuntimeException("Couldn't load image: " + fullPath, ex);
