@@ -4,7 +4,6 @@ import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
-import javafx.scene.effect.BlendMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
@@ -28,6 +27,7 @@ import ch.inftec.ju.util.fx.JuFxUtils.PaneInfo;
  */
 public final class TaskStarter {
 	private String title = "Starting...";
+	private Log4jAppenderViewModel log4jModel;
 	
 	public String getTitle() {
 		return title;
@@ -35,6 +35,23 @@ public final class TaskStarter {
 	
 	public void setTitle(String title) {
 		this.title = title;
+	}
+
+	/**
+	 * Sets a Log4jAppender model to be used by the TaskStarter to display log
+	 * messages.
+	 * @param log4jModel
+	 */
+	public void setLog4jModel(Log4jAppenderViewModel log4jModel) {
+		this.log4jModel = log4jModel;
+	}
+	
+	private Log4jAppenderViewModel getLog4jModel() {
+		if (this.log4jModel == null) {
+			this.log4jModel = new Log4jAppenderViewModel();
+			this.log4jModel.register();
+		}
+		return this.log4jModel;
 	}
 	
 	/**
@@ -44,8 +61,7 @@ public final class TaskStarter {
 	 */
 	public void start(final Task<?> task, final BackgroundLoaderCallback callback) {
 		// Load the Log4jAppenderViewModel first so we miss as few logs as possible
-		Log4jAppenderViewModel log4model = new Log4jAppenderViewModel();
-		log4model.register();
+		Log4jAppenderViewModel log4model = this.getLog4jModel();
 		
 		final PaneInfo<TaskExecutorController> paneInfo = JuFxUtils.loadPane(IOUtil.getResourceURL("TaskExecutor.fxml", TaskExecutorController.class), TaskExecutorController.class);
 		TaskExecutorController controller = paneInfo.getController();
