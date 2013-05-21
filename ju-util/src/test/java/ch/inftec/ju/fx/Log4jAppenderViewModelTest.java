@@ -31,7 +31,7 @@ public class Log4jAppenderViewModelTest {
 				Assert.assertEquals("INFO", e1.getLevel());
 				Assert.assertNotNull(e1.getIcon());
 				Assert.assertNotNull(e1.getImageView());
-				Assert.assertEquals("log.l1", e1.getLoggerName());
+				Assert.assertEquals("l1", e1.getLoggerName());
 				
 				Thread t = new Thread(new Runnable() {
 					@Override
