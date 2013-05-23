@@ -6,7 +6,7 @@
 	version="2.0">
 
 	<persistence-unit name="Oracle ju-testing">
-		<provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
+		<provider>org.hibernate.ejb.HibernatePersistence</provider>
 
 		<class>ch.inftec.ju.testing.db.data.entity.Team</class>
 		<class>ch.inftec.ju.testing.db.data.entity.Player</class>
@@ -16,8 +16,8 @@
 			<!-- Use EclipseLink specific SessionCustomizer to set cache for sequence tables to 1 to be able to predict primary key IDs -->
 			<property name="eclipselink.session.customizer" value="ch.inftec.ju.testing.db.EclipseLinkSessionCustomizer"/>
 
-			<property name="eclipselink.target-database" value="Oracle" />
-			<property name="eclipselink.ddl-generation" value="create-tables" />
+			<property name="hibernate.dialect" value="org.hibernate.dialect.OracleDialect" />
+			<property name="hibernate.hbm2ddl.auto" value="create" />
 			<property name="eclipselink.logging.level.sql" value="FINE"/>
  			<property name="eclipselink.logging.parameters" value="true"/>
  			<property name="eclipselink.weaving" value="false"/> <!-- TODO: Try to enable weaving -->

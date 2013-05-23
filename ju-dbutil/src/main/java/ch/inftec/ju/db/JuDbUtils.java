@@ -15,8 +15,6 @@ import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
 import org.apache.commons.dbutils.DbUtils;
-import org.eclipse.persistence.sessions.server.ServerSession;
-import org.eclipse.persistence.tools.schemaframework.SchemaManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,10 +80,11 @@ public class JuDbUtils {
 	 */
 	@Transactional
 	public void createDefaultTables() {
-		EntityManager em = this.emf.createEntityManager();
-		ServerSession s = em.unwrap(ServerSession.class);
-		SchemaManager sm = new SchemaManager(s);
-		sm.createDefaultTables(true);
+		throw new UnsupportedOperationException("Hibernate refactoring...");
+//		EntityManager em = this.emf.createEntityManager();
+//		ServerSession s = em.unwrap(ServerSession.class);
+//		SchemaManager sm = new SchemaManager(s);
+//		sm.createDefaultTables(true);
 	}
 	
 	/**

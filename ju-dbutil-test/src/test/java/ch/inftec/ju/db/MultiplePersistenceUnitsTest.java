@@ -7,8 +7,6 @@ import javax.persistence.PersistenceContext;
 
 import junit.framework.Assert;
 
-import org.eclipse.persistence.sessions.server.ServerSession;
-import org.eclipse.persistence.tools.schemaframework.SchemaManager;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -44,9 +42,10 @@ public class MultiplePersistenceUnitsTest {
 		
 		@Transactional // Must be transactional to unwrap session
 		public void createDb() {
-			ServerSession s = this.entityManager.unwrap(ServerSession.class);
-			SchemaManager sm = new SchemaManager(s);
-			sm.createDefaultTables(true);
+			throw new UnsupportedOperationException("Migrate to hibernate");
+//			ServerSession s = this.entityManager.unwrap(ServerSession.class);
+//			SchemaManager sm = new SchemaManager(s);
+//			sm.createDefaultTables(true);
 		}
 		
 		public int teamCount() {

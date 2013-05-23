@@ -31,6 +31,18 @@
 			<artifactId>joda-time</artifactId>
 			<version>2.1</version>
 		</dependency>
+		
+		<!-- Needed by Log4jAppenderModel, imported by slf4j with scope runtime, but we need it to 
+		     build the project. We don't want to include it as a dependency though as not all
+		     project using JU will use the log4j appender
+		-->
+		 
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>1.2.17</version>
+			<scope>provided</scope>
+		</dependency>
 
 		<dependency>
 			<groupId>org.springframework</groupId>

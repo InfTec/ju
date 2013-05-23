@@ -13,12 +13,12 @@
 	<artifactId>ju-dbutil</artifactId>
 	<name>JU dbutil</name>
 
-	<repositories>
-		<repository>
-			<id>EclipseLink</id>
-			<url>http://download.eclipse.org/rt/eclipselink/maven.repo</url>
-		</repository>
+	<properties>
+		<!-- Shared version number properties -->
+		<org.hibernate.version>4.1.6.Final</org.hibernate.version> <!-- Same as in JBoss EAP 6.0.1.GA -->
+	</properties>
 
+	<repositories>
 		<repository>
 			<id>lib</id>
 			<name>lib</name>
@@ -67,9 +67,15 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.eclipse.persistence</groupId>
-			<artifactId>eclipselink</artifactId>
-			<version>2.5.0-M5</version>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-core</artifactId>
+			<version>${org.hibernate.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-entitymanager</artifactId>
+			<version>${org.hibernate.version}</version>
 		</dependency>
 		
 		<dependency>
