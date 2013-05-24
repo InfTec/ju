@@ -12,7 +12,8 @@ import ch.inftec.ju.testing.db.data.TestDbUtils.AbstractTestDb;
  */
 public class DefaultDerbyTestDb extends AbstractTestDb {
 	protected void resetPlatformSpecificData() throws JuDbException {
+		// XXX: Adapt for hibernate
 		// Reset sequence to guarantee predictable primary key values
-		this.jdbcTemplate.update("UPDATE SEQUENCE SET SEQ_COUNT=? WHERE SEQ_NAME=?", 9, "SEQ_GEN");
+		//this.jdbcTemplate.update("UPDATE SEQUENCE SET SEQ_COUNT=? WHERE SEQ_NAME=?", 9, "SEQ_GEN");
 	}
 }

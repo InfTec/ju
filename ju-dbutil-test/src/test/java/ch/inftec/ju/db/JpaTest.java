@@ -193,7 +193,7 @@ public class JpaTest extends DefaultContextAbstractBaseDbTest {
 		Assert.assertEquals(1, q1.getResultList().size());
 		Assert.assertEquals("Star", q1.getResultList().get(0).getLastName());
 		
-		TypedQuery<Player> q2 = this.em.createQuery("select p from Player p join Team t where p.id=?1 and t.name=?2", Player.class);
+		TypedQuery<Player> q2 = this.em.createQuery("select p from Player p join p.teams as t where p.id=?1 and t.name=?2", Player.class);
 		q2.setParameter(1, 1L);
 		q2.setParameter(2, "Team1");
 		Assert.assertEquals(1, q2.getResultList().size());
