@@ -74,7 +74,7 @@
 		<property name="persistenceUnitName" value="TeamPlayer PU"/>
 		
 		<property name="jpaVendorAdapter">
-			<bean class="org.springframework.orm.jpa.vendor.EclipseLinkJpaVendorAdapter"/>
+			<bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter"/>
 		</property>
 	</bean>
 
@@ -121,7 +121,7 @@
 		<property name="persistenceUnitName" value="TestingEntity PU"/>
 		
 		<property name="jpaVendorAdapter">
-			<bean class="org.springframework.orm.jpa.vendor.EclipseLinkJpaVendorAdapter"/>
+			<bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter"/>
 		</property>
 	</bean>
 

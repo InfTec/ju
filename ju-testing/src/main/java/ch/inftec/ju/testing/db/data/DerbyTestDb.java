@@ -52,12 +52,8 @@ class DerbyTestDb extends AbstractTestDb {
 	
 	@Override
 	protected void resetPlatformSpecificData() throws JuDbException {
-//						
-//			this.jdbcTemplate.update("DELETE FROM TEST_DATATYPES");
-//			this.jdbcTemplate.update("INSERT INTO TEST_DATATYPES (ID, INTEGERNUMBER, VARCHARTEXT, CLOBTEXT, DATEFIELD) VALUES (1, 1, 'one', 'oneClob', '1980-12-03')");
-//			this.jdbcTemplate.update("INSERT INTO TEST_DATATYPES (ID, INTEGERNUMBER, VARCHARTEXT, CLOBTEXT, DATEFIELD) VALUES (2, null, null, null, null)");
-
-		// Reset sequence to guarantee predictable primary key values
-		this.jdbcTemplate.update("UPDATE SEQUENCE SET SEQ_COUNT=? WHERE SEQ_NAME=?", 9, "SEQ_GEN");
+		// Reset identities to guarantee predictable primary key values
+		// XXX Might need to do this for all tables...
+		this.jdbcTemplate.update("ALTER TABLE TESTINGENTITY ALTER COLUMN ID RESTART WITH 10");
 	}
 }
