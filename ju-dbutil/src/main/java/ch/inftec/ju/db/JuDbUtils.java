@@ -11,9 +11,16 @@ import java.util.Collections;
 import java.util.List;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.metamodel.ManagedType;
 import javax.sql.DataSource;
 
 import org.apache.commons.dbutils.DbUtils;
+import org.hibernate.Session;
+import org.hibernate.cfg.Configuration;
+import org.hibernate.jdbc.Work;
+import org.hibernate.tool.hbm2ddl.SchemaExport;
+import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +38,12 @@ import ch.inftec.ju.util.JuObjectUtils;
  * DB utility class. Mainly contains wrapper method for Apache commons DbUtils
  * to encapsulate the SQLExceptions and throw JuDbExceptions or to provide
  * log information on failed methods.
+ * <p>
+ * To use certain features, an EntityManagerFactory instance needs to be injected
+ * using the provided setEntityManagerFactory method:
+ * <ul>
+ *   <li>createDefaultTables: Create tables on Schema based on JPA entities of the factories Entities</li>
+ * </ul>
  * 
  * @author tgdmemae
  *
@@ -44,6 +57,12 @@ public class JuDbUtils {
 	
 	@Autowired
 	private ConnectionInfo connectionInfo;
+	
+	private EntityManagerFactory emf;
+	
+	public void setEntityManagerFactory(EntityManagerFactory emf) {
+		this.emf = emf;
+	}
 	
 	/**
 	 * Gets whether a Spring transaction is active in our current context.
@@ -70,9 +89,26 @@ public class JuDbUtils {
 	 * Only works with EclipseLink currently.
 	 */
 	@Transactional
-	@Deprecated
 	public void createDefaultTables() {
-		// XXX Couldn't get it working with Hibernate...
+		Assert.assertNotNull("EntityManagerFactory needs to be injected to create default tables", this.emf);
+		
+		final Configuration conf = new Configuration();
+		for (ManagedType<?> t : this.emf.getMetamodel().getManagedTypes()) {
+			Class<?> clazz = t.getJavaType();
+			conf.addAnnotatedClass(clazz);
+		}
+		
+		conf.getProperties().put("hibernate.dialect", this.emf.getProperties().get("hibernate.dialect"));
+		
+		EntityManager em = this.emf.createEntityManager();
+		Session session = (Session)em.getDelegate();
+		session.doWork(new Work() {
+			@Override
+			public void execute(Connection connection) throws SQLException {
+				SchemaExport export = new SchemaExport(conf, connection);
+				export.create(true, true);
+			}
+		});
 	}
 	
 	/**

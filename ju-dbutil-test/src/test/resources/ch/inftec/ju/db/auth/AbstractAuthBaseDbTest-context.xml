@@ -82,7 +82,8 @@
 	
 	<!-- Define Spring specific helper objects -->
 	<bean id="testDb" class="ch.inftec.ju.testing.db.data.DefaultDerbyTestDb"/>
-		<bean id="juDbUtils" class="ch.inftec.ju.db.JuDbUtils">
+	<bean id="juDbUtils" class="ch.inftec.ju.db.JuDbUtils">
+		<property name="entityManagerFactory" ref="entityManagerFactory"/>
 	</bean>
 	
 	<!-- ###################################### -->
