@@ -13,14 +13,8 @@
 		<class>ch.inftec.ju.testing.db.data.entity.TestingEntity</class>
 
 		<properties>
-			<!-- Use EclipseLink specific SessionCustomizer to set cache for sequence tables to 1 to be able to predict primary key IDs -->
-			<property name="eclipselink.session.customizer" value="ch.inftec.ju.testing.db.EclipseLinkSessionCustomizer"/>
-
 			<property name="hibernate.dialect" value="org.hibernate.dialect.DerbyDialect"/>
 			<property name="hibernate.hbm2ddl.auto" value="create" />
-			<property name="eclipselink.logging.level.sql" value="FINE"/>
- 			<property name="eclipselink.logging.parameters" value="true"/>
- 			<property name="eclipselink.weaving" value="false"/> <!-- TODO: Try to enable weaving -->
 
 			<property name="javax.persistence.jdbc.driver" value="org.apache.derby.jdbc.EmbeddedDriver" />
 
