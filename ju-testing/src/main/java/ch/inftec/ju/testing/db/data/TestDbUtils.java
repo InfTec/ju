@@ -99,6 +99,7 @@ public final class TestDbUtils {
 		@PostConstruct
 		private void init() {
 			log.info("Creating tables for {}", this.connectionInfo);
+			this.juDbUtils.setEntityManagerFactory(this.em.getEntityManagerFactory()); // TODO: Would be nicer to do this in context.xml
 			this.juDbUtils.createDefaultTables();
 			this.createTables();
 		}
