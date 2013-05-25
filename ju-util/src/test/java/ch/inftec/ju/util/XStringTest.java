@@ -2,6 +2,7 @@ package ch.inftec.ju.util;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import junit.framework.Assert;
 
 import org.junit.Test;
 
@@ -298,5 +299,48 @@ public class XStringTest {
 		xs.addFormatted("Hello %s, I am %d years old.", "World", 100);
 		
 		assertEquals("Hello World, I am 100 years old.", xs.toString());
+	}
+	
+	@Test
+	public void parseStringSingle() {
+		XString xs = XString.parseLines("one line");
+		Assert.assertEquals(1, xs.getLineCount());
+	}
+	
+	@Test
+	public void parseStringMulti() {
+		XString xs = XString.parseLines("line1\nline2");
+		Assert.assertEquals(2, xs.getLineCount());
+		Assert.assertEquals("line1", xs.getLine(0));
+		Assert.assertEquals("line2", xs.getLine(1));
+	}
+	
+	@Test
+	public void parseStringNull() {
+		XString xs = XString.parseLines(null);
+		Assert.assertEquals(1, xs.getLineCount());
+		Assert.assertEquals("", xs.getLine(0));
+	}
+	
+	@Test
+	public void parseStringEmpty() {
+		XString xs = XString.parseLines("");
+		Assert.assertEquals(1, xs.getLineCount());
+		Assert.assertEquals("", xs.getLine(0));
+	}
+	
+	@Test
+	public void parseStringNewLineLf() {
+		XString xs1 = XString.parseLines("a\nb");
+		Assert.assertEquals(JuStringUtils.LF, xs1.getLineBreak());
+		
+		XString xs2 = XString.parseLines("a");
+		Assert.assertEquals(JuStringUtils.LF, xs2.getLineBreak());
+	}
+	
+	@Test
+	public void parseStringNewLineCrLf() {
+		XString xs = XString.parseLines("a\r\nb");
+		Assert.assertEquals(JuStringUtils.CRLF, xs.getLineBreak());
 	}
 }

@@ -1,9 +1,13 @@
 package ch.inftec.ju.util;
 
+import java.io.StringReader;
 import java.util.ArrayList;
 
+import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ObjectUtils;
+
+import ch.inftec.ju.util.io.NewLineReader;
 
 /**
  * Helper class providing different String functionality like indented multi lines.
@@ -39,6 +43,37 @@ public class XString {
 	 */
 	public XString(String s) {
 		this.addLine(s);
+	}
+	
+	/**
+	 * Creates a new XString from the specified String, creating a new line after each
+	 * line break
+	 * <p>
+	 * null and empty String both result in an XString with one empty line.
+	 * @param s String to parse into a multi-line XString
+	 * @return XString
+	 */
+	public static XString parseLines(String s) {
+		if (s == null || s.isEmpty()) {
+			return new XString("");
+		} else {
+			XString xs = new XString();
+			try (NewLineReader r = new NewLineReader(new StringReader(s))) {
+				LineIterator i = r.iterateLines();
+				while (i.hasNext()) {
+					xs.addLine(i.nextLine());
+				}
+				// Use the new line strategy of the input, provided we got some.
+				// Otherwise we'll just leave the XString's default setting, which
+				// is \n (NEW_LINE)
+				if (r.getInputNewLine() != null) {
+					xs.setLineBreak(r.getInputNewLine());
+				}
+				return xs;
+			} catch (Exception ex) {
+				throw new JuRuntimeException("Couldn't parse String", ex);
+			}
+		}
 	}
 	
 	/**
@@ -121,6 +156,20 @@ public class XString {
 	 */
 	public void newLine() {
 		this.addLine((String)null);
+	}
+	
+	/**
+	 * Gets the line at the specified position as a String.
+	 * @param index Line index
+	 * @return Line as String
+	 */
+	public String getLine(int index) {
+		if (this.lines.size() <= index) {
+			throw new IndexOutOfBoundsException(String.format(
+					"Line has only %d lines, cannot access line %d", this.lines.size(), index));
+		}
+		
+		return this.lines.get(index).toString();
 	}
 	
 	/**
@@ -509,6 +558,11 @@ public class XString {
 		
 		public int getIndentation() {
 			return this.indentation;
+		}
+		
+		@Override
+		public String toString() {
+			return this.getString();
 		}
 	}
 }
