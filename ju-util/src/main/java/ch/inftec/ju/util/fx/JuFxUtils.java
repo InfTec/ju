@@ -1,12 +1,16 @@
 package ch.inftec.ju.util.fx;
 
 import java.awt.Dimension;
+import java.awt.Frame;
+import java.awt.event.WindowAdapter;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.embed.swing.JFXPanel;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -24,6 +28,13 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
+
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ch.inftec.ju.fx.DetailMessageController;
 import ch.inftec.ju.fx.DetailMessageViewModel;
 import ch.inftec.ju.util.AssertUtil;
@@ -33,6 +44,7 @@ import ch.inftec.ju.util.ThreadUtils;
 import ch.inftec.ju.util.XString;
 
 import com.sun.glass.ui.Screen;
+import com.sun.javafx.stage.EmbeddedWindow;
 
 /**
  * Utility class containing JavaFX related functions.
@@ -144,7 +156,9 @@ public class JuFxUtils {
 		JuFxUtils.fxInitialized = true;
 		final JFXPanel fxPanel = new JFXPanel();
 		
-		fxPanel.setPreferredSize(new Dimension((int)pane.getPrefWidth(), (int)pane.getPrefHeight()));
+		if (pane.getPrefWidth() > 0 && pane.getPrefHeight() > 0) {
+			fxPanel.setPreferredSize(new Dimension((int)pane.getPrefWidth(), (int)pane.getPrefHeight()));
+		}
 		
 		/**
 		 * Seems like we need to initialize the Scene later in the
@@ -310,6 +324,8 @@ public class JuFxUtils {
 			if (window instanceof Stage) {
 				((Stage) window).close();
 				return true;
+			} else if (window instanceof EmbeddedWindow) {
+				window.getScene().getRoot().setVisible(false);
 			}
 		}
 		return false;
@@ -376,7 +392,9 @@ public class JuFxUtils {
 		PaneInfo<DetailMessageController> paneInfo = JuFxUtils.loadPane(IOUtil.getResourceURL("DetailMessage.fxml", DetailMessageController.class), DetailMessageController.class);
 		paneInfo.getController().setModel(model);		
 		
-		JuFxUtils.dialog().parent(parent).showModal(model.titleProperty().get(), paneInfo.getPane());
+		JuFxUtils.dialog()
+			.pane(model.titleProperty().get(), paneInfo.getPane())
+			.showModal(parent);
 	}
 	
 	public static class ApplicationStarter {
@@ -443,28 +461,28 @@ public class JuFxUtils {
 	}
 	
 	public static class DialogHandler {
-		private Node parent;
+		private static Logger logger = LoggerFactory.getLogger(DialogHandler.class);
+				
+		private Pane pane;
+		private String title;
 		
 		private DialogHandler() {
 			// Use JuFxUtils.dialog()
 		}
-		
-		public DialogHandler parent(Node node) {
-			this.parent = node;
-			return this;
-		}
-		
+
 		/**
 		 * Displays a simple message with an ok button.
-		 * @param title
-		 * @param message
+		 * @param title Title of the dialog
+		 * @param message Message displayed as a label
+		 * @param detailedMessage Message displayed in a scrollable text area
+		 * @return DialogHandler for chaining
 		 */
-		public void showMessage(String title, String message) {
+		public DialogHandler message(String title, String message, String detailedMessage) {
 			DetailMessageViewModel model = new DetailMessageViewModel();
 			model.messageProperty().set(message);
+			model.detailedMessageProperty().set(detailedMessage);
 			
-			Pane pane = DetailMessageController.loadPane(model);
-			this.showModal(title, pane);
+			return this.pane(title, DetailMessageController.loadPane(model));
 		}
 		
 		/**
@@ -473,15 +491,32 @@ public class JuFxUtils {
 		 * in a TextField.
 		 * @param title
 		 * @param t
+		 * @return DialogHandler to allow for chaining
 		 */
-		public void showException(String title, Throwable t) {
+		public DialogHandler exception(String title, Throwable t) {
 			DetailMessageViewModel model = DetailMessageViewModel.createByThrowable(t);
 			
-			Pane pane = DetailMessageController.loadPane(model);
-			this.showModal(title, pane);
+			return this.pane(title, DetailMessageController.loadPane(model));
 		}
 		
-		public void showModal(String title, Pane pane) {
+		/**
+		 * Displays a pane.
+		 * @param title Title of the dialog
+		 * @param pane Pane
+		 * @return DialogHandler to allow for chaining
+		 */
+		public DialogHandler pane(String title, Pane pane) {
+			this.title = title;
+			this.pane = pane;
+			
+			return this;
+		}
+		
+		/**
+		 * Displays a modal dialog in a JavaFX context with the specified parent.
+		 * @param parent Parent of the dialog, used to center the dialog. May be null.
+		 */
+		public void showModal(final Node parent) {
 			Stage stage = new Stage();
 			stage.setScene(new Scene(pane));			
 			stage.initModality(Modality.APPLICATION_MODAL);
@@ -500,6 +535,91 @@ public class JuFxUtils {
 		}
 		
 		/**
+		 * Displays a modal dialog in a Swing context with the specified parent frame.
+		 * <p>
+		 * The method will register a listener on the visibleProperty of the pane and
+		 * displose of the dialog if the pane is set to invisible.
+		 * @param parentFrame Parent of the dialog, used to center the dialog.
+		 */
+		public void showModalSwing(final Frame parentFrame) {
+			final JDialog dialog = new JDialog(parentFrame);
+			dialog.setTitle(this.title);
+			dialog.setModal(true);
+			dialog.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+
+			this.pane.visibleProperty().addListener(new ChangeListener<Boolean>() {
+				@Override
+				public void changed(ObservableValue<? extends Boolean> val,
+						Boolean oldVal, Boolean newVal) {
+					if (Boolean.FALSE.equals(newVal)) {
+						DialogHandler.logger.debug("Disposing modal dialog containing JavaFX pane");
+						dialog.dispose();
+					}
+				}
+			});
+			
+			JFXPanel fxPanel = JuFxUtils.createJFXPanel(this.pane, new PaneInitializer() {
+				@Override
+				public void init(Pane pane) {
+					pane.getPrefHeight();
+				}
+			});
+
+			// Add a window listener to compute the dialog size later. The sizes
+			// are only available when the window is visible...
+			dialog.addWindowListener(new WindowAdapter() {
+				@Override
+				public void windowOpened(java.awt.event.WindowEvent e) {
+					java.awt.Window w = e.getWindow();
+					e.getWindow().getPreferredSize();
+					
+					Rectangle2D preferredBounds = new Rectangle2D(w.getX(), w.getY(), w.getPreferredSize().getWidth(), w.getPreferredSize().getHeight());
+					Rectangle2D parentBounds = new Rectangle2D(parentFrame.getX(), parentFrame.getY(), parentFrame.getWidth(), parentFrame.getHeight());
+					
+					Rectangle2D s = getReasonableSize(preferredBounds, parentBounds);
+					
+					dialog.setBounds((int)s.getMinX(), (int)s.getMinY(), (int)s.getWidth(), (int)s.getHeight());
+				}
+			});
+			
+			dialog.getContentPane().add(fxPanel);
+			dialog.setVisible(true); // We'll compute the bounds in the windowOpened event...
+		}
+		
+		private Rectangle2D getReasonableSize(Rectangle2D preferredBounds, Rectangle2D parentBounds) {
+			// Get the Screen to display the dialog
+			Screen screen = parentBounds != null 
+					? Screen.getScreenForLocation(
+							(int) (parentBounds.getMinX() + parentBounds.getWidth() / 2), 
+							(int) (parentBounds.getMinY() + parentBounds.getHeight() / 2))
+					: null;
+			if (screen == null) {
+				screen = Screen.getMainScreen();
+			}
+			
+			// Make sure the dialog doesn't exceed 70% of the screen size
+			
+			// Create the unpositioned rectangle for the dialog
+			Rectangle2D rect = new Rectangle2D(
+					screen.getX(),
+					screen.getY(),
+					Math.min(preferredBounds.getWidth(), screen.getWidth() * 0.7),
+					Math.min(preferredBounds.getHeight(), screen.getHeight() * 0.7));
+			
+			// Position the rectangle (center over parent, then make sure it's contained in the screen)
+			
+			Rectangle2D screenBounds = new Rectangle2D(screen.getX(), screen.getY(), screen.getWidth(), screen.getHeight());
+			if (parentBounds == null) {
+				parentBounds = screenBounds;
+			}
+			
+			rect = GeoFx.center(rect, parentBounds);
+			rect = GeoFx.moveToBounds(rect, screenBounds);
+			
+			return rect;
+		}
+		
+		/**
 		 * Sizes the stage to the screen, then makes sure it is not bigger than the
 		 * screen and it doesn't overlap it.
 		 * <p>
@@ -508,38 +628,15 @@ public class JuFxUtils {
 		 * @param parent
 		 */
 		private void sizeReasonably(Stage stage, Node parent) {
-			// Get the Screen to display the dialog
-			Screen screen = null;
 			Window window = JuFxUtils.getWindow(parent);
-			if (window != null) {
-				screen = Screen.getScreenForLocation((int)window.getX(), (int)window.getY());
-			}
-			if (screen == null) {
-				screen = Screen.getMainScreen();
-			}
 			
 			// Get the preferred size of the stage
 			Rectangle2D prefRect = new Rectangle2D(stage.getX(), stage.getY(), stage.getWidth(), stage.getHeight());
-			//stage.sizeToScene(); // Just gets NaNs, so we'll get to the scene's parent
-			
-			// Make sure the dialog doesn't exceed 70% of the screen size
-			
-			// Create the unpositioned rectangle for the dialog
-			Rectangle2D rect = new Rectangle2D(
-					screen.getX(),
-					screen.getY(),
-					Math.min(prefRect.getWidth(), screen.getWidth() * 0.7),
-					Math.min(prefRect.getHeight(), screen.getHeight() * 0.7));
-			
-			// Position the rectangle (center over parent, then make sure it's contained in the screen)
-			
-			Rectangle2D screenBounds = new Rectangle2D(screen.getX(), screen.getY(), screen.getWidth(), screen.getHeight());
 			Rectangle2D parentBounds = window != null
 				? new Rectangle2D(window.getX(), window.getY(), window.getWidth(), window.getHeight())
-				: screenBounds;
+				: null;
 
-			rect = GeoFx.center(rect, parentBounds);
-			rect = GeoFx.moveToBounds(rect, screenBounds);
+			Rectangle2D rect = this.getReasonableSize(prefRect, parentBounds);
 			
 			stage.setX(rect.getMinX());
 			stage.setY(rect.getMinY());
