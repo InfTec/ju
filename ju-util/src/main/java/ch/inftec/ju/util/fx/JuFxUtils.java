@@ -587,6 +587,17 @@ public class JuFxUtils {
 		}
 		
 		private Rectangle2D getReasonableSize(Rectangle2D preferredBounds, Rectangle2D parentBounds) {
+			// Use a min size to avoid that sometimes the preferred size of the FX pane seems to be
+			// 0. Might be a timing problem... :-(
+			final double minWidth = 400.0;
+			final double minHeight = 200.0;
+			
+			preferredBounds = new Rectangle2D(
+					preferredBounds.getMinX(),
+					preferredBounds.getMinY(),
+					Math.max(minWidth, preferredBounds.getWidth()),
+					Math.max(minHeight, preferredBounds.getHeight()));
+			
 			// Get the Screen to display the dialog
 			Screen screen = parentBounds != null 
 					? Screen.getScreenForLocation(
