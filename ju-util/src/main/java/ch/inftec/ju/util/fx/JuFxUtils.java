@@ -16,6 +16,7 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.TextArea;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Pane;
@@ -29,6 +30,7 @@ import ch.inftec.ju.util.AssertUtil;
 import ch.inftec.ju.util.IOUtil;
 import ch.inftec.ju.util.JuRuntimeException;
 import ch.inftec.ju.util.ThreadUtils;
+import ch.inftec.ju.util.XString;
 
 import com.sun.glass.ui.Screen;
 
@@ -323,6 +325,51 @@ public class JuFxUtils {
 			return node.getScene().getWindow();
 		}
 		return null;
+	}
+	
+	/**
+	 * Calculates the preferred size of the TextArea based on the text within, with the
+	 * goal to avoid scroll bars if possible.
+	 * <p>
+	 * Actually, the PrefColumnCount should have the same result, but at least in JavaFx 2.2, it
+	 * doesn't seem to have any effect at all.
+	 * <p>
+	 * Right now, the method will only change the preferred size if the new size would be bigger
+	 * and leave it if it would be smaller.
+	 * @param textArea
+	 */
+	public static void calculatePrefSize(TextArea textArea) {
+		/*
+		 * We'll multiply the calculated size with a constant to make sure we most certainly won't
+		 * need any scroll bars.
+		 */
+		final double prefSizeFactor = 1.3;
+		
+		/*
+		 * Expected line height in case we don't have a PrefHeight available.
+		 */
+		final double expectedLineHeight = 18; 
+				
+		final double expectedDefaultHeight = 200;
+		
+		// Initialize the PrefColumnSize to the length of the longest line in the Detail Message
+		XString xs = XString.parseLines(textArea.textProperty().getValue());
+		int lineCount = xs.getLineCount();
+		int columnCount = xs.getLongestLineLength();
+		
+		double calcHeight = (double)lineCount / textArea.getPrefRowCount() * textArea.getPrefHeight() * prefSizeFactor;
+		double calcWidth = (double)columnCount / textArea.getPrefColumnCount() * textArea.getPrefWidth() * prefSizeFactor;
+		
+		double prefHeight = calcHeight > 0 ? calcHeight : expectedLineHeight * lineCount;
+		double prefWidth = calcWidth;
+		
+		if (textArea.getPrefHeight() < 0 && prefHeight > expectedDefaultHeight 
+				|| textArea.getPrefHeight() > 0 && prefHeight > textArea.getPrefHeight()) {
+			textArea.setPrefHeight(prefHeight);
+		}
+		if (prefWidth > textArea.getPrefWidth()) {
+			textArea.setPrefWidth(prefWidth);
+		}
 	}
 	
 	public static void showDetailMessageDialog(DetailMessageViewModel model, Node parent) {

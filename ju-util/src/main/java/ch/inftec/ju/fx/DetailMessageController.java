@@ -3,6 +3,7 @@ package ch.inftec.ju.fx;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.Pane;
@@ -20,7 +21,8 @@ import ch.inftec.ju.util.fx.JuFxUtils.PaneInfo;
 public class DetailMessageController {
 	@FXML private Label lblMessage;
 	@FXML private TextArea txaDetailMessage;
-
+	@FXML private Button btnClose;
+	
 	/**
 	 * Load a DetailMessage pane for the specified model.
 	 * @param model
@@ -28,13 +30,16 @@ public class DetailMessageController {
 	 */
 	public static Pane loadPane(DetailMessageViewModel model) {
 		PaneInfo<DetailMessageController> paneInfo = JuFxUtils.loadPane(IOUtil.getResourceURL("DetailMessage.fxml", DetailMessageController.class), DetailMessageController.class);
-		paneInfo.getController().setModel(model);		
+		paneInfo.getController().setModel(model);
 		return paneInfo.getPane();
 	}
 	
 	public void setModel(DetailMessageViewModel model) {
 		this.lblMessage.textProperty().bind(model.messageProperty());
 		this.txaDetailMessage.textProperty().bind(model.detailedMessageProperty());
+		this.txaDetailMessage.wrapTextProperty().bind(model.wrapTextProperty());
+		
+		JuFxUtils.calculatePrefSize(this.txaDetailMessage);
 	}
 	
 	public void close(ActionEvent ev) {
