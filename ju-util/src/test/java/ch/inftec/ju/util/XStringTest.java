@@ -343,4 +343,16 @@ public class XStringTest {
 		XString xs = XString.parseLines("a\r\nb");
 		Assert.assertEquals(JuStringUtils.CRLF, xs.getLineBreak());
 	}
+	
+	@Test
+	public void getLongestLineLength() {
+		XString xs = new XString();
+		Assert.assertEquals(0, xs.getLongestLineLength());
+		
+		xs.addLine("abc");
+		Assert.assertEquals(3, xs.getLongestLineLength());
+		
+		xs.addLine("abcdef");
+		Assert.assertEquals(6, xs.getLongestLineLength());
+	}
 }

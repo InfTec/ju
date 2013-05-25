@@ -487,6 +487,18 @@ public class XString {
 		return Math.max(1, this.lines.size());
 	}
 	
+	/**
+	 * Gets the length of the longest line of this XString.
+	 * @return Length in characters
+	 */
+	public int getLongestLineLength() {
+		int maxSize = 0;
+		for (Line l : this.lines) {
+			maxSize = Math.max(maxSize, l.getString().length());
+		}
+		return maxSize;
+	}
+	
 	@Override
 	public int hashCode() {
 		return this.toString().hashCode();
