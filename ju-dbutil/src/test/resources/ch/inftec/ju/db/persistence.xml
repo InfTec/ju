@@ -10,7 +10,7 @@
 
 		<properties>
 
-			<property name="hibernate.dialect" value="org.hibernate.dialect.OracleDialect" />
+			<property name="hibernate.dialect" value="org.hibernate.dialect.Oracle10gDialect" />
 			<property name="eclipselink.ddl-generation" value="none" />
 
 			<property name="javax.persistence.jdbc.url" value="jdbc:oracle:thin:@//eswdev:1521/ESWDEV.SWISSPTT.CH" />

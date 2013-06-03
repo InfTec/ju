@@ -20,6 +20,7 @@ import org.dbunit.database.QueryDataSet;
 import org.dbunit.dataset.IDataSet;
 import org.dbunit.dataset.xml.FlatXmlDataSet;
 import org.dbunit.dataset.xml.FlatXmlDataSetBuilder;
+import org.dbunit.ext.oracle.Oracle10DataTypeFactory;
 import org.dbunit.operation.DatabaseOperation;
 import org.hibernate.jdbc.Work;
 import org.w3c.dom.Document;
@@ -104,6 +105,15 @@ public class DbDataUtil {
 	 */
 	public DbDataUtil setConfigProperty(String name, Object value) {
 		this.configProperties.put(name, value);
+		return this;
+	}
+	
+	/**
+	 * Sets all properties for DbDataUtil accordingly to cope with Oracle databases.
+	 * @return This instance to allow for chaining
+	 */
+	public DbDataUtil prepareForOracle() {
+		this.setConfigProperty("http://www.dbunit.org/properties/datatypeFactory", new Oracle10DataTypeFactory());
 		return this;
 	}
 	
