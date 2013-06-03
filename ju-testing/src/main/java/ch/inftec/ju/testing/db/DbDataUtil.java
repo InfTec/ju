@@ -27,7 +27,6 @@ import org.w3c.dom.Document;
 import ch.inftec.ju.db.ConnectionInfo;
 import ch.inftec.ju.db.JuDbException;
 import ch.inftec.ju.db.JuDbUtils;
-import ch.inftec.ju.util.AssertUtil;
 import ch.inftec.ju.util.IOUtil;
 import ch.inftec.ju.util.ReflectUtils;
 import ch.inftec.ju.util.XString;
@@ -186,10 +185,23 @@ public class DbDataUtil {
 	 * Helper callback interface to execute code that needs a IDatabaseConnection
 	 * instance.
 	 * @author tgdmemae
+	 * <T> Return value
 	 *
 	 */
 	private static interface DbUnitWork {
 		public void execute(IDatabaseConnection conn);
+	}
+	
+	private static abstract class DbUnitWorkWithReturn<T> implements DbUnitWork {
+		private T returnValue;
+		
+		protected void setReturnValue(T returnValue) {
+			this.returnValue = returnValue;
+		}
+		
+		public T getReturnValue() {
+			return this.returnValue;
+		}
 	}
 	
 	/**
@@ -223,23 +235,27 @@ public class DbDataUtil {
 		 * @param query Optional query to select sub data
 		 * @return ExportBuilder to allow for chaining
 		 */
-		public ExportBuilder addTable(String tableName, String query) {
-			AssertUtil.fail("Refactor");
-			return null;
-//			try {
-//				if (queryDataSet == null) {
-//					queryDataSet = new QueryDataSet(iConnection);
-//				}
-//				
-//				if (query == null) {
-//					queryDataSet.addTable(tableName);
-//				} else {
-//					queryDataSet.addTable(tableName, query);
-//				}
-//				return this;
-//			} catch (Exception ex) {
-//				throw new JuDbException("Couldn't add table", ex);
-//			}
+		public ExportBuilder addTable(final String tableName, final String query) {
+			this.dbDataUtil.execute(new DbUnitWork() {
+				@Override
+				public void execute(IDatabaseConnection conn) {
+					try {
+						if (queryDataSet == null) {
+							queryDataSet = new QueryDataSet(conn);
+						}
+						
+						if (query == null) {
+							queryDataSet.addTable(tableName);
+						} else {
+							queryDataSet.addTable(tableName, query);
+						}
+					} catch (Exception ex) {
+						throw new JuDbException("Couldn't add table", ex);
+					}
+				}
+			});
+			
+			return this;
 		}
 		
 		/**
@@ -264,17 +280,26 @@ public class DbDataUtil {
 		}
 
 		private IDataSet getExportSet() {
-			AssertUtil.fail("Refactor");
-			return null;
-//			if (queryDataSet != null) {
-//				return queryDataSet;
-//			} else {
-//				try {
-//					return iConnection.createDataSet();
-//				} catch (Exception ex) {
-//					throw new JuDbException("Couldn't create DataSet from DB");
-//				}
-//			}
+			if (queryDataSet != null) {
+				return queryDataSet;
+			} else {
+				DbUnitWorkWithReturn<IDataSet> work = new DbUnitWorkWithReturn<IDataSet>() {
+					@Override
+					public void execute(IDatabaseConnection conn) {
+						try {
+							try {
+								this.setReturnValue(conn.createDataSet());
+							} catch (Exception ex) {
+								throw new JuDbException("Couldn't create DataSet from DB");
+							}
+						} catch (Exception ex) {
+							throw new JuDbException("Couldn't add table", ex);
+						}
+					}
+				};
+				this.dbDataUtil.execute(work);
+				return work.getReturnValue();
+			}
 		}
 		
 		/**
