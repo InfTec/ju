@@ -53,15 +53,21 @@
 	<bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager"/>
 	
 	<!-- Define a factory to create the IDatabaseConnection that is Oracle Schema aware -->
-	<bean id="databaseConfig" class="com.github.springtestdbunit.bean.DatabaseConfigBean">
-		<property name="datatypeFactory">
+<!-- 	<bean id="databaseConfig" class="com.github.springtestdbunit.bean.DatabaseConfigBean"> -->
+<!-- 		<property name="datatypeFactory"> -->
+<!-- 			<bean class="org.dbunit.ext.oracle.Oracle10DataTypeFactory"/> -->
+<!-- 		</property> -->
+<!-- 	</bean> -->
+<!-- 	<bean id="dbUnitDatabaseConnection" class="com.github.springtestdbunit.bean.DatabaseDataSourceConnectionFactoryBean"> -->
+<!-- 		<property name="dataSource" ref="dataSource"/> -->
+<!-- 		<property name="databaseConfig" ref="databaseConfig"/> -->
+<!-- 		<property name="schema" value="MYTTS_TEST"/> -->
+<!-- 	</bean> -->
+	
+	<bean id="dbDataUtil" class="ch.inftec.ju.testing.db.DbDataUtilFactory">
+		<property name="dataTypeFactory">
 			<bean class="org.dbunit.ext.oracle.Oracle10DataTypeFactory"/>
 		</property>
-	</bean>
-	<bean id="dbUnitDatabaseConnection" class="com.github.springtestdbunit.bean.DatabaseDataSourceConnectionFactoryBean">
-		<property name="dataSource" ref="dataSource"/>
-		<property name="databaseConfig" ref="databaseConfig"/>
-		<property name="schema" value="MYTTS_TEST"/>
 	</bean>
 	
 	<!-- ################################## -->

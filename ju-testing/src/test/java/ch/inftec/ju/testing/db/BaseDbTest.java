@@ -51,7 +51,7 @@ public class BaseDbTest extends DefaultContextAbstractBaseDbTest {
 	 */
 	@Test
 	public void noData() {
-		this.createDbDataUtil().buildAssert()
+		this.dbDataUtil.buildAssert()
 			.expected(IOUtil.getResourceURL("BaseDbTest_noData.xml"))
 			.assertEqualsAll();
 	}
@@ -60,13 +60,13 @@ public class BaseDbTest extends DefaultContextAbstractBaseDbTest {
 	public void singleTestingEntityData() {
 		Assert.assertEquals(0, em.createQuery("select t from TestingEntity t").getResultList().size());
 		
-		this.createDbDataUtil().buildImport()
+		this.dbDataUtil.buildImport()
 			.from("/datasets/singleTestingEntityData.xml")
 			.executeInsert();
 		
 		Assert.assertEquals(1, em.createQuery("select t from TestingEntity t").getResultList().size());
 		
-		this.createDbDataUtil().buildAssert()
+		this.dbDataUtil.buildAssert()
 			.expected(IOUtil.getResourceURL("BaseDbTest_singleTestingEntityData.xml"))
 			.assertEqualsTable("TestingEntity", "id");
 	}

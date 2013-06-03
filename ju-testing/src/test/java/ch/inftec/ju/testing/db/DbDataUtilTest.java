@@ -28,7 +28,7 @@ public class DbDataUtilTest extends DefaultContextAbstractBaseDbTest {
 		String fileName = "writeToXmlFile_team.xml";
 		File file = new File(fileName);
 		if (file.exists()) Assert.fail(String.format("File %s already exists", fileName));
-		this.createDbDataUtil().buildExport()
+		this.dbDataUtil.buildExport()
 			.addTable("Team", null)
 			.writeToXmlFile(fileName);
 		
@@ -42,7 +42,7 @@ public class DbDataUtilTest extends DefaultContextAbstractBaseDbTest {
 	@Test
 	public void writeToDocument() {
 		// Whole table to XML Document
-		Document doc = this.createDbDataUtil().buildExport()
+		Document doc = this.dbDataUtil.buildExport()
 			.addTable("Team", null)
 			.writeToXmlDocument();
 		
@@ -54,11 +54,11 @@ public class DbDataUtilTest extends DefaultContextAbstractBaseDbTest {
 	public void writeToDocument_query() {
 		// Annotation not working as it would run after class annotation which results
 		// in an INSERT instead of a CLEAN_INSERT
-		this.createDbDataUtil().buildImport()
+		this.dbDataUtil.buildImport()
 			.from("/datasets/testingEntityUnsortedData.xml")
 			.executeCleanInsert();
 		
-		Document doc = this.createDbDataUtil().buildExport()
+		Document doc = this.dbDataUtil.buildExport()
 			.addTable("TestingEntity", "SELECT * FROM TESTINGENTITY WHERE ID=2")
 			.writeToXmlDocument();
 		
@@ -71,11 +71,11 @@ public class DbDataUtilTest extends DefaultContextAbstractBaseDbTest {
 	public void writeToDocument_order() {
 		// Annotation not working as it would run after class annotation which results
 		// in an INSERT instead of a CLEAN_INSERT
-		this.createDbDataUtil().buildImport()
+		this.dbDataUtil.buildImport()
 			.from("/datasets/testingEntityUnsortedData.xml")
 			.executeCleanInsert();
 				
-		Document doc = this.createDbDataUtil().buildExport()
+		Document doc = this.dbDataUtil.buildExport()
 			.addTableSorted("TestingEntity", "ID")
 			.writeToXmlDocument();
 		
@@ -92,7 +92,7 @@ public class DbDataUtilTest extends DefaultContextAbstractBaseDbTest {
 	public void importDataFromXml() {
 		Assert.assertEquals(1, em.createQuery("Select t from TestingEntity t").getResultList().size());
 		
-		this.createDbDataUtil().buildImport()
+		this.dbDataUtil.buildImport()
 			.from(IOUtil.getResourceURL("DbDataUtilsTest_importDataFromXml.xml"))
 			.executeCleanInsert();
 		
@@ -107,7 +107,7 @@ public class DbDataUtilTest extends DefaultContextAbstractBaseDbTest {
 //		// Can be used to create full export XML
 //		du.buildExport().writeToXmlFile("completeExport.xml");
 		
-		this.createDbDataUtil().buildAssert()
+		this.dbDataUtil.buildAssert()
 			.expected(IOUtil.getResourceURL("DbDataUtilsTest_assertEqualsAll.xml"))
 			.assertEqualsAll();
 	}
@@ -121,7 +121,7 @@ public class DbDataUtilTest extends DefaultContextAbstractBaseDbTest {
 //			.addTable("team", "select * from team order by name")
 //			.writeToXmlFile("teamExport.xml");
 		
-		this.createDbDataUtil().buildAssert()
+		this.dbDataUtil.buildAssert()
 			.expected(IOUtil.getResourceURL("DbDataUtilsTest_assertEqualsTables.xml"))
 			.assertEqualsTable("team", "name");
 	}

@@ -92,7 +92,7 @@ public final class TestDbUtils {
 		private ConnectionInfo connectionInfo;
 		
 		@Autowired
-		private JuDbUtils juDbUtils;
+		protected JuDbUtils juDbUtils;
 		
 		@Autowired
 		private DataSource dataSource;

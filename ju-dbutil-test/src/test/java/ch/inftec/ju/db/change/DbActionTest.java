@@ -4,9 +4,6 @@ import org.junit.Test;
 
 import ch.inftec.ju.testing.db.DefaultContextAbstractBaseDbTest;
 
-import com.github.springtestdbunit.annotation.DatabaseSetup;
-
-@DatabaseSetup("/datasets/fullData.xml")
 public class DbActionTest extends DefaultContextAbstractBaseDbTest {
 	// TODO: Refactor or remove
 	@Test

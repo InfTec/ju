@@ -7,12 +7,12 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.sql.DataSource;
 
+import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.test.context.TestContext;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -90,16 +90,19 @@ public abstract class AbstractBaseDbTest {
 	@Autowired(required=false)
 	private TestDb testDb;
 	
+	@Autowired(required=false)
+	protected DbDataUtil dbDataUtil;
+	
 	@Autowired
 	private JuDbUtils juDbUtils;
 	
-	/**
-	 * Gets an instance of a DbDataUtil for the current connection.
-	 * @return DbDataUtil instance
-	 */
-	protected final DbDataUtil createDbDataUtil() {
-		return new DbDataUtil(DataSourceUtils.getConnection(this.dataSource), this.connectionInfo);
-	}
+//	/**
+//	 * Gets an instance of a DbDataUtil for the current connection.
+//	 * @return DbDataUtil instance
+//	 */
+//	protected final DbDataUtil createDbDataUtil() {
+//		return new DbDataUtil(DataSourceUtils.getConnection(this.dataSource), this.connectionInfo);
+//	}
 	
 //	/**
 //	 * Helper method to load the data of the provided DefaultDataSet.
@@ -131,7 +134,7 @@ public abstract class AbstractBaseDbTest {
 //		this.loadDataSet(IOUtil.getResourceURL(testDataFile));
 //	}
 	
-	//@Before
+	@Before
 	public final void resetDatabase() throws Exception {
 		this.em.getMetamodel();
 		

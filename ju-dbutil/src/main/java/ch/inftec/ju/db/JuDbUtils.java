@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.DatabaseMetaDataCallback;
 import org.springframework.jdbc.support.JdbcUtils;
 import org.springframework.jdbc.support.MetaDataAccessException;
@@ -53,7 +54,7 @@ public class JuDbUtils {
 	static Logger log = LoggerFactory.getLogger(JuDbUtils.class);
 
 	@Autowired
-	private DataSource dataSource;	
+	private DataSource dataSource;
 	
 	@Autowired
 	private ConnectionInfo connectionInfo;
@@ -109,6 +110,18 @@ public class JuDbUtils {
 				export.create(true, true);
 			}
 		});
+	}
+	
+	/**
+	 * Executs some DB work using a raw JDBC connection.
+	 * <p>
+	 * Makes use of the Hibernate Work facility.
+	 * @param work Work callback interface
+	 */
+	public void doWork(Work work) {
+		EntityManager em = this.emf.createEntityManager();
+		Session session = (Session)em.getDelegate();
+		session.doWork(work);
 	}
 	
 	/**
@@ -318,4 +331,20 @@ public class JuDbUtils {
 		}
 	}
 
+	/**
+	 * Sets the nextVal of an Oracle sequence.
+	 * <p>
+	 * Only works with sequences that have an increment of +1.
+	 * @param sequenceName Sequence name
+	 * @param nextVal Value that should be yielded by next NEXVAL call
+	 */
+	public void oracleSequenceSetNextVal(String sequenceName, long nextVal) {
+		JdbcTemplate jdbcTemplate = new JdbcTemplate(this.dataSource);
+		
+		Long currentValue = jdbcTemplate.queryForLong(String.format("SELECT %s.NEXTVAL from dual", sequenceName));
+		Long increment = nextVal - currentValue - 1;
+		jdbcTemplate.execute(String.format("ALTER SEQUENCE %s INCREMENT BY %d", sequenceName, increment));
+		jdbcTemplate.execute(String.format("SELECT %s.NEXTVAL from dual", sequenceName));
+		jdbcTemplate.execute(String.format("ALTER SEQUENCE %s INCREMENT BY 1", sequenceName));
+	}
 }

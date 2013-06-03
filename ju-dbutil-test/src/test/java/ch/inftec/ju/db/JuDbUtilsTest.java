@@ -5,9 +5,6 @@ import junit.framework.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.github.springtestdbunit.annotation.DatabaseSetup;
-
-import ch.inftec.ju.testing.db.AbstractBaseDbTest;
 import ch.inftec.ju.testing.db.DefaultContextAbstractBaseDbTest;
 import ch.inftec.ju.testing.db.data.repo.TestingEntityRepo;
 
@@ -23,9 +20,10 @@ public class JuDbUtilsTest extends DefaultContextAbstractBaseDbTest {
 	/**
 	 * Tests the lookup of a Spring JPA repository.
 	 */
-	@DatabaseSetup("/datasets/singleTestingEntityData.xml")
 	@Test
 	public void getJpaRepository() {
+		this.dbDataUtil.cleanImport("/datasets/singleTestingEntityData.xml");
+		
 		Assert.assertNotNull(this.testingEntityRepo);
 		Assert.assertTrue(this.testingEntityRepo.exists(1L));		
 		

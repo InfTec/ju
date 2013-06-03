@@ -9,23 +9,20 @@ import javax.persistence.TypedQuery;
 
 import junit.framework.Assert;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import ch.inftec.ju.testing.db.DefaultContextAbstractBaseDbTest;
 import ch.inftec.ju.testing.db.data.entity.Player;
-import ch.inftec.ju.testing.db.data.entity.Team;
 import ch.inftec.ju.testing.db.data.entity.TestingEntity;
 import ch.inftec.ju.testing.db.data.repo.TestingEntityRepo;
-
-import com.github.springtestdbunit.annotation.DatabaseSetup;
 
 /**
  * Test class for JPA related tests.
  * @author tgdmemae
  *
  */
-@DatabaseSetup("/datasets/fullData.xml")
 public class JpaTest extends DefaultContextAbstractBaseDbTest {
 	// TODO: Refactor concurrent tests...
 	
@@ -34,6 +31,17 @@ public class JpaTest extends DefaultContextAbstractBaseDbTest {
 	
 	@Autowired
 	private EntityManagerFactory emf;
+	
+	@Autowired
+	private JuDbUtils juDbUtils;
+	
+	@Autowired
+	private ConnectionInfo connectionInfo;
+	
+	@Before
+	public void loadTestData() {
+		this.dbDataUtil.cleanImport("/datasets/fullData.xml");
+	}
 	
 //	/**
 //	 * Test if the EntityManager returns the same instance for the same object
@@ -211,7 +219,7 @@ public class JpaTest extends DefaultContextAbstractBaseDbTest {
 		return em.createQuery("select p from Player p where p.firstName='All' and p.lastName='Star'", Player.class).getSingleResult();
 	}
 	
-	private Team getTeam1(EntityManager em) {
-		return em.createQuery("select t from Team t where t.name='Team1'", Team.class).getSingleResult();
-	}
+//	private Team getTeam1(EntityManager em) {
+//		return em.createQuery("select t from Team t where t.name='Team1'", Team.class).getSingleResult();
+//	}
 }
