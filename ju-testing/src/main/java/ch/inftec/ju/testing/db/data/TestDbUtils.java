@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.sql.DataSource;
@@ -82,7 +83,7 @@ public final class TestDbUtils {
 		private static List<ConnectionInfo> initializedConnections = new ArrayList<>();
 		
 		@PersistenceContext
-		private EntityManager em;
+		protected EntityManager em;
 		
 		@Autowired
 		protected JdbcTemplate jdbcTemplate;

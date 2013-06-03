@@ -1,6 +1,7 @@
 package ch.inftec.ju.testing.db.data;
 
 import ch.inftec.ju.db.JuDbException;
+import ch.inftec.ju.db.JuDbUtils;
 import ch.inftec.ju.testing.db.data.TestDbUtils.AbstractTestDb;
 
 /**
@@ -52,8 +53,14 @@ class DerbyTestDb extends AbstractTestDb {
 	
 	@Override
 	protected void resetPlatformSpecificData() throws JuDbException {
-		// Reset identities to guarantee predictable primary key values
-		// XXX Might need to do this for all tables...
-		this.jdbcTemplate.update("ALTER TABLE TESTINGENTITY ALTER COLUMN ID RESTART WITH 10");
+		for (Class<?> clazz : JuDbUtils.getManagedTypesAsClass(this.em)) {
+			// Note: This works as long as the table name is not changed by an annotation
+			// or a configuration file...
+			// TODO: Get TableName by EntityManager
+			String tableName = clazz.getSimpleName().toUpperCase();
+			
+			// TODO: Works as long as the table has an auto incremented ID column... Make more robust!
+			this.jdbcTemplate.update(String.format("ALTER TABLE %s ALTER COLUMN ID RESTART WITH 10", tableName));
+		}
 	}
 }

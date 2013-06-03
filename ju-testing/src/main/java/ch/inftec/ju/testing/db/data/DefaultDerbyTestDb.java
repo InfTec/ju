@@ -6,7 +6,8 @@ import ch.inftec.ju.testing.db.data.TestDbUtils.AbstractTestDb;
 /**
  * Default implementation of a Derby Test DB.
  * <p>
- * Sets the sequence back to 10 when data is cleared.
+ * Defers from the DerbyTestDb in the way it doesn't create any tables on
+ * its own.
  * @author Martin
  *
  */

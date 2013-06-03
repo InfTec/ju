@@ -92,15 +92,15 @@ public class JuDbUtils {
 	public void createDefaultTables() {
 		Assert.assertNotNull("EntityManagerFactory needs to be injected to create default tables", this.emf);
 		
+		EntityManager em = this.emf.createEntityManager();
+		
 		final Configuration conf = new Configuration();
-		for (ManagedType<?> t : this.emf.getMetamodel().getManagedTypes()) {
-			Class<?> clazz = t.getJavaType();
+		for (Class<?> clazz : JuDbUtils.getManagedTypesAsClass(em)) {
 			conf.addAnnotatedClass(clazz);
 		}
 		
 		conf.getProperties().put("hibernate.dialect", this.emf.getProperties().get("hibernate.dialect"));
 		
-		EntityManager em = this.emf.createEntityManager();
 		Session session = (Session)em.getDelegate();
 		session.doWork(new Work() {
 			@Override
@@ -109,6 +109,23 @@ public class JuDbUtils {
 				export.create(true, true);
 			}
 		});
+	}
+	
+	/**
+	 * Helper function that returns all managed types (i.e. entities) of the specified EntityManager
+	 * as a list of Java Class objects.
+	 * @param em
+	 * @return List of Class<?> objects of the DB entity classes (annotated with @Entity)
+	 */
+	public static List<Class<?>> getManagedTypesAsClass(EntityManager em) {
+		List<Class<?>> classes = new ArrayList<>();
+		
+		for (ManagedType<?> t : em.getMetamodel().getManagedTypes()) {
+			Class<?> clazz = t.getJavaType();
+			classes.add(clazz);
+		}
+		
+		return classes;
 	}
 	
 	/**
