@@ -22,7 +22,7 @@ public class JuDbUtilsTest extends DefaultContextAbstractBaseDbTest {
 	 */
 	@Test
 	public void getJpaRepository() {
-		this.dbDataUtil.cleanImport("/datasets/singleTestingEntityData.xml");
+		this.createDbDataUtil().cleanImport("/datasets/singleTestingEntityData.xml");
 		
 		Assert.assertNotNull(this.testingEntityRepo);
 		Assert.assertTrue(this.testingEntityRepo.exists(1L));		

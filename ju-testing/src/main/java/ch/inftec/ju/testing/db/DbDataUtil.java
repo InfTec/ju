@@ -10,6 +10,8 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.persistence.EntityManager;
+
 import org.dbunit.Assertion;
 import org.dbunit.DatabaseUnitException;
 import org.dbunit.database.DatabaseConnection;
@@ -41,7 +43,7 @@ import ch.inftec.ju.util.xml.XmlOutputConverter;
  */
 public class DbDataUtil {
 	private final Connection connection;
-	private final JuDbUtils juDbUtils;
+	private final EntityManager em;
 	
 	private String schemaName = null;
 	
@@ -58,7 +60,7 @@ public class DbDataUtil {
 	}
 	
 	public DbDataUtil(Connection connection, String schema) {
-		this.juDbUtils = null;
+		this.em = null;
 		this.connection = connection;
 		this.schemaName = schema;
 	}
@@ -74,12 +76,12 @@ public class DbDataUtil {
 	}
 	
 	/**
-	 * Create a new DbDataUtil that will use JuDbUtil to aquire a Connection and to
-	 * execute SQLs.
-	 * @param juDbUtils JuDbUtils instance to execute SQL in a JDBC connection
+	 * Create a new DbDataUtil that will use the specified EntityManager to get
+	 * a raw connection to the DB and execute SQL queries.
+	 * @param em EntityManager instance to execute SQL in a JDBC connection
 	 */
-	public DbDataUtil(JuDbUtils juDbUtils) {
-		this.juDbUtils = juDbUtils;
+	public DbDataUtil(EntityManager em) {
+		this.em = em;
 		this.connection = null;
 	}
 	
@@ -109,8 +111,8 @@ public class DbDataUtil {
 	private void execute(final DbUnitWork work) {
 		if (this.connection != null) {
 			this.doExecute(this.connection, work);
-		} else if (this.juDbUtils != null){
-			this.juDbUtils.doWork(new Work() {
+		} else if (this.em != null){
+			JuDbUtils.doWork(em, new Work() {
 				@Override
 				public void execute(Connection connection) throws SQLException {
 					doExecute(connection, work);

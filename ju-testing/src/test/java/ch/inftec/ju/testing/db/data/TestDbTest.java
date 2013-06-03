@@ -6,24 +6,25 @@ import javax.persistence.Query;
 
 import junit.framework.Assert;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import ch.inftec.ju.db.JuDbUtils;
-import ch.inftec.ju.testing.db.AbstractBaseDbTest;
 import ch.inftec.ju.testing.db.DefaultContextAbstractBaseDbTest;
 import ch.inftec.ju.testing.db.data.entity.Player;
 import ch.inftec.ju.util.JuCollectionUtils;
-
-import com.github.springtestdbunit.annotation.DatabaseSetup;
 
 /**
  * Tests to test a TestDb instance.
  * @author tgdmemae
  *
  */
-@DatabaseSetup("/datasets/fullData.xml")
 public class TestDbTest extends DefaultContextAbstractBaseDbTest {
+	@Before
+	public void loadTestData() {
+		this.createDbDataUtil().cleanImport("/datasets/fullData.xml");
+	}
 	
 	@Autowired
 	private JuDbUtils juDbUtils;

@@ -27,13 +27,14 @@ public class DbDataUtilFactory implements FactoryBean<DbDataUtil> {
 	
 	@Override
 	public DbDataUtil getObject() throws Exception {
-		DbDataUtil util = new DbDataUtil(this.juDbUtils);
-		util.setSchema(this.connectionInfo.getSchema());
-		if (this.dataTypeFactory != null) {
-			util.setConfigProperty("http://www.dbunit.org/properties/datatypeFactory", this.dataTypeFactory);
-		}
-		
-		return util;
+//		DbDataUtil util = new DbDataUtil(this.juDbUtils);
+//		util.setSchema(this.connectionInfo.getSchema());
+//		if (this.dataTypeFactory != null) {
+//			util.setConfigProperty("http://www.dbunit.org/properties/datatypeFactory", this.dataTypeFactory);
+//		}
+//		
+//		return util;
+		return null;
 	}
 
 	@Override

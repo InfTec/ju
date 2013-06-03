@@ -12,8 +12,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import ch.inftec.ju.db.auth.repo.AuthRoleRepo;
 import ch.inftec.ju.db.auth.repo.AuthUserRepo;
 
-import com.github.springtestdbunit.annotation.DatabaseSetup;
-
 /**
  * Contains tests for the Authentication functionality.
  * @author Martin
@@ -31,9 +29,10 @@ public class AuthenticationTest extends AbstractAuthBaseDbTest {
 	@Autowired
 	private AuthRoleRepo roleRepo;
 	
-	@DatabaseSetup("/datasets/auth/singleUser.xml")
 	@Test
 	public void authRepositoryTest() {
+		this.createDbDataUtil().cleanImport("/datasets/auth/singleUser.xml");
+		
 		Assert.assertNotNull(userRepo);
 		Assert.assertTrue(userRepo.exists(-1L));
 		
@@ -41,9 +40,9 @@ public class AuthenticationTest extends AbstractAuthBaseDbTest {
 		Assert.assertNull(roleRepo.getByNameAndUsersId("unassignedRole", -1L));
 	}
 	
-	@DatabaseSetup("/datasets/auth/singleUser.xml")
 	@Test
 	public void juUserDetailsService() {
+		this.createDbDataUtil().cleanImport("/datasets/auth/singleUser.xml");
 		// Load existing user
 		UserDetails userDetails1 = this.service.loadUserByUsername("user1");
 		Assert.assertEquals("user1", userDetails1.getUsername());

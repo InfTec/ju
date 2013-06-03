@@ -110,18 +110,22 @@ public class JuDbUtils {
 				export.create(true, true);
 			}
 		});
+		
+		em.close();
 	}
 	
 	/**
-	 * Executs some DB work using a raw JDBC connection.
+	 * Executes some DB work using a raw JDBC connection.
 	 * <p>
 	 * Makes use of the Hibernate Work facility.
+	 * @param em EntityManager that will be used to unwrap the raw connection. We'll also be joining
+	 * the transaction (if any) of the EntityManager.
 	 * @param work Work callback interface
 	 */
-	public void doWork(Work work) {
-		EntityManager em = this.emf.createEntityManager();
-		Session session = (Session)em.getDelegate();
+	public static void doWork(EntityManager em, Work work) {
+		Session session = em.unwrap(Session.class);
 		session.doWork(work);
+		em.close();
 	}
 	
 	/**

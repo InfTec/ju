@@ -50,7 +50,7 @@
 
 	<!-- Define the TransactionManager -->
 	<bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager"/>
-		
+	
 	<!-- ################################## -->
 	<!-- Define Ju specific helpers objects -->
 	<!-- ################################## -->
