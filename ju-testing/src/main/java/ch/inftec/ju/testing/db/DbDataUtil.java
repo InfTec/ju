@@ -366,7 +366,7 @@ public class DbDataUtil {
 					.build(xmlUrl);
 				return this;
 			} catch (Exception ex) {
-				throw new JuDbException("Couldn't import data from XML: xmlUrl", ex);
+				throw new JuDbException("Couldn't import data from XML: " + xmlUrl, ex);
 			}
 		}
 		
