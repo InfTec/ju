@@ -125,7 +125,6 @@ public class JuDbUtils {
 	public static void doWork(EntityManager em, Work work) {
 		Session session = em.unwrap(Session.class);
 		session.doWork(work);
-		em.close();
 	}
 	
 	/**
