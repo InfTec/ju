@@ -20,9 +20,12 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		
 		<!-- Shared version number properties -->
+		
 		<org.springframework.version>3.2.1.RELEASE</org.springframework.version>
 		<org.springframework.data.version>1.1.0.RELEASE</org.springframework.data.version>
 		<org.springframework.security.version>3.1.3.RELEASE</org.springframework.security.version>
+		
+		<org.hibernate.version>4.1.6.Final</org.hibernate.version> <!-- Same as in JBoss EAP 6.0.1.GA -->
 	</properties>
 
 	<!-- Local and Jenkins profiles defining Artifactory Repository -->
@@ -138,6 +141,48 @@
 				<groupId>org.springframework.security</groupId>
 				<artifactId>spring-security-config</artifactId>
 				<version>${org.springframework.security.version}</version>
+			</dependency>
+			
+			<dependency>
+				<groupId>org.springframework.data</groupId>
+				<artifactId>spring-data-jpa</artifactId>
+				<version>${org.springframework.data.version}</version>
+			</dependency>
+			
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-jdbc</artifactId>
+				<version>${org.springframework.version}</version>
+			</dependency>
+			
+			<dependency>
+				<groupId>commons-dbutils</groupId>
+				<artifactId>commons-dbutils</artifactId>
+				<version>1.4</version>
+			</dependency>
+	
+			<dependency>
+				<groupId>commons-dbcp</groupId>
+				<artifactId>commons-dbcp</artifactId>
+				<version>1.4</version>
+			</dependency>
+			
+			<dependency>
+				<groupId>org.apache.derby</groupId>
+				<artifactId>derby</artifactId>
+				<version>10.8.2.2</version>
+			</dependency>
+			
+			<dependency>
+				<groupId>org.hibernate</groupId>
+				<artifactId>hibernate-core</artifactId>
+				<version>${org.hibernate.version}</version>
+			</dependency>
+			
+			<dependency>
+				<groupId>org.hibernate</groupId>
+				<artifactId>hibernate-entitymanager</artifactId>
+				<version>${org.hibernate.version}</version>
 			</dependency>
 			
 			<!-- JavaFX dependency so it is imported automatically into Eclipse -->
