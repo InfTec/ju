@@ -25,25 +25,34 @@
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>ju-util</artifactId>
-			<version>${project.version}</version>
 		</dependency>
 		
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>ju-dbutil</artifactId>
-			<version>${project.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.apache.derby</groupId>
 			<artifactId>derby</artifactId>
-			<version>10.8.2.2</version>
+			<scope>provided</scope> <!-- Optional component -->
+		</dependency>
+		
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-core</artifactId>
+			<scope>provided</scope> <!-- Optional component -->
+		</dependency>
+		
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-entitymanager</artifactId>
+			<scope>provided</scope>
 		</dependency>
 		
 		<dependency>
 			<groupId>org.dbunit</groupId>
 			<artifactId>dbunit</artifactId>
-			<version>2.4.8</version>
 		</dependency>
 
 <!-- 		<dependency> -->
@@ -56,25 +65,24 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
-			<version>1.6.6</version>
 		</dependency>
 		
 		<dependency>
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-jpa</artifactId>
-			<version>${org.springframework.data.version}</version>
+			<scope>provided</scope>
 		</dependency>
 		
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context</artifactId>
-			<version>${org.springframework.version}</version>
+			<scope>provided</scope>
 		</dependency>
 		
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-test</artifactId>
-			<version>${org.springframework.version}</version>
+			<scope>provided</scope>
 		</dependency>
 	</dependencies>
 </project>
