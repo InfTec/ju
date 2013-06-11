@@ -13,12 +13,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import ch.inftec.ju.testing.db.DbDataUtil;
 import ch.inftec.ju.testing.db.DefaultContextAbstractBaseDbTest;
 import ch.inftec.ju.testing.db.data.entity.Player;
 import ch.inftec.ju.testing.db.data.entity.TestingEntity;
 import ch.inftec.ju.testing.db.data.repo.TestingEntityRepo;
-import ch.inftec.ju.util.AssertUtil;
 
 /**
  * Test class for JPA related tests.
