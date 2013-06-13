@@ -7,31 +7,25 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.sql.DataSource;
 
+import org.dbunit.dataset.datatype.DefaultDataTypeFactory;
+import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.test.context.TestContext;
-import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.AbstractTestExecutionListener;
-import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
-import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
-import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
 import org.springframework.transaction.annotation.Transactional;
 
 import ch.inftec.ju.db.ConnectionInfo;
 import ch.inftec.ju.db.DbRow;
 import ch.inftec.ju.db.JuDbUtils;
-import ch.inftec.ju.testing.db.AbstractBaseDbTest.DbInitializerTestExecutionListener;
 import ch.inftec.ju.testing.db.data.TestDb;
 import ch.inftec.ju.util.JuCollectionUtils;
 import ch.inftec.ju.util.TestUtils;
 import ch.inftec.ju.util.comparison.ValueComparator;
-
-import com.github.springtestdbunit.TransactionDbUnitTestExecutionListener;
 
 /**
  * Base class for tests that use test database data.
@@ -44,11 +38,11 @@ import com.github.springtestdbunit.TransactionDbUnitTestExecutionListener;
  */
 @Transactional
 @RunWith(SpringJUnit4ClassRunner.class)
-@TestExecutionListeners({ DependencyInjectionTestExecutionListener.class,
-    DirtiesContextTestExecutionListener.class,
-    DbInitializerTestExecutionListener.class,
-    TransactionalTestExecutionListener.class,    
-    TransactionDbUnitTestExecutionListener.class })
+//@TestExecutionListeners({ DependencyInjectionTestExecutionListener.class,
+//    DirtiesContextTestExecutionListener.class,
+//    DbInitializerTestExecutionListener.class,
+//    TransactionalTestExecutionListener.class,    
+//    TransactionDbUnitTestExecutionListener.class })
 public abstract class AbstractBaseDbTest {
 	/**
 	 * Helper class to initialize the DB. JUnit @Before is not sufficient as this must run
@@ -90,6 +84,9 @@ public abstract class AbstractBaseDbTest {
 	@Autowired(required=false)
 	private TestDb testDb;
 	
+	@Autowired(required=false)
+	private DefaultDataTypeFactory dataTypeFactor;
+	
 	@Autowired
 	private JuDbUtils juDbUtils;
 	
@@ -98,7 +95,13 @@ public abstract class AbstractBaseDbTest {
 	 * @return DbDataUtil instance
 	 */
 	protected final DbDataUtil createDbDataUtil() {
-		return new DbDataUtil(DataSourceUtils.getConnection(this.dataSource), this.connectionInfo);
+		DbDataUtil util = new DbDataUtil(this.em);
+		util.setSchema(this.connectionInfo.getSchema());
+		if (this.dataTypeFactor != null) {
+			util.setConfigProperty("http://www.dbunit.org/properties/datatypeFactory", this.dataTypeFactor);
+		}
+		
+		return util;
 	}
 	
 //	/**
@@ -131,7 +134,7 @@ public abstract class AbstractBaseDbTest {
 //		this.loadDataSet(IOUtil.getResourceURL(testDataFile));
 //	}
 	
-	//@Before
+	@Before
 	public final void resetDatabase() throws Exception {
 		this.em.getMetamodel();
 		

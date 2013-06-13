@@ -6,14 +6,14 @@
 	version="2.0">
 	
 	<persistence-unit name="CustomDerby">
-		<provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
+		<provider>org.hibernate.ejb.HibernatePersistence</provider>
 
 		<class>ch.inftec.ju.db.data.entity.CustomObject</class>
 
 		<properties>
 
-			<property name="eclipselink.target-database" value="Derby" />
-			<property name="eclipselink.ddl-generation" value="create-tables" />
+			<property name="hibernate.dialect" value="org.hibernate.dialect.DerbyDialect" />
+			<property name="hibernate.hbm2ddl.auto" value="create" />
 			<property name="eclipselink.logging.level.sql" value="FINE"/>
  			<property name="eclipselink.logging.parameters" value="true"/>			
 

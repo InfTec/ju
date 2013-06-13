@@ -72,7 +72,9 @@ public final class TaskStarter {
 				if (WorkerStateEvent.WORKER_STATE_FAILED == ev.getEventType()) {
 					// Display exception
 					Throwable t = callback.loadingFailed(ev.getSource().getException());
-					if (t != null) JuFxUtils.dialog().showException("Exception", t);
+					if (t != null) JuFxUtils.dialog()
+						.exception("Exception", t)
+						.showModal(null);
 				}
 				
 				JuFxUtils.closeWindow(paneInfo.getPane());

@@ -6,18 +6,15 @@
 	version="2.0">
 
 	<persistence-unit name="juAuth">
-		<provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
+		<provider>org.hibernate.ejb.HibernatePersistence</provider>
 
 		<class>ch.inftec.ju.db.auth.entity.AuthUser</class>
 		<class>ch.inftec.ju.db.auth.entity.AuthRole</class>
 
 		<properties>
 
-			<property name="eclipselink.target-database" value="Derby" />
-			<property name="eclipselink.ddl-generation" value="create-tables" />
-			<property name="eclipselink.logging.level.sql" value="FINE"/>
- 			<property name="eclipselink.logging.parameters" value="true"/>
- 			<property name="eclipselink.weaving" value="false"/> <!-- TODO: Try to enable weaving -->			
+			<property name="hibernate.dialect" value="org.hibernate.dialect.DerbyDialect" />
+			<property name="hibernate.hbm2ddl.auto" value="create" />
 
 			<property name="javax.persistence.jdbc.url" value="jdbc:derby:memory:juAuthTestDB;create=true" />
 			<property name="javax.persistence.jdbc.driver" value="org.apache.derby.jdbc.EmbeddedDriver" />

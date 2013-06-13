@@ -17,8 +17,6 @@ import ch.inftec.ju.db.auth.entity.AuthUser;
 import ch.inftec.ju.fx.property.MemoryBooleanProperty;
 import ch.inftec.ju.util.TestUtils;
 
-import com.github.springtestdbunit.annotation.DatabaseSetup;
-
 /**
  * Contains tests for the Authentication functionality.
  * @author Martin
@@ -55,9 +53,10 @@ public class AuthenticationEditorModelTest extends AbstractAuthBaseDbTest {
 	@Autowired
 	private AuthenticationEditorViewModel authVm;
 	
-	@DatabaseSetup("/datasets/auth/singleUser.xml")
 	@Test
 	public void authenticationEditorModelTest() {
+		this.createDbDataUtil().cleanImport("/datasets/auth/singleUser.xml");
+		
 		// Test the getUsers method
 		List<AuthUser> u1 = this.authModel.getUsers();
 		Assert.assertEquals(1, u1.size());
@@ -85,11 +84,19 @@ public class AuthenticationEditorModelTest extends AbstractAuthBaseDbTest {
 		
 		// Available roles
 		TestUtils.assertCollectionConsistsOfAll(this.authModel.getAvailableRoles(), "role1", "newRole", "anotherRole");
+		
+		// Delete user
+		this.authModel.deleteUser("newUser");
+		TestUtils.assertCollectionEquals(this.authModel.getUserNames(), "user1");
+		
+		// Make sure deleting an unknown user will not cause problems
+		this.authModel.deleteUser("unknownUser");
 	}
 	
-	@DatabaseSetup("/datasets/auth/singleUser.xml")
 	@Test
 	public void authenticationEditorViewModelTest() {
+		this.createDbDataUtil().cleanImport("/datasets/auth/singleUser.xml");
+		
 		this.authVm.refresh();
 		
 		// Read / modify the one existing user

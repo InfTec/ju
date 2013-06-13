@@ -25,7 +25,7 @@ public class NewLineReaderTest {
 		String inputString = line1;		
 
 		NewLineReader r = new NewLineReader(new StringReader(inputString));
-		LineIterator i = new LineIterator(r);
+		LineIterator i = r.iterateLines();
 		
 		Assert.assertTrue(i.hasNext());
 		Assert.assertEquals(i.nextLine(), inputString);
@@ -42,7 +42,7 @@ public class NewLineReaderTest {
 		inputString = line1 + "\n" + line2;
 		
 		r = new NewLineReader(new StringReader(inputString)); 
-		i = new LineIterator(r);
+		i = r.iterateLines();
 		Assert.assertEquals(i.next(), line1);
 		Assert.assertEquals(r.getInputNewLine(), "\n");
 		Assert.assertEquals(r.getOutputNewLine(), "\n");
@@ -59,7 +59,7 @@ public class NewLineReaderTest {
 		inputString = line1 + "\r\n" + line2 + "\r\n";
 		
 		r = new NewLineReader(new StringReader(inputString)); 
-		i = new LineIterator(r);
+		i = r.iterateLines();
 		Assert.assertEquals(i.next(), line1);
 		Assert.assertEquals(r.getInputNewLine(), "\r\n");
 		Assert.assertEquals(r.getOutputNewLine(), "\r\n");
@@ -97,7 +97,7 @@ public class NewLineReaderTest {
 		String inputString = line1 + "\r\n" + line2;		
 
 		NewLineReader r = new NewLineReader(new StringReader(inputString), null, "\n");
-		LineIterator i = new LineIterator(r);
+		LineIterator i = r.iterateLines();
 		
 		Assert.assertEquals(i.nextLine(), line1);
 		Assert.assertEquals(r.getInputNewLine(), "\r\n");

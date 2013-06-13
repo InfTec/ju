@@ -1,8 +1,10 @@
 package ch.inftec.ju.fx;
 
-import ch.inftec.ju.util.JuStringUtils;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import ch.inftec.ju.util.JuStringUtils;
 
 /**
  * ViewModel that contains a message a long with a mode detailed message
@@ -14,6 +16,7 @@ public class DetailMessageViewModel {
 	private StringProperty title = new SimpleStringProperty();
 	private StringProperty message = new SimpleStringProperty();
 	private StringProperty detailedMessage = new SimpleStringProperty();
+	private BooleanProperty wrapText = new SimpleBooleanProperty();
 	
 	public StringProperty titleProperty() {
 		return this.title;
@@ -25,6 +28,10 @@ public class DetailMessageViewModel {
 	
 	public StringProperty detailedMessageProperty() {
 		return this.detailedMessage;
+	}
+	
+	public BooleanProperty wrapTextProperty() {
+		return this.wrapText;
 	}
 	
 	/**

@@ -6,11 +6,11 @@
 	version="2.0">
 
 	<persistence-unit name="ESW MyTTS //TODO: refactor">
-		<provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
+		<provider>org.hibernate.ejb.HibernatePersistence</provider>
 
 		<properties>
 
-			<property name="eclipselink.target-database" value="Oracle" />
+			<property name="hibernate.dialect" value="org.hibernate.dialect.Oracle10gDialect" />
 			<property name="eclipselink.ddl-generation" value="none" />
 
 			<property name="javax.persistence.jdbc.url" value="jdbc:oracle:thin:@//eswdev:1521/ESWDEV.SWISSPTT.CH" />
@@ -24,17 +24,13 @@
 	</persistence-unit>
 	
 	<persistence-unit name="Derby db-util">
-		<provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
+		<provider>org.hibernate.ejb.HibernatePersistence</provider>
 
 		<class>ch.inftec.ju.db.data.entity.CustomObject</class>
 
 		<properties>
-
-			<property name="eclipselink.target-database" value="Derby" />
-			<property name="eclipselink.ddl-generation" value="create-tables" />
-			<property name="eclipselink.logging.level.sql" value="FINE"/>
- 			<property name="eclipselink.logging.parameters" value="true"/>
- 			<property name="eclipselink.weaving" value="false"/> <!-- TODO: Try to enable weaving -->
+			<property name="hibernate.dialect" value="org.hibernate.dialect.DerbyDialect" />
+			<property name="hibernate.hbm2ddl.auto" value="create" />
 
 			<property name="javax.persistence.jdbc.driver" value="org.apache.derby.jdbc.EmbeddedDriver" />
 
@@ -42,7 +38,7 @@
 	</persistence-unit>
 
 	<persistence-unit name="PU_mementoObject //TODO: refactor">
-		<provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
+		<provider>org.hibernate.ejb.HibernatePersistence</provider>
 
 		<mapping-file>META-INF/orm-mementoObject.xml</mapping-file>
 
@@ -52,8 +48,8 @@
 
 		<properties>
 
-			<property name="eclipselink.target-database" value="DERBY" />
-			<property name="eclipselink.ddl-generation" value="create-tables" />
+			<property name="hibernate.dialect" value="org.hibernate.dialect.DerbyDialect" />
+			<property name="hibernate.hbm2ddl.auto" value="create" />
 			<property name="eclipselink.logging.level" value="FINE" />			
 
 			<property name="javax.persistence.jdbc.url" value="jdbc:derby:memory:juMementoTestDB;create=true" />

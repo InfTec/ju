@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 import java.util.List;
 
 import javax.persistence.Id;
+import javax.persistence.Transient;
 
 import ch.inftec.ju.util.JuRuntimeException;
 import ch.inftec.ju.util.ReflectUtils;
@@ -23,7 +24,9 @@ import ch.inftec.ju.util.ReflectUtils;
  *
  */
 public abstract class AbstractPersistenceObject {
+	@Transient
 	private Integer hashCode;
+	@Transient
 	private Object idFieldValue;
 	
 	@Override

@@ -1,16 +1,5 @@
 package ch.inftec.ju.testing.db;
 
-import java.io.FileOutputStream;
-
-import org.dbunit.database.DatabaseConnection;
-import org.dbunit.database.IDatabaseConnection;
-import org.dbunit.database.QueryDataSet;
-import org.dbunit.dataset.xml.FlatXmlDataSet;
-
-import ch.inftec.ju.db.DbConnection;
-import ch.inftec.ju.db.DbConnectionFactory;
-import ch.inftec.ju.db.DbConnectionFactoryLoader;
-import ch.inftec.ju.util.JuRuntimeException;
 
 public class DbUnitExporter {
 	// TODO: Refactor

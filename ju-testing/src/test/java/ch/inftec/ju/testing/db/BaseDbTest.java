@@ -4,6 +4,7 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 
+import ch.inftec.ju.testing.db.data.entity.Team;
 import ch.inftec.ju.testing.db.data.entity.TestingEntity;
 import ch.inftec.ju.util.IOUtil;
 
@@ -30,11 +31,19 @@ public class BaseDbTest extends DefaultContextAbstractBaseDbTest {
 		this.sequenceReset();
 	}
 	
+	/**
+	 * Creates two entities and checks if they got the default start sequence of 10.
+	 */
 	private void sequenceReset() {
 		TestingEntity te = new TestingEntity();
 		em.persist(te);
 		
 		Assert.assertEquals(10L, te.getId().longValue());
+		
+		Team t = new Team();
+		em.persist(t);
+		
+		Assert.assertEquals(10L, t.getId().longValue());
 	}
 	
 	/**

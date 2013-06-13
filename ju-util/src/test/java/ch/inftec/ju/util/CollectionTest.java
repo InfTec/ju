@@ -80,6 +80,48 @@ public class CollectionTest {
 	}
 	
 	@Test
+	public void collectionEquals_forOtherOrder_returnsFalse() {
+		ArrayList<String> c1 = new ArrayList<String>();
+		ArrayList<String> c2 = new ArrayList<String>();
+		
+		c1.add("one");
+		c1.add("two");
+		
+		c2.add("two");
+		c2.add("one");
+		
+		Assert.assertFalse(JuCollectionUtils.collectionEquals(c1, c2));
+	}
+	
+	@Test
+	public void collectionEqualsIgnoreOrder_forDifferentlyOrderedCollections_returnsTrue() {
+		ArrayList<String> c1 = new ArrayList<String>();
+		ArrayList<String> c2 = new ArrayList<String>();
+		
+		c1.add("one");
+		c1.add("two");
+		
+		c2.add("two");
+		c2.add("one");
+		
+		Assert.assertTrue(JuCollectionUtils.collectionEqualsIgnoreOrder(c1, c2));
+	}
+	
+	@Test
+	public void collectionEqualsIgnoreOrder_forDifferencCollections_returnsFalse() {
+		ArrayList<String> c1 = new ArrayList<String>();
+		ArrayList<String> c2 = new ArrayList<String>();
+		
+		c1.add("one");
+		c1.add("two");
+		
+		c2.add("two");
+		c2.add("three");
+		
+		Assert.assertFalse(JuCollectionUtils.collectionEqualsIgnoreOrder(c1, c2));
+	}
+	
+	@Test
 	public void stringMap() {
 		HashMap<String, Object> m = new HashMap<String, Object>();
 		m.put("one", 1);

@@ -55,7 +55,7 @@
 		<property name="persistenceUnitName" value="#{juPersistenceUnitName}"/>
 		
 		<property name="jpaVendorAdapter">
-			<bean class="org.springframework.orm.jpa.vendor.EclipseLinkJpaVendorAdapter"/>
+			<bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter"/>
 		</property>
 	</bean>
 

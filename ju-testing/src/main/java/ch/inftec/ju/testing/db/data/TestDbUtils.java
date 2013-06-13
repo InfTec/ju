@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.sql.DataSource;
@@ -82,7 +83,7 @@ public final class TestDbUtils {
 		private static List<ConnectionInfo> initializedConnections = new ArrayList<>();
 		
 		@PersistenceContext
-		private EntityManager em;
+		protected EntityManager em;
 		
 		@Autowired
 		protected JdbcTemplate jdbcTemplate;
@@ -91,7 +92,7 @@ public final class TestDbUtils {
 		private ConnectionInfo connectionInfo;
 		
 		@Autowired
-		private JuDbUtils juDbUtils;
+		protected JuDbUtils juDbUtils;
 		
 		@Autowired
 		private DataSource dataSource;
@@ -99,6 +100,7 @@ public final class TestDbUtils {
 		@PostConstruct
 		private void init() {
 			log.info("Creating tables for {}", this.connectionInfo);
+			this.juDbUtils.setEntityManagerFactory(this.em.getEntityManagerFactory()); // TODO: Would be nicer to do this in context.xml
 			this.juDbUtils.createDefaultTables();
 			this.createTables();
 		}
