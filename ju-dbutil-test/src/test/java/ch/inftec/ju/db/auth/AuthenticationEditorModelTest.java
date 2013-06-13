@@ -84,6 +84,13 @@ public class AuthenticationEditorModelTest extends AbstractAuthBaseDbTest {
 		
 		// Available roles
 		TestUtils.assertCollectionConsistsOfAll(this.authModel.getAvailableRoles(), "role1", "newRole", "anotherRole");
+		
+		// Delete user
+		this.authModel.deleteUser("newUser");
+		TestUtils.assertCollectionEquals(this.authModel.getUserNames(), "user1");
+		
+		// Make sure deleting an unknown user will not cause problems
+		this.authModel.deleteUser("unknownUser");
 	}
 	
 	@Test

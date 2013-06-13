@@ -55,6 +55,10 @@ public class AuthenticationEditorViewModel extends AbstractViewModel {
 		this.userInfos.add(userInfo);	
 	}
 	
+	private void removeUserInfo(UserInfo userInfo) {
+		this.userInfos.remove(userInfo);
+	}
+	
 	/**
 	 * Refreshes the ViewModel, i.e. reloads all data from the DB.
 	 */
@@ -86,6 +90,13 @@ public class AuthenticationEditorViewModel extends AbstractViewModel {
 	public void createUser(String userName, String password) {
 		AuthUser newUser = this.model.addUser(userName, password);
 		addUserInfo(newUser);
+	}
+	
+	public void deleteUser(UserInfo user) {
+		if (user != null) {
+			this.model.deleteUser(user.getName());
+			this.removeUserInfo(user);
+		}
 	}
 	
 	public ObservableList<UserInfo> getUserInfos() {

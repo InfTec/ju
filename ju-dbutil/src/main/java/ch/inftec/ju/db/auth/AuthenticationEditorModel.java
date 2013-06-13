@@ -83,6 +83,17 @@ public class AuthenticationEditorModel {
 	}
 	
 	/**
+	 * Delete the specified user
+	 * @param userName User name
+	 */
+	public void deleteUser(String userName) {
+		AuthUser user = this.getUser(userName);
+		if (user != null) {
+			this.userRepo.delete(user);
+		}
+	}
+	
+	/**
 	 * Adds a new user and assigns the specified roles.
 	 * @param userName Username
 	 * @param password Password (non-null)
