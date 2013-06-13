@@ -51,6 +51,11 @@
 			<artifactId>joda-time</artifactId>
 		</dependency>
 		
+		<dependency>
+			<groupId>net.sf.opencsv</groupId>
+			<artifactId>opencsv</artifactId>
+		</dependency>
+		
 		<!-- Needed by Log4jAppenderModel, imported by slf4j with scope runtime, but we need it to 
 		     build the project. We don't want to include it as a dependency though as not all
 		     project using JU will use the log4j appender
