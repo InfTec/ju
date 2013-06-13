@@ -6,6 +6,9 @@ import javax.swing.Icon;
 
 /**
  * Interface providing information about a Database connection.
+ * <p>
+ * ConnectionInfos are considered to be equal if they have an identical name. Implementations
+ * must override the hashCode and equals methods accordingly.
  * @author Martin
  *
  */

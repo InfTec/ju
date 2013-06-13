@@ -8,6 +8,7 @@ import javax.swing.Icon;
 import org.apache.commons.lang3.ObjectUtils;
 
 import ch.inftec.ju.util.GuiUtils;
+import ch.inftec.ju.util.JuObjectUtils;
 import ch.inftec.ju.util.JuStringUtils;
 
 /**
@@ -130,5 +131,15 @@ public class ConnectionInfoImpl implements ConnectionInfo {
 	@Override
 	public int compareTo(ConnectionInfo o) {
 		return ObjectUtils.compare(this.getName(), o == null ? null : o.getName());
+	}
+	
+	@Override
+	public boolean equals(Object o) {
+		return this.compareTo(JuObjectUtils.as(o, ConnectionInfo.class)) == 0;
+	}
+	
+	@Override
+	public int hashCode() {
+		return this.getName().hashCode();
 	}
 }
