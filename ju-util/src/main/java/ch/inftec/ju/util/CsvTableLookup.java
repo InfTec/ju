@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import junit.framework.Assert;
+
 import org.apache.commons.lang3.StringUtils;
 
 import au.com.bytecode.opencsv.CSVReader;
@@ -28,10 +30,15 @@ import au.com.bytecode.opencsv.CSVReader;
  * Use the build() method to get a builder to create new CsvTableLookup instances.
  * <p>
  * The lookup uses ';' as a separator character.
+ * <p>
+ * Rows whose keys are empty or start with '#' are ignored.
  * @author Martin
  *
  */
 public class CsvTableLookup {
+	private static final char SEPARATOR_CHAR = ';';
+	private static final String COMMENT_CHAR = "#";
+	
 	public static class CsvTableLookupBuilder {
 		private URL url;
 		private String defaultColumn;
@@ -102,7 +109,9 @@ public class CsvTableLookup {
 	}
 	
 	private void read(URL url) {
-		try (CSVReader reader = new CSVReader(new IOUtil().createReader(url), ';')) {
+		try (CSVReader reader = new CSVReader(
+				new IOUtil().createReader(url), 
+				CsvTableLookup.SEPARATOR_CHAR)) {
 			List<String[]> rows = reader.readAll();
 			
 			if (rows.size() < 2 || rows.get(0).length < 2) {
@@ -128,12 +137,20 @@ public class CsvTableLookup {
 					throw new IllegalArgumentException("Unspecified row name at position " + i);
 				}
 				String key = rows.get(i)[0];
-				if (this.rowValues.containsKey(key)) {
-					throw new IllegalArgumentException("Duplicate key: " + key);
+				Assert.assertNotNull("Key must not be null");
+				// Ignore empty and comment keys
+				if (key == null 
+						|| StringUtils.isEmpty(key.trim()) 
+						|| key.trim().startsWith(CsvTableLookup.COMMENT_CHAR)) {
+					continue;
+				} else {
+					if (this.rowValues.containsKey(key)) {
+						throw new IllegalArgumentException("Duplicate key: " + key);
+					}
+					
+					this.rowValues.put(key, rows.get(i));
+					keys.add(key);
 				}
-				
-				this.rowValues.put(key, rows.get(i));
-				keys.add(key);
 			}
 			this.keys = Collections.unmodifiableList(keys);
 		} catch (Exception ex) {
