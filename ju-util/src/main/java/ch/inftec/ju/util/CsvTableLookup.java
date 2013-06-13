@@ -1,9 +1,13 @@
 package ch.inftec.ju.util;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import junit.framework.Assert;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -26,10 +30,15 @@ import au.com.bytecode.opencsv.CSVReader;
  * Use the build() method to get a builder to create new CsvTableLookup instances.
  * <p>
  * The lookup uses ';' as a separator character.
+ * <p>
+ * Rows whose keys are empty or start with '#' are ignored.
  * @author Martin
  *
  */
 public class CsvTableLookup {
+	private static final char SEPARATOR_CHAR = ';';
+	private static final String COMMENT_CHAR = "#";
+	
 	public static class CsvTableLookupBuilder {
 		private URL url;
 		private String defaultColumn;
@@ -73,19 +82,26 @@ public class CsvTableLookup {
 	}
 	
 	private final String defaultColumn;
-	private Integer defaultColumnIndex;
 	
 	/**
 	 * Contains the name of the headers with the index corresponding to
 	 * the value in the rows value array.
 	 */
 	private Map<String, Integer> headerIndexes = new HashMap<>();
+	/**
+	 * Unmodifiable list containing all headers for reference.
+	 */
+	private List<String> headers;
 	
 	/**
 	 * Contains the rows with the values. Note that the values array contains
 	 * the name at position 0.
 	 */
-	private Map<String, String[]> rows = new HashMap<>();
+	private Map<String, String[]> rowValues = new HashMap<>();
+	/**
+	 * Unmodifiable list containing all keys for reference.
+	 */
+	private List<String> keys;
 	
 	private CsvTableLookup(URL url, String defaultColumn) {
 		this.defaultColumn = defaultColumn;
@@ -93,7 +109,9 @@ public class CsvTableLookup {
 	}
 	
 	private void read(URL url) {
-		try (CSVReader reader = new CSVReader(new IOUtil().createReader(url), ';')) {
+		try (CSVReader reader = new CSVReader(
+				new IOUtil().createReader(url), 
+				CsvTableLookup.SEPARATOR_CHAR)) {
 			List<String[]> rows = reader.readAll();
 			
 			if (rows.size() < 2 || rows.get(0).length < 2) {
@@ -101,28 +119,40 @@ public class CsvTableLookup {
 			}
 			
 			// Read headers
+			List<String> headers = new ArrayList<>();
 			for (int i = 1; i < rows.get(0).length; i++) {
 				String header = rows.get(0)[i];
 				if (this.headerIndexes.containsKey(header)) {
 					throw new IllegalArgumentException("Duplicate header: " + header);
 				}
 				this.headerIndexes.put(header, i);
+				headers.add(header);
 			}
-			// Initialize the default column index
-			this.defaultColumnIndex = this.headerIndexes.get(this.defaultColumn);
+			this.headers = Collections.unmodifiableList(headers);
 			
 			// Read columns
+			List<String> keys = new ArrayList<>();
 			for (int i = 1; i < rows.size(); i++) {
 				if (rows.get(i).length < 1) {
 					throw new IllegalArgumentException("Unspecified row name at position " + i);
 				}
-				String rowName = rows.get(i)[0];
-				if (this.rows.containsKey(rowName)) {
-					throw new IllegalArgumentException("Duplicate key: " + rowName);
+				String key = rows.get(i)[0];
+				Assert.assertNotNull("Key must not be null");
+				// Ignore empty and comment keys
+				if (key == null 
+						|| StringUtils.isEmpty(key.trim()) 
+						|| key.trim().startsWith(CsvTableLookup.COMMENT_CHAR)) {
+					continue;
+				} else {
+					if (this.rowValues.containsKey(key)) {
+						throw new IllegalArgumentException("Duplicate key: " + key);
+					}
+					
+					this.rowValues.put(key, rows.get(i));
+					keys.add(key);
 				}
-				
-				this.rows.put(rowName, rows.get(i));
 			}
+			this.keys = Collections.unmodifiableList(keys);
 		} catch (Exception ex) {
 			throw new JuRuntimeException("Couldn't read CSV file", ex);
 		}
@@ -131,16 +161,16 @@ public class CsvTableLookup {
 	/**
 	 * Gets the value of the cell identified by the row name and the
 	 * header.
-	 * @param rowName Row name, i.e. the value of the first column
+	 * @param key Row name, i.e. the value of the first column
 	 * @param header Header name, i.e. the value in the first row of the column
 	 * @return Value of the identified cell. If the cell is empty or undefined and a default
 	 * column was specified creating the lookup, the value of this cell will be returned.
 	 * If the cell does not exist, null is returned. If the cell is empty, an empty String is returned.
 	 */
-	public String get(String rowName, String header) {
+	public String get(String key, String header) {
 		if (header == null) return null;
 		
-		String[] row = this.rows.get(rowName);
+		String[] row = this.rowValues.get(key);
 		if (row == null) {
 			return null;
 		} else {
@@ -152,11 +182,59 @@ public class CsvTableLookup {
 			
 			if (StringUtils.isEmpty(headerVal) && !header.equals(this.defaultColumn)) {
 				// Try to get the default column value
-				String defaultColumnVal = this.get(rowName, this.defaultColumn);
+				String defaultColumnVal = this.get(key, this.defaultColumn);
 				if (!StringUtils.isEmpty(defaultColumnVal)) return defaultColumnVal;
 			}
 			
 			return headerVal;
 		}
+	}
+	
+	/**
+	 * Gets the value of the specified cell as a Boolean. Same rules apply as to get().
+	 * @param key
+	 * @param header
+	 * @return True if the value equals (ignoring case) "true" 
+	 */
+	public Boolean getBoolean(String key, String header) {
+		String val = this.get(key, header);
+		return val == null ? null : Boolean.parseBoolean(val);
+	}
+	
+	/**
+	 * Gets the value of the specified cell as an Integer. Same rules apply as to get().
+	 * @param key
+	 * @param header
+	 * @return Integer value of the cell 
+	 */
+	public Integer getInteger(String key, String header) {
+		String val = this.get(key, header);
+		return val == null ? null : Integer.parseInt(val);
+	}
+	
+	/**
+	 * Gets the value of the specified cell as a Long. Same rules apply as to get().
+	 * @param key
+	 * @param header
+	 * @return Long value of the cell 
+	 */
+	public Long getLong(String key, String header) {
+		String val = this.get(key, header);
+		return val == null ? null : Long.parseLong(val);
+	}
+	
+	/**
+	 * Gets a list of headers, in the order they are specified in the file.
+	 * @return List of headers
+	 */
+	public List<String> getHeaders() {
+		return this.headers;
+	}
+	
+	/**
+	 * Gets a list of keys, in the order they are specified in the file.
+	 */
+	public List<String> getKeys() {
+		return this.keys;
 	}
 }
