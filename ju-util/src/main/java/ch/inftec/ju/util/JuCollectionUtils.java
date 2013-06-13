@@ -81,14 +81,25 @@ public final class JuCollectionUtils {
 	}
 	
 	/**
-	 * Compares to collections. The collections are considered equal if the contain
-	 * the same elements.
+	 * Compares to collections. The collections are considered equal if they contain
+	 * the same elements in the same order.
 	 * @param c1 Collection 1
 	 * @param c2 Collection 2
 	 * @return True if the collections are equal, false otherwise
 	 */
 	public static <T> boolean collectionEquals(Collection<T> c1, Collection<T> c2) {
 		return ListUtils.isEqualList(c1, c2);
+	}
+	
+	/**
+	 * Checks if two collections are equal ignoring the order of the elements, i.e. contain
+	 * the same elements, regardless of their order.
+	 * @param c1 Collection 1
+	 * @param c2 Collection 2
+	 * @return True if both collections contain the same elements in arbitrary order
+	 */
+	public static <T> boolean collectionEqualsIgnoreOrder(List<T> c1, List<T> c2) {
+		return ListUtils.intersection(JuCollectionUtils.asList(c1), JuCollectionUtils.asList(c2)).size() == c1.size();
 	}
 	
 	/**
