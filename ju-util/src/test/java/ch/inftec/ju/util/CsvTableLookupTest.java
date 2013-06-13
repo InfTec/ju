@@ -75,6 +75,12 @@ public class CsvTableLookupTest {
 		Assert.assertEquals(new Long(7L), l.getLong("R4", "H2"));
 	}
 	
+	@Test
+	public void csvTableLookup_forNullKey_returnsNull() {
+		CsvTableLookup l = this.tableLookupBuilder().create();
+		Assert.assertNull(l.get(null, "H1"));
+	}
+	
 	private CsvTableLookupBuilder tableLookupBuilder() {
 		return CsvTableLookup.build()
 				.from(IOUtil.getResourceURL("data.csv"));
