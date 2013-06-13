@@ -5,6 +5,7 @@ import java.io.Reader;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -225,5 +226,13 @@ public class NewLineReader extends Reader {
 	public void reset() throws IOException {
 		this.reader.reset();
 		this.queue.clear();
+	}
+	
+	/**
+	 * Creates a new LineIterator instance on this reader.
+	 * @return LineIterator
+	 */
+	public LineIterator iterateLines() {
+		return new LineIterator(this);
 	}
 }

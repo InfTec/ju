@@ -7,8 +7,6 @@ import javax.persistence.PersistenceContext;
 
 import junit.framework.Assert;
 
-import org.eclipse.persistence.sessions.server.ServerSession;
-import org.eclipse.persistence.tools.schemaframework.SchemaManager;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -37,16 +35,19 @@ public class MultiplePersistenceUnitsTest {
 		private EntityManager entityManager;
 		
 		@Autowired
+		private JuDbUtils juDbUtils;
+		
+		@Autowired
 		private TeamRepo teamRepo;
 		
 		@Autowired
 		private ConnectionInfoContextHolder contextHolder;
 		
+		private boolean tableForSecondUnitCreated = false;
+		
 		@Transactional // Must be transactional to unwrap session
 		public void createDb() {
-			ServerSession s = this.entityManager.unwrap(ServerSession.class);
-			SchemaManager sm = new SchemaManager(s);
-			sm.createDefaultTables(true);
+			this.juDbUtils.createDefaultTables();
 		}
 		
 		public int teamCount() {
@@ -208,7 +209,7 @@ public class MultiplePersistenceUnitsTest {
 		}
 		
 		private void doInsertTeam(Long id, String name) {
-			this.jdbcTemplate.update("insert into Team (id, name) values (?, ?)", id, name);
+			this.jdbcTemplate.update("insert into Team (id, name, ranking, version) values (?, ?, 0, 0)", id, name);
 		}
 	}
 	
@@ -321,7 +322,10 @@ public class MultiplePersistenceUnitsTest {
 		
 		// Try to switch DB for a new transaction
 		Long etDb1b = entityManagerTest.tryToSwitchConnectionInfoForNewTransactionTx(ci1);
-		// The new transaction will indeed use the new ConnectionInfo...
+		// The new transaction will NOT use the new ConnectionInfo, but the one that
+		// was set before the transaction started
+		Assert.assertFalse(entityManagerTest.exists(etDb1b));
+		contextHolder.setConnectionInfo(ci2);
 		Assert.assertEquals("switchTestNewTx", entityManagerTest.teamName(etDb1b));
 		
 		// Check transaction status

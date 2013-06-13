@@ -1,6 +1,7 @@
 package ch.inftec.ju.testing.db.data;
 
 import ch.inftec.ju.db.JuDbException;
+import ch.inftec.ju.db.JuDbUtils;
 import ch.inftec.ju.testing.db.data.TestDbUtils.AbstractTestDb;
 
 /**
@@ -52,12 +53,14 @@ class DerbyTestDb extends AbstractTestDb {
 	
 	@Override
 	protected void resetPlatformSpecificData() throws JuDbException {
-//						
-//			this.jdbcTemplate.update("DELETE FROM TEST_DATATYPES");
-//			this.jdbcTemplate.update("INSERT INTO TEST_DATATYPES (ID, INTEGERNUMBER, VARCHARTEXT, CLOBTEXT, DATEFIELD) VALUES (1, 1, 'one', 'oneClob', '1980-12-03')");
-//			this.jdbcTemplate.update("INSERT INTO TEST_DATATYPES (ID, INTEGERNUMBER, VARCHARTEXT, CLOBTEXT, DATEFIELD) VALUES (2, null, null, null, null)");
-
-		// Reset sequence to guarantee predictable primary key values
-		this.jdbcTemplate.update("UPDATE SEQUENCE SET SEQ_COUNT=? WHERE SEQ_NAME=?", 9, "SEQ_GEN");
+		for (Class<?> clazz : JuDbUtils.getManagedTypesAsClass(this.em)) {
+			// Note: This works as long as the table name is not changed by an annotation
+			// or a configuration file...
+			// TODO: Get TableName by EntityManager
+			String tableName = clazz.getSimpleName().toUpperCase();
+			
+			// TODO: Works as long as the table has an auto incremented ID column... Make more robust!
+			this.jdbcTemplate.update(String.format("ALTER TABLE %s ALTER COLUMN ID RESTART WITH 10", tableName));
+		}
 	}
 }

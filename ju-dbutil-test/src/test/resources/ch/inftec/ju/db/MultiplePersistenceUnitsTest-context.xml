@@ -74,7 +74,7 @@
 		<property name="persistenceUnitName" value="TeamPlayer PU"/>
 		
 		<property name="jpaVendorAdapter">
-			<bean class="org.springframework.orm.jpa.vendor.EclipseLinkJpaVendorAdapter"/>
+			<bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter"/>
 		</property>
 	</bean>
 
@@ -121,7 +121,7 @@
 		<property name="persistenceUnitName" value="TestingEntity PU"/>
 		
 		<property name="jpaVendorAdapter">
-			<bean class="org.springframework.orm.jpa.vendor.EclipseLinkJpaVendorAdapter"/>
+			<bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter"/>
 		</property>
 	</bean>
 
@@ -142,6 +142,11 @@
 		<repository:exclude-filter type="assignable" expression="ch.inftec.ju.testing.db.data.repo.TeamRepo"/>
 	</jpa:repositories>
 
+	<!-- JuDbUtils Bean -->
+	<bean id="contextConnectionInfo" class="ch.inftec.ju.db.ContextConnectionInfo" primary="true"/>
+	<bean id="juDbUtils" class="ch.inftec.ju.db.JuDbUtils">
+		<property name="entityManagerFactory" ref="entityManagerFactoryTeamPlayer"/>
+	</bean>
 	
 	<!-- Define test beans -->
 	<bean id="entityManagerTest" class="ch.inftec.ju.db.MultiplePersistenceUnitsTest.EntityManagerTest"/>

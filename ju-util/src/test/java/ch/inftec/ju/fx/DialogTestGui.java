@@ -81,7 +81,7 @@ public class DialogTestGui {
 		.button("Show detail dialog long detail message", new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent ev) {
-				String message = JuStringUtils.createLoremIpsum().getWords(10);
+				String message = JuStringUtils.createLoremIpsum().getWords(2);
 				String detailMessage = JuStringUtils.createLoremIpsum().getWords(500);
 				detailMessage += JuStringUtils.createLoremIpsum().getParagraphs(10);
 				

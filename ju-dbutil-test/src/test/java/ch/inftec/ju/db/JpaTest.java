@@ -9,23 +9,22 @@ import javax.persistence.TypedQuery;
 
 import junit.framework.Assert;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import ch.inftec.ju.testing.db.DbDataUtil;
 import ch.inftec.ju.testing.db.DefaultContextAbstractBaseDbTest;
 import ch.inftec.ju.testing.db.data.entity.Player;
-import ch.inftec.ju.testing.db.data.entity.Team;
 import ch.inftec.ju.testing.db.data.entity.TestingEntity;
 import ch.inftec.ju.testing.db.data.repo.TestingEntityRepo;
-
-import com.github.springtestdbunit.annotation.DatabaseSetup;
+import ch.inftec.ju.util.AssertUtil;
 
 /**
  * Test class for JPA related tests.
  * @author tgdmemae
  *
  */
-@DatabaseSetup("/datasets/fullData.xml")
 public class JpaTest extends DefaultContextAbstractBaseDbTest {
 	// TODO: Refactor concurrent tests...
 	
@@ -34,6 +33,17 @@ public class JpaTest extends DefaultContextAbstractBaseDbTest {
 	
 	@Autowired
 	private EntityManagerFactory emf;
+	
+	@Autowired
+	private JuDbUtils juDbUtils;
+	
+	@Autowired
+	private ConnectionInfo connectionInfo;
+	
+	@Before
+	public void loadTestData() {
+		this.createDbDataUtil().cleanImport("/datasets/fullData.xml");
+	}
 	
 //	/**
 //	 * Test if the EntityManager returns the same instance for the same object
@@ -193,7 +203,7 @@ public class JpaTest extends DefaultContextAbstractBaseDbTest {
 		Assert.assertEquals(1, q1.getResultList().size());
 		Assert.assertEquals("Star", q1.getResultList().get(0).getLastName());
 		
-		TypedQuery<Player> q2 = this.em.createQuery("select p from Player p join Team t where p.id=?1 and t.name=?2", Player.class);
+		TypedQuery<Player> q2 = this.em.createQuery("select p from Player p join p.teams as t where p.id=?1 and t.name=?2", Player.class);
 		q2.setParameter(1, 1L);
 		q2.setParameter(2, "Team1");
 		Assert.assertEquals(1, q2.getResultList().size());
@@ -211,7 +221,7 @@ public class JpaTest extends DefaultContextAbstractBaseDbTest {
 		return em.createQuery("select p from Player p where p.firstName='All' and p.lastName='Star'", Player.class).getSingleResult();
 	}
 	
-	private Team getTeam1(EntityManager em) {
-		return em.createQuery("select t from Team t where t.name='Team1'", Team.class).getSingleResult();
-	}
+//	private Team getTeam1(EntityManager em) {
+//		return em.createQuery("select t from Team t where t.name='Team1'", Team.class).getSingleResult();
+//	}
 }

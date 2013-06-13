@@ -76,7 +76,7 @@ public class BackgroundLoader {
 	private void taskDone(WorkerStateEvent event, final BackgroundLoaderCallback callback, final Pane pane) {
 		// Execute the callback (in case the data was loaded successfully)
 		if (WorkerStateEvent.WORKER_STATE_SUCCEEDED == event.getEventType()) {
-			logger.error("Task succeeded");
+			logger.debug("Task succeeded");
 			if (callback != null) {
 				callback.loadingDone(event.getSource().getValue());
 			}

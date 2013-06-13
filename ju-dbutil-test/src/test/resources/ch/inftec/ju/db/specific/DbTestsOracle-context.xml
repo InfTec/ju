@@ -45,24 +45,15 @@
 		<property name="persistenceUnitName" value="Oracle ju-testing"/>
 		
 		<property name="jpaVendorAdapter">
-			<bean class="org.springframework.orm.jpa.vendor.EclipseLinkJpaVendorAdapter"/>
+			<bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter"/>
 		</property>
 	</bean>
 
 	<!-- Define the TransactionManager -->
 	<bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager"/>
-	
-	<!-- Define a factory to create the IDatabaseConnection that is Oracle Schema aware -->
-	<bean id="databaseConfig" class="com.github.springtestdbunit.bean.DatabaseConfigBean">
-		<property name="datatypeFactory">
-			<bean class="org.dbunit.ext.oracle.Oracle10DataTypeFactory"/>
-		</property>
-	</bean>
-	<bean id="dbUnitDatabaseConnection" class="com.github.springtestdbunit.bean.DatabaseDataSourceConnectionFactoryBean">
-		<property name="dataSource" ref="dataSource"/>
-		<property name="databaseConfig" ref="databaseConfig"/>
-		<property name="schema" value="MYTTS_TEST"/>
-	</bean>
+
+	<!-- Define a DataTypeFactory for Oracle -->
+	<bean id="dbUnitDataTypeFactory" class="org.dbunit.ext.oracle.Oracle10DataTypeFactory"/>
 	
 	<!-- ################################## -->
 	<!-- Define Ju specific helpers objects -->
@@ -70,7 +61,7 @@
 	
 	<!-- Define Spring specific helper objects -->
 	<bean id="testDb" class="ch.inftec.ju.testing.db.data.OracleTestDb"/>
-		<bean id="juDbUtils" class="ch.inftec.ju.db.JuDbUtils">
+	<bean id="juDbUtils" class="ch.inftec.ju.db.JuDbUtils">
 		<property name="entityManagerFactory" ref="entityManagerFactory"/>
 	</bean>
 	

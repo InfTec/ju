@@ -8,9 +8,8 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import ch.inftec.ju.testing.db.DefaultContextAbstractBaseDbTest;
+import ch.inftec.ju.testing.db.data.entity.TestingEntity;
 import ch.inftec.ju.util.JuCollectionUtils;
-
-import com.github.springtestdbunit.annotation.DatabaseSetup;
 
 
 /**
@@ -21,7 +20,6 @@ import com.github.springtestdbunit.annotation.DatabaseSetup;
  * @author tgdmemae
  *
  */
-@DatabaseSetup("/datasets/fullData.xml")
 public class BasicDbTest extends DefaultContextAbstractBaseDbTest {
 	@Autowired
 	private JuDbUtils juDbUtils;
@@ -66,6 +64,23 @@ public class BasicDbTest extends DefaultContextAbstractBaseDbTest {
 	@Test
 	public void getColumnNames() throws Exception {
 		 Assert.assertTrue(JuCollectionUtils.collectionEquals(this.juDbUtils.getColumnNames("TEST_A"), JuCollectionUtils.arrayList("AID", "TEXT", "B_FK")));
+	}
+	
+	@Test
+	public void testDbSequence_isResetTo10_test1() {
+		this.entityIdTest();
+	}
+	
+	@Test
+	public void testDbSequence_isResetTo10_test2() {
+		this.entityIdTest();
+	}
+	
+	public void entityIdTest() {
+		TestingEntity te = new TestingEntity();
+		this.em.persist(te);
+		
+		Assert.assertEquals(new Long(10), te.getId());
 	}
 	
 //	@Test

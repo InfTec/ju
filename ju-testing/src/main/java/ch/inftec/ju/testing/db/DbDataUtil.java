@@ -3,21 +3,31 @@ package ch.inftec.ju.testing.db;
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Proxy;
 import java.net.URL;
 import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.persistence.EntityManager;
 
 import org.dbunit.Assertion;
+import org.dbunit.DatabaseUnitException;
 import org.dbunit.database.DatabaseConnection;
 import org.dbunit.database.IDatabaseConnection;
 import org.dbunit.database.QueryDataSet;
 import org.dbunit.dataset.IDataSet;
 import org.dbunit.dataset.xml.FlatXmlDataSet;
 import org.dbunit.dataset.xml.FlatXmlDataSetBuilder;
+import org.dbunit.ext.oracle.Oracle10DataTypeFactory;
 import org.dbunit.operation.DatabaseOperation;
+import org.hibernate.jdbc.Work;
 import org.w3c.dom.Document;
 
 import ch.inftec.ju.db.ConnectionInfo;
 import ch.inftec.ju.db.JuDbException;
+import ch.inftec.ju.db.JuDbUtils;
 import ch.inftec.ju.util.IOUtil;
 import ch.inftec.ju.util.ReflectUtils;
 import ch.inftec.ju.util.XString;
@@ -32,8 +42,13 @@ import ch.inftec.ju.util.xml.XmlOutputConverter;
  *
  */
 public class DbDataUtil {
-	private final IDatabaseConnection iConnection;
+	private final Connection connection;
+	private final EntityManager em;
 	
+	private String schemaName = null;
+	
+	private Map<String, Object> configProperties = new HashMap<>();
+
 	/**
 	 * Creates a new DbDataUtil instance using the specifiec Connection.
 	 * <p>
@@ -45,11 +60,9 @@ public class DbDataUtil {
 	}
 	
 	public DbDataUtil(Connection connection, String schema) {
-		try {
-			this.iConnection = new DatabaseConnection(connection, schema);
-		} catch (Exception ex) {
-			throw new JuDbException("Couldn't initialize DatabaseConnection", ex);
-		}
+		this.em = null;
+		this.connection = connection;
+		this.schemaName = schema;
 	}
 	
 	/**
@@ -59,11 +72,98 @@ public class DbDataUtil {
 	 * @param ConnectionInfo to get the Schema to use
 	 */
 	public DbDataUtil(Connection connection, ConnectionInfo connectionInfo) {
-		try {
-			this.iConnection = new DatabaseConnection(connection, connectionInfo.getSchema());
-		} catch (Exception ex) {
-			throw new JuDbException("Couldn't initialize DatabaseConnection", ex);
+		this(connection, connectionInfo.getSchema());
+	}
+	
+	/**
+	 * Create a new DbDataUtil that will use the specified EntityManager to get
+	 * a raw connection to the DB and execute SQL queries.
+	 * @param em EntityManager instance to execute SQL in a JDBC connection
+	 */
+	public DbDataUtil(EntityManager em) {
+		this.em = em;
+		this.connection = null;
+	}
+	
+	/**
+	 * Sets the DB schema name to work with.
+	 * <p>
+	 * May be necessary for DBs like oracle to avoid duplicate name problems.
+	 * @param schemaName DB schema name
+	 * @return This util to allow for chaining
+	 */
+	public DbDataUtil setSchema(String schemaName) {
+		this.schemaName = schemaName;
+		return this;
+	}
+	
+	/**
+	 * Sets a config attribute of the underlying DbUnit IDatabaseConnection instance.
+	 * @param name Name of the attribute
+	 * @param value Value of the attribute
+	 * @return This instance to allow for chaining
+	 */
+	public DbDataUtil setConfigProperty(String name, Object value) {
+		this.configProperties.put(name, value);
+		return this;
+	}
+	
+	/**
+	 * Sets all properties for DbDataUtil accordingly to cope with Oracle databases.
+	 * @return This instance to allow for chaining
+	 */
+	public DbDataUtil prepareForOracle() {
+		this.setConfigProperty("http://www.dbunit.org/properties/datatypeFactory", new Oracle10DataTypeFactory());
+		return this;
+	}
+	
+	private void execute(final DbUnitWork work) {
+		if (this.connection != null) {
+			this.doExecute(this.connection, work);
+		} else if (this.em != null){
+			JuDbUtils.doWork(em, new Work() {
+				@Override
+				public void execute(Connection connection) throws SQLException {
+					doExecute(connection, work);
+				}
+			});
+		} else {
+			throw new IllegalStateException("DbDataUtil hasn't been initialized correctly");
 		}
+	}
+	
+	private void doExecute(Connection connection, DbUnitWork work) {
+		/**
+		 * Due to a JDBC 1.4 spec imcompatibility of the Oracle driver
+		 * (doesn't return IS_AUTOINCREMENT in table meta data), we need
+		 * to unwrap the actual JDBC connection in case this is a (Hibernate)
+		 * proxy.
+		 */
+		Connection unwrappedConn = null;
+		if (connection instanceof Proxy) {
+			try {
+				unwrappedConn = connection.unwrap(Connection.class);
+			} catch (Exception ex) {
+				throw new JuDbException("Couldn't unwrap Connection", ex);
+			}
+		}
+		final Connection realConn = unwrappedConn != null
+				? unwrappedConn
+				: connection;
+		
+		try {
+			IDatabaseConnection conn = new DatabaseConnection(realConn, this.schemaName);
+			for (String key : this.configProperties.keySet()) {
+				conn.getConfig().setProperty(key, this.configProperties.get(key));
+			}
+			work.execute(conn);
+		} catch (DatabaseUnitException ex) {
+			throw new JuDbException("Couldn't execute DbUnitWork", ex);
+		}
+	}
+	
+	public void cleanImport(String resourcePath) {
+		this.buildImport().from(resourcePath).executeCleanInsert();
 	}
 	
 	/**
@@ -71,7 +171,7 @@ public class DbDataUtil {
 	 * @return ExportBuilder instance
 	 */
 	public ExportBuilder buildExport() {
-		return new ExportBuilder(iConnection);
+		return new ExportBuilder(this);
 	}
 	
 	/**
@@ -79,7 +179,7 @@ public class DbDataUtil {
 	 * @return ImportBuilder instance
 	 */
 	public ImportBuilder buildImport() {
-		return new ImportBuilder(iConnection);
+		return new ImportBuilder(this);
 	}
 	
 	/**
@@ -88,7 +188,30 @@ public class DbDataUtil {
 	 * @return AssertBuilder instance
 	 */
 	public AssertBuilder buildAssert() {
-		return new AssertBuilder(iConnection);
+		return new AssertBuilder(this);
+	}
+	
+	/**
+	 * Helper callback interface to execute code that needs a IDatabaseConnection
+	 * instance.
+	 * @author tgdmemae
+	 * <T> Return value
+	 *
+	 */
+	private static interface DbUnitWork {
+		public void execute(IDatabaseConnection conn);
+	}
+	
+	private static abstract class DbUnitWorkWithReturn<T> implements DbUnitWork {
+		private T returnValue;
+		
+		protected void setReturnValue(T returnValue) {
+			this.returnValue = returnValue;
+		}
+		
+		public T getReturnValue() {
+			return this.returnValue;
+		}
 	}
 	
 	/**
@@ -97,11 +220,11 @@ public class DbDataUtil {
 	 *
 	 */
 	public static class ExportBuilder {
-		private final IDatabaseConnection iConnection;
+		private final DbDataUtil dbDataUtil;
 		private QueryDataSet queryDataSet;
 		
-		private ExportBuilder(IDatabaseConnection iConnection) {
-			this.iConnection = iConnection;			
+		private ExportBuilder(DbDataUtil dbDataUtil) {
+			this.dbDataUtil = dbDataUtil;	
 		}
 		
 		/**
@@ -122,21 +245,27 @@ public class DbDataUtil {
 		 * @param query Optional query to select sub data
 		 * @return ExportBuilder to allow for chaining
 		 */
-		public ExportBuilder addTable(String tableName, String query) {
-			try {
-				if (queryDataSet == null) {
-					queryDataSet = new QueryDataSet(iConnection);
+		public ExportBuilder addTable(final String tableName, final String query) {
+			this.dbDataUtil.execute(new DbUnitWork() {
+				@Override
+				public void execute(IDatabaseConnection conn) {
+					try {
+						if (queryDataSet == null) {
+							queryDataSet = new QueryDataSet(conn);
+						}
+						
+						if (query == null) {
+							queryDataSet.addTable(tableName);
+						} else {
+							queryDataSet.addTable(tableName, query);
+						}
+					} catch (Exception ex) {
+						throw new JuDbException("Couldn't add table", ex);
+					}
 				}
-				
-				if (query == null) {
-					queryDataSet.addTable(tableName);
-				} else {
-					queryDataSet.addTable(tableName, query);
-				}
-				return this;
-			} catch (Exception ex) {
-				throw new JuDbException("Couldn't add table", ex);
-			}
+			});
+			
+			return this;
 		}
 		
 		/**
@@ -164,11 +293,22 @@ public class DbDataUtil {
 			if (queryDataSet != null) {
 				return queryDataSet;
 			} else {
-				try {
-					return iConnection.createDataSet();
-				} catch (Exception ex) {
-					throw new JuDbException("Couldn't create DataSet from DB");
-				}
+				DbUnitWorkWithReturn<IDataSet> work = new DbUnitWorkWithReturn<IDataSet>() {
+					@Override
+					public void execute(IDatabaseConnection conn) {
+						try {
+							try {
+								this.setReturnValue(conn.createDataSet());
+							} catch (Exception ex) {
+								throw new JuDbException("Couldn't create DataSet from DB");
+							}
+						} catch (Exception ex) {
+							throw new JuDbException("Couldn't add table", ex);
+						}
+					}
+				};
+				this.dbDataUtil.execute(work);
+				return work.getReturnValue();
 			}
 		}
 		
@@ -208,11 +348,11 @@ public class DbDataUtil {
 	 *
 	 */
 	public static class ImportBuilder {
-		private final IDatabaseConnection iConnection;
+		private final DbDataUtil dbDataUtil;
 		private FlatXmlDataSet flatXmlDataSet;
 		
-		private ImportBuilder(IDatabaseConnection iConnection) {
-			this.iConnection = iConnection;
+		private ImportBuilder(DbDataUtil dbDataUtil) {
+			this.dbDataUtil = dbDataUtil;	
 		}
 		
 		/**
@@ -236,7 +376,7 @@ public class DbDataUtil {
 					.build(xmlUrl);
 				return this;
 			} catch (Exception ex) {
-				throw new JuDbException("Couldn't import data from XML: xmlUrl", ex);
+				throw new JuDbException("Couldn't import data from XML: " + xmlUrl, ex);
 			}
 		}
 		
@@ -245,22 +385,32 @@ public class DbDataUtil {
 		 * data in affected tables and imports the rows specified in in this builder.
 		 */
 		public void executeCleanInsert() {
-			try {
-				DatabaseOperation.CLEAN_INSERT.execute(iConnection, flatXmlDataSet);
-			} catch (Exception ex) {
-				throw new JuDbException("Couldnt clean and insert data into DB", ex);
-			}
+			this.dbDataUtil.execute(new DbUnitWork() {
+				@Override
+				public void execute(IDatabaseConnection conn) {
+					try {
+						DatabaseOperation.CLEAN_INSERT.execute(conn, flatXmlDataSet);
+					} catch (Exception ex) {
+						throw new JuDbException("Couldnt clean and insert data into DB", ex);
+					}
+				}
+			});
 		}
 		
 		/**
 		 * Truncates all tables included in the data set.
 		 */
 		public void executeDeleteAll() {
-			try {
-				DatabaseOperation.DELETE_ALL.execute(iConnection, flatXmlDataSet);
-			} catch (Exception ex) {
-				throw new JuDbException("Couldnt truncate data in DB", ex);
-			}
+			this.dbDataUtil.execute(new DbUnitWork() {
+				@Override
+				public void execute(IDatabaseConnection conn) {
+					try {
+						DatabaseOperation.DELETE_ALL.execute(conn, flatXmlDataSet);
+					} catch (Exception ex) {
+						throw new JuDbException("Couldnt truncate data in DB", ex);
+					}
+				};
+			});
 		}
 		
 		/**
@@ -268,11 +418,17 @@ public class DbDataUtil {
 		 * previously.
 		 */
 		public void executeInsert() {
-			try {
-				DatabaseOperation.INSERT.execute(iConnection, flatXmlDataSet);
-			} catch (Exception ex) {
-				throw new JuDbException("Couldnt insert data into DB", ex);
-			}
+			this.dbDataUtil.execute(new DbUnitWork() {
+				@Override
+				public void execute(IDatabaseConnection conn) {
+					try {
+						DatabaseOperation.INSERT.execute(conn, flatXmlDataSet);
+					} catch (Exception ex) {
+						throw new JuDbException("Couldnt insert data into DB", ex);
+					}
+				};
+			});
+			
 		}
 	}	
 	
@@ -282,12 +438,11 @@ public class DbDataUtil {
 	 *
 	 */
 	public static class AssertBuilder {
-		private final IDatabaseConnection iConnection;
+		private final DbDataUtil dbDataUtil;
 		private FlatXmlDataSet flatXmlDataSet;
 		
-		private AssertBuilder(IDatabaseConnection iConnection) {
-			
-			this.iConnection = iConnection;
+		private AssertBuilder(DbDataUtil dbDataUtil) {
+			this.dbDataUtil = dbDataUtil;	
 		}
 		
 		/**
@@ -308,12 +463,17 @@ public class DbDataUtil {
 		 * Asserts that the whole data set in the DB equals the expected data.
 		 */
 		public void assertEqualsAll() {
-			try {
-				IDataSet  dbDataSet = iConnection.createDataSet();
-				Assertion.assertEquals(flatXmlDataSet, dbDataSet);
-			} catch (Exception ex) {
-				throw new JuDbException("Couldn't assert DB data", ex);
-			}
+			this.dbDataUtil.execute(new DbUnitWork() {
+				@Override
+				public void execute(IDatabaseConnection conn) {
+					try {
+						IDataSet  dbDataSet = conn.createDataSet();
+						Assertion.assertEquals(flatXmlDataSet, dbDataSet);
+					} catch (Exception ex) {
+						throw new JuDbException("Couldn't assert DB data", ex);
+					}
+				}
+			});
 		}
 		
 		/**
@@ -321,16 +481,20 @@ public class DbDataUtil {
 		 * @param tableName Name of the table to assert
 		 * @param orderColumnName Name of the column to order data by for the export
 		 */
-		public void assertEqualsTable(String tableName, String orderColumnName) {
-			try {
-				QueryDataSet tableDataSet = new QueryDataSet(iConnection);
-				tableDataSet.addTable(tableName, String.format("select * from %s order by %s", tableName, orderColumnName));
-				
-				Assertion.assertEquals(flatXmlDataSet, tableDataSet);
-			} catch (Exception ex) {
-				throw new JuDbException("Couldn't assert DB data", ex);
-			}
+		public void assertEqualsTable(final String tableName, final String orderColumnName) {
+			this.dbDataUtil.execute(new DbUnitWork() {
+				@Override
+				public void execute(IDatabaseConnection conn) {
+					try {
+						QueryDataSet tableDataSet = new QueryDataSet(conn);
+						tableDataSet.addTable(tableName, String.format("select * from %s order by %s", tableName, orderColumnName));
+						
+						Assertion.assertEquals(flatXmlDataSet, tableDataSet);
+					} catch (Exception ex) {
+						throw new JuDbException("Couldn't assert DB data", ex);
+					}
+				}
+			});
 		}
-		
 	}
 }

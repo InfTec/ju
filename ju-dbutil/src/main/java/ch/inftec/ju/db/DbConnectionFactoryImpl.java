@@ -14,7 +14,6 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.persistence.config.PersistenceUnitProperties;
 
 import ch.inftec.ju.util.JuCollectionUtils;
 
@@ -57,7 +56,8 @@ class DbConnectionFactoryImpl implements DbConnectionFactory {
 			String persistencePath = this.persistenceXmlPath;
 			if (persistencePath.startsWith("/")) persistencePath = persistencePath.substring(1);
 			
-			props.setProperty(PersistenceUnitProperties.ECLIPSELINK_PERSISTENCE_XML, persistencePath);
+			if (1 == 1) throw new UnsupportedOperationException("Hibernate Refactoring");
+			//props.setProperty(PersistenceUnitProperties.ECLIPSELINK_PERSISTENCE_XML, persistencePath);
 			this.factories.put(name, Persistence.createEntityManagerFactory(name, props)); 
 		}
 		

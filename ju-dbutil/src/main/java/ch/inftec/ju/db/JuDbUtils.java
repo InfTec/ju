@@ -12,16 +12,20 @@ import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.metamodel.ManagedType;
 import javax.sql.DataSource;
 
 import org.apache.commons.dbutils.DbUtils;
-import org.eclipse.persistence.sessions.server.ServerSession;
-import org.eclipse.persistence.tools.schemaframework.SchemaManager;
+import org.hibernate.Session;
+import org.hibernate.cfg.Configuration;
+import org.hibernate.jdbc.Work;
+import org.hibernate.tool.hbm2ddl.SchemaExport;
+import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.DatabaseMetaDataCallback;
 import org.springframework.jdbc.support.JdbcUtils;
 import org.springframework.jdbc.support.MetaDataAccessException;
@@ -35,6 +39,12 @@ import ch.inftec.ju.util.JuObjectUtils;
  * DB utility class. Mainly contains wrapper method for Apache commons DbUtils
  * to encapsulate the SQLExceptions and throw JuDbExceptions or to provide
  * log information on failed methods.
+ * <p>
+ * To use certain features, an EntityManagerFactory instance needs to be injected
+ * using the provided setEntityManagerFactory method:
+ * <ul>
+ *   <li>createDefaultTables: Create tables on Schema based on JPA entities of the factories Entities</li>
+ * </ul>
  * 
  * @author tgdmemae
  *
@@ -44,14 +54,13 @@ public class JuDbUtils {
 	static Logger log = LoggerFactory.getLogger(JuDbUtils.class);
 
 	@Autowired
-	private DataSource dataSource;	
+	private DataSource dataSource;
 	
 	@Autowired
 	private ConnectionInfo connectionInfo;
 	
 	private EntityManagerFactory emf;
 	
-	@Required
 	public void setEntityManagerFactory(EntityManagerFactory emf) {
 		this.emf = emf;
 	}
@@ -82,10 +91,57 @@ public class JuDbUtils {
 	 */
 	@Transactional
 	public void createDefaultTables() {
+		Assert.assertNotNull("EntityManagerFactory needs to be injected to create default tables", this.emf);
+		
 		EntityManager em = this.emf.createEntityManager();
-		ServerSession s = em.unwrap(ServerSession.class);
-		SchemaManager sm = new SchemaManager(s);
-		sm.createDefaultTables(true);
+		
+		final Configuration conf = new Configuration();
+		for (Class<?> clazz : JuDbUtils.getManagedTypesAsClass(em)) {
+			conf.addAnnotatedClass(clazz);
+		}
+		
+		conf.getProperties().put("hibernate.dialect", this.emf.getProperties().get("hibernate.dialect"));
+		
+		Session session = (Session)em.getDelegate();
+		session.doWork(new Work() {
+			@Override
+			public void execute(Connection connection) throws SQLException {
+				SchemaExport export = new SchemaExport(conf, connection);
+				export.create(true, true);
+			}
+		});
+		
+		em.close();
+	}
+	
+	/**
+	 * Executes some DB work using a raw JDBC connection.
+	 * <p>
+	 * Makes use of the Hibernate Work facility.
+	 * @param em EntityManager that will be used to unwrap the raw connection. We'll also be joining
+	 * the transaction (if any) of the EntityManager.
+	 * @param work Work callback interface
+	 */
+	public static void doWork(EntityManager em, Work work) {
+		Session session = em.unwrap(Session.class);
+		session.doWork(work);
+	}
+	
+	/**
+	 * Helper function that returns all managed types (i.e. entities) of the specified EntityManager
+	 * as a list of Java Class objects.
+	 * @param em
+	 * @return List of Class<?> objects of the DB entity classes (annotated with @Entity)
+	 */
+	public static List<Class<?>> getManagedTypesAsClass(EntityManager em) {
+		List<Class<?>> classes = new ArrayList<>();
+		
+		for (ManagedType<?> t : em.getMetamodel().getManagedTypes()) {
+			Class<?> clazz = t.getJavaType();
+			classes.add(clazz);
+		}
+		
+		return classes;
 	}
 	
 	/**
@@ -278,4 +334,20 @@ public class JuDbUtils {
 		}
 	}
 
+	/**
+	 * Sets the nextVal of an Oracle sequence.
+	 * <p>
+	 * Only works with sequences that have an increment of +1.
+	 * @param sequenceName Sequence name
+	 * @param nextVal Value that should be yielded by next NEXVAL call
+	 */
+	public void oracleSequenceSetNextVal(String sequenceName, long nextVal) {
+		JdbcTemplate jdbcTemplate = new JdbcTemplate(this.dataSource);
+		
+		Long currentValue = jdbcTemplate.queryForLong(String.format("SELECT %s.NEXTVAL from dual", sequenceName));
+		Long increment = nextVal - currentValue - 1;
+		jdbcTemplate.execute(String.format("ALTER SEQUENCE %s INCREMENT BY %d", sequenceName, increment));
+		jdbcTemplate.execute(String.format("SELECT %s.NEXTVAL from dual", sequenceName));
+		jdbcTemplate.execute(String.format("ALTER SEQUENCE %s INCREMENT BY 1", sequenceName));
+	}
 }

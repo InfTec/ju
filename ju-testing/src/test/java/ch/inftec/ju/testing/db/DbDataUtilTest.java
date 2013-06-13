@@ -3,13 +3,12 @@ package ch.inftec.ju.testing.db;
 import java.io.File;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.w3c.dom.Document;
 
 import ch.inftec.ju.util.IOUtil;
 import ch.inftec.ju.util.xml.XPathGetter;
-
-import com.github.springtestdbunit.annotation.DatabaseSetup;
 
 
 /**
@@ -17,8 +16,12 @@ import com.github.springtestdbunit.annotation.DatabaseSetup;
  * @author Martin
  *
  */
-@DatabaseSetup("/datasets/fullData.xml")
 public class DbDataUtilTest extends DefaultContextAbstractBaseDbTest {
+	@Before
+	public void loadTestData() {
+		this.createDbDataUtil().cleanImport("/datasets/fullData.xml");
+	}
+	
 	/**
 	 * Tests the data export function writing DB data to an XML file.
 	 */

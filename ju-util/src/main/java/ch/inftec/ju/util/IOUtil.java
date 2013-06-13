@@ -285,6 +285,8 @@ public final class IOUtil {
 	/**
 	 * Loads the specified URL resource into a string. This method uses the charset of the
 	 * IOUtil instance.
+	 * <p>
+	 * Line breaks from the source will be converted to LF if necessary.
 	 * @param url URL to resource
 	 * @param replacements Optional 'key, value' strings to replace %key% tags in the resource with the specified value
 	 * @return Loaded resource as string
@@ -296,10 +298,7 @@ public final class IOUtil {
 				throw new JuException("Resource not found: " + url);
 			}
 			
-			try (BufferedReader reader = new BufferedReader(
-					new NewLineReader(
-							new InputStreamReader(url.openStream(), this.charset)
-							, null, NewLineReader.LF))) {
+			try (Reader reader = this.createReader(url)) {
 			
 				StringBuilder sb = new StringBuilder();
 				char[] buff = new char[1024];
@@ -312,6 +311,30 @@ public final class IOUtil {
 			}
 		} catch (Exception ex) {
 			throw new JuException("Couldn't load text from URL", ex);
+		}
+	}
+
+	/**
+	 * Creates a Reader for the resource at the specified URL using the IOUtils
+	 * charset.
+	 * <p>
+	 * Line breaks will be automatically converted to LF if necessary.
+	 * <p>
+	 * The reader will be buffered.
+	 * <p>
+	 * The reader needs to be closed by the client.
+	 * @param url URL to text resource
+	 * @return Reader instance
+	 */
+	public Reader createReader(URL url) {
+		try {
+			BufferedReader reader = new BufferedReader(
+					new NewLineReader(
+						new InputStreamReader(url.openStream(), this.charset)
+							, null, NewLineReader.LF));
+			return reader;
+		} catch (Exception ex) {
+			throw new JuRuntimeException("Couldn't create reader for URL " + url, ex);
 		}
 	}
 

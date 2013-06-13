@@ -1,6 +1,6 @@
 package ch.inftec.ju.db.auth.entity;
 
-import java.util.SortedSet;
+import java.util.Set;
 import java.util.TreeSet;
 
 import javax.persistence.Column;
@@ -31,9 +31,10 @@ public class AuthRole extends AbstractPersistenceObject implements Comparable<Au
 	// Note: JPA only supports Set, but EclipseLink will allow TreeSet (as long as it
 	// can instantiate it - SortedSet wouldn't work...)
 	// We have to fetch eagerly, though...
+	// XXX: Check for hibernate
 	@ManyToMany(mappedBy="roles", fetch=FetchType.EAGER)
 	@OrderBy("name")
-	private TreeSet<AuthUser> users = new TreeSet<>();
+	private Set<AuthUser> users = new TreeSet<>();
 
 	public Long getId() {
 		return id;
@@ -51,7 +52,7 @@ public class AuthRole extends AbstractPersistenceObject implements Comparable<Au
 		this.name = name;
 	}
 
-	public SortedSet<AuthUser> getUsers() {
+	public Set<AuthUser> getUsers() {
 		return users;
 	}
 
