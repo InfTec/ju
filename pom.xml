@@ -58,6 +58,8 @@
 	<dependencyManagement>
 		<dependencies>
 			<!-- JU dependencies -->
+			<!-- XXX Fix version, project.version is relative to the actual project, i.e. it may change
+			     if ju-root is the parent of another project with another version, e.g. ju-test... -->
 			<dependency>
 				<groupId>${project.groupId}</groupId>
 				<artifactId>ju-util</artifactId>
