@@ -180,5 +180,17 @@ public class XmlTest {
 		XPathGetter xg = new XPathGetter(doc1);
 		Assert.assertEquals("This is a little text: äöü°+\"*ç%&/()=?`è!éà£><;:_,.-", xg.getSingle("//textElement"));
 	}
+	
+	//@Test
+	// XPath 2.0 is not supported by standard JDK. We would have to import a library like Saxon which is
+	// very big
+	public void xPathGetter_canEvaluateXPath2() throws Exception {
+		Document doc = XmlUtils.loadXml(IOUtil.getResourceURL("xPathGetter.xml"));
+		XPathGetter xg = new XPathGetter(doc);
+		
+		// The name() function is an XPath 2.0 function
+		String name = xg.getSingle("root/a1/name()");
+		Assert.assertEquals("a1", name);
+	}
 }
 
