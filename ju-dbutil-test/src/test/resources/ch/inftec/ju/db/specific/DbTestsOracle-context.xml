@@ -26,9 +26,9 @@
 	<bean id="juConnectionInfo" class="ch.inftec.ju.db.ConnectionInfoImpl">
 		<property name="name" value="MyTTS Test DB"/>
 		<property name="connectionString" value="jdbc:oracle:thin:@//eswdev:1521/ESWDEV.SWISSPTT.CH"/>
-		<property name="userName" value="mytts_test"/>
-		<property name="password" value="esw&amp;tts@d"/>
-		<property name="schema" value="MYTTS_TEST"/>
+		<property name="userName" value="test_mytts"/>
+		<property name="password" value="T$mytts"/>
+		<property name="schema" value="TEST_MYTTS"/>
 	</bean>
 	
 	<!-- Define DataSource -->
