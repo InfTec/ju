@@ -239,8 +239,10 @@ public class DbDataUtil {
 		/**
 		 * Adds the specified table to the builder, exporting the table data.
 		 * <p>
-		 * If no query is specified, all table data is exported. Otherwise, only
+		 * If no query is specified (null), all table data is exported. Otherwise, only
 		 * the data returned by the query is exported.
+		 * <p>
+		 * The query has to be a full SQL query like <code>select * from table where id=7</code>
 		 * @param tableName TableName
 		 * @param query Optional query to select sub data
 		 * @return ExportBuilder to allow for chaining
