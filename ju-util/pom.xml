@@ -94,6 +94,7 @@
 		<dependency>
 			<groupId>javafx</groupId>
 			<artifactId>javafx</artifactId>
+			<optional>true</optional>
 		</dependency>
 	</dependencies>
 </project>
