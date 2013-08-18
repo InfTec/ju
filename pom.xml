@@ -29,32 +29,6 @@
 		<org.hibernate.version>4.1.6.Final</org.hibernate.version> <!-- Same as in JBoss EAP 6.0.1.GA -->
 	</properties>
 
-	<!-- Local and Jenkins profiles defining Artifactory Repository -->
-	<profiles>
-		<profile>
-			<id>local-martin</id>
-
-			<distributionManagement>
-				<repository>
-					<id>centos-artifactory</id>
-					<name>CentOS Artifactory Repository</name>
-					<url>http://192.168.8.100:8081/artifactory/ext-release-local</url>
-				</repository>
-			</distributionManagement>
-		</profile>
-		<profile>
-			<id>local-jenkins</id>
-
-			<distributionManagement>
-				<repository>
-					<id>local-artifactory</id>
-					<name>Local Artifactory Repository</name>
-					<url>http://localhost:8081/artifactory/jenkins-local</url>
-				</repository>
-			</distributionManagement>
-		</profile>
-	</profiles>
-
 	<dependencyManagement>
 		<dependencies>
 			<!-- JU dependencies -->
