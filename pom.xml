@@ -59,6 +59,7 @@
 		<version.maven-source-plugin>2.2.1</version.maven-source-plugin>
 		<version.maven-jar-plugin>2.4</version.maven-jar-plugin>
 		<version.version-maven-plugin>2.0</version.version-maven-plugin>
+		<version.build-helper-maven-plugin>1.8</version.build-helper-maven-plugin>
 	</properties>
 
 	<dependencyManagement>
@@ -239,6 +240,16 @@
 	</dependencyManagement>
 
 	<build>
+	    <pluginManagement>
+	        <plugins>
+	            <plugin>
+	                <groupId>org.codehouse.mojo</groupId>
+	                <artifactId>build-helper-maven-plugin</artifactId>
+	                <version>${version.build-helper-maven-plugin}</version>	                
+	            </plugin>	            
+	        </plugins>	        
+	    </pluginManagement>
+	    
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
