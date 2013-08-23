@@ -27,7 +27,7 @@
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-entitymanager</artifactId>
-			<scope>test</scope>
+			<optional>true</optional>
 		</dependency>
 		
 		<dependency>
@@ -64,6 +64,11 @@
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-config</artifactId>
 			<scope>test</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>javafx</groupId>
+			<artifactId>javafx</artifactId>		    
 		</dependency>
 	</dependencies>
 	
