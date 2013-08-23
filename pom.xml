@@ -46,6 +46,7 @@
 		<version.org.hibernate.javax.persistence>1.0.1.Final</version.org.hibernate.javax.persistence>
 		<version.derby>10.8.2.2</version.derby>
 		<version.my-ojdbc6>11.2.0.3</version.my-ojdbc6>
+		<version.liquibase>3.0.2</version.liquibase>
 		
 		<!-- Various -->
 		<version.joda-time>2.1</version.joda-time>
@@ -212,6 +213,12 @@
 				<groupId>org.hibernate.javax.persistence</groupId>
 				<artifactId>hibernate-jpa-2.0-api</artifactId>
 				<version>${version.org.hibernate.javax.persistence}</version>
+			</dependency>
+			
+			<dependency>
+			    <groupId>org.liquibase</groupId>
+			    <artifactId>liquibase-core</artifactId>
+			    <version>${version.liquibase}</version>
 			</dependency>
 			
 			<!-- Oracle driver -->

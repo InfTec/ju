@@ -12,6 +12,7 @@ import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
 import javax.persistence.metamodel.ManagedType;
 import javax.sql.DataSource;
 
@@ -63,6 +64,19 @@ public class JuDbUtils {
 	
 	public void setEntityManagerFactory(EntityManagerFactory emf) {
 		this.emf = emf;
+	}
+	
+	/**
+	 * Creates a new JuDbUtils instance for the specified Persistence Unit.
+	 * <p>
+	 * Note that this creates a new EntityManagerFactory every time the method is called
+	 * @param persistenceUnitName Name of the Persistence Unit
+	 * @return JuDbUtils instance
+	 */
+	public static JuDbUtils createByPersistenceUnitName(String persistenceUnitName) {
+		JuDbUtils utils = new JuDbUtils();
+		utils.setEntityManagerFactory(Persistence.createEntityManagerFactory(persistenceUnitName));
+		return utils;
 	}
 	
 	/**
@@ -125,6 +139,42 @@ public class JuDbUtils {
 	public static void doWork(EntityManager em, Work work) {
 		Session session = em.unwrap(Session.class);
 		session.doWork(work);
+	}
+	
+	/**Executes some DB work using a raw JDBC connection.
+	 * <p>
+	 * Makes use of the Hibernate Work facility.
+	 * @param work Work callback interface
+	 */
+	public void doWork(final Work work) {
+		this.doWork(new EmWork() {
+			@Override
+			public void execute(EntityManager em) {
+				JuDbUtils.doWork(em, work);
+			}
+		});
+	}
+	
+	/**
+	 * Executes some DB work using an EntityManager.
+	 * @param work to be executed 
+	 */
+	public void doWork(EmWork work) {
+		EntityManager em = null;
+		try {
+			em = this.emf.createEntityManager();
+			
+			em.getTransaction().begin();
+			try {
+				work.execute(em);
+				em.getTransaction().commit();
+			} catch (Exception ex) {
+				em.getTransaction().rollback();
+				throw ex;
+			}
+		} finally {
+			em.close();
+		}
 	}
 	
 	/**
