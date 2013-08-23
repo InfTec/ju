@@ -23,6 +23,7 @@
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-log4j12</artifactId>
 			<scope>runtime</scope>
+			<optional>true</optional>
 		</dependency>
 		
 		<dependency>
@@ -43,7 +44,7 @@
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<scope>provided</scope> <!-- Use provided so consumers can decide whether they need the JUnit functionality or not -->
+			<optional>true</optional>
 		</dependency>
 		
 		<dependency>
@@ -64,13 +65,13 @@
 		<dependency>
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
-			<scope>provided</scope>
+			<optional>true</optional>
 		</dependency>
 
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context</artifactId>
-			<scope>provided</scope>
+			<optional>true</optional>
 		</dependency>
 
 		<dependency>
@@ -82,7 +83,7 @@
 		<dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-core</artifactId>
-			<scope>provided</scope>
+			<optional>true</optional>
 		</dependency>
 		
 		<dependency>
