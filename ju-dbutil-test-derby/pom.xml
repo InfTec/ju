@@ -17,6 +17,7 @@
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>ju-dbutil-test</artifactId>
+			<scope>test</scope>
 		</dependency>
 		
 		<dependency>
@@ -25,4 +26,17 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
+	
+	<build>
+	    <plugins>
+	        <plugin>
+	            <artifactId>maven-surefire-plugin</artifactId>
+	            <configuration>
+	                <dependenciesToScan>
+	                	<dependency>ch.inftec.ju:ju-dbutil-test</dependency>
+	                </dependenciesToScan>
+	            </configuration>
+	        </plugin>
+	    </plugins>
+	</build>
 </project>

@@ -60,6 +60,7 @@
 		<version.maven-eclipse-plugin>2.9</version.maven-eclipse-plugin>
 		<version.maven-source-plugin>2.2.1</version.maven-source-plugin>
 		<version.maven-jar-plugin>2.4</version.maven-jar-plugin>
+		<version.maven-surefire-plugin>2.16</version.maven-surefire-plugin>
 		<version.version-maven-plugin>2.0</version.version-maven-plugin>
 		<version.build-helper-maven-plugin>1.8</version.build-helper-maven-plugin>
 	</properties>
@@ -75,6 +76,11 @@
 			<dependency>
 				<groupId>${project.groupId}</groupId>
 				<artifactId>ju-dbutil</artifactId>
+				<version>4.0-SNAPSHOT</version>
+			</dependency>
+			<dependency>
+				<groupId>${project.groupId}</groupId>
+				<artifactId>ju-dbutil-test</artifactId>
 				<version>4.0-SNAPSHOT</version>
 			</dependency>
 			<dependency>
@@ -248,7 +254,11 @@
 	                <groupId>org.codehouse.mojo</groupId>
 	                <artifactId>build-helper-maven-plugin</artifactId>
 	                <version>${version.build-helper-maven-plugin}</version>	                
-	            </plugin>	            
+	            </plugin>
+	            <plugin>
+	       			<artifactId>maven-surefire-plugin</artifactId>
+	            	<version>${version.maven-surefire-plugin}</version>
+	            </plugin>
 	        </plugins>	        
 	    </pluginManagement>
 	    
