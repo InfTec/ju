@@ -42,8 +42,6 @@ public class DbSchemaUtil {
 					}
 				}
 			});
-		} catch (Exception ex) {
-			throw new JuRuntimeException("Liquibase update failed", ex);
 		}
 	}
 }

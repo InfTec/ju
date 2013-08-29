@@ -126,7 +126,7 @@ public class JuEmfUtil {
 		}
 		
 		@Override
-		public void close() throws Exception {
+		public void close() {
 			if (this.rollbackOnly) {
 				this.em.getTransaction().rollback();
 			} else {

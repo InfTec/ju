@@ -20,4 +20,20 @@
 			<property name="javax.persistence.jdbc.url" value="jdbc:derby:memory:ju_pu_testingEntity;create=true"/>
 		</properties>
 	</persistence-unit>
+	
+	<persistence-unit name="ju-testing pu-test">
+		<provider>org.hibernate.ejb.HibernatePersistence</provider>
+
+		<class>ch.inftec.ju.testing.db.data.entity.TestingEntity</class>
+
+		<properties>
+		    <property name="hibernate.archive.autodetection" value=""/> <!-- Default is class, hbm, we only want the explicitly specified entities though... -->
+<!-- 			<property name="hibernate.dialect" value="org.hibernate.dialect.DerbyDialect"/> -->
+			<property name="hibernate.hbm2ddl.auto" value="none" />
+			<property name="hibernate.show_sql" value="true" />
+			
+<!-- 			<property name="javax.persistence.jdbc.driver" value="org.apache.derby.jdbc.EmbeddedDriver" /> -->
+<!-- 			<property name="javax.persistence.jdbc.url" value="jdbc:derby:memory:ju_pu_liquibase;create=true"/> -->
+		</properties>
+	</persistence-unit>
 </persistence>

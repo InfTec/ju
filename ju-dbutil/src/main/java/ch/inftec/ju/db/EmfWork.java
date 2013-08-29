@@ -24,4 +24,7 @@ public interface EmfWork extends AutoCloseable {
 	 * Marks the transaction for rollback. Rollback will be executed when close is executed.
 	 */
 	void setRollbackOnly();
+	
+	@Override
+	public void close();
 }

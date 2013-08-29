@@ -41,7 +41,7 @@ public class JuEmfUtilTest {
 	}
 	
 	@Test
-	public void canPerformWork_usingEmfUtil() throws Exception {
+	public void canPerformWork_usingEmfUtil() {
 		JuEmfUtil emfUtil = JuEmfUtil.create()
 			.persistenceUnitName("ju-dbutil JuEmfUtilTest")
 			.connectionUrl("jdbc:derby:memory:ju-dbutil_emfUtilTest_db1;create=true")

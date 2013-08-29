@@ -34,6 +34,7 @@ import ch.inftec.ju.util.comparison.ValueComparator;
  * appropriated Spring context.
  *
  * @author tgdmemae
+ * @deprecated Use AbstractDbTest instead
  *
  */
 @Transactional
@@ -43,6 +44,7 @@ import ch.inftec.ju.util.comparison.ValueComparator;
 //    DbInitializerTestExecutionListener.class,
 //    TransactionalTestExecutionListener.class,    
 //    TransactionDbUnitTestExecutionListener.class })
+@Deprecated
 public abstract class AbstractBaseDbTest {
 	/**
 	 * Helper class to initialize the DB. JUnit @Before is not sufficient as this must run
