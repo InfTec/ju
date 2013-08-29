@@ -1,5 +1,7 @@
 package ch.inftec.ju.testing.db;
 
+import java.net.URL;
+
 import javax.persistence.EntityManager;
 
 import org.junit.After;
@@ -7,6 +9,8 @@ import org.junit.Before;
 
 import ch.inftec.ju.db.EmfWork;
 import ch.inftec.ju.db.JuEmfUtil;
+import ch.inftec.ju.testing.db.TestDbProvider.TestDbInfo;
+import ch.inftec.ju.util.IOUtil;
 
 /**
  * Base class for DB tests.
@@ -23,9 +27,22 @@ public class AbstractDbTest {
 	
 	@Before
 	public void initDb() {
+		// Get the TestDbProvider instance
+		TestDbProvider provider = null;
+		
+		URL url = IOUtil.getResourceURL("META-INF/testDbProvider.impl");
+		if (url != null) {
+			// TODO: Implement
+		} else {
+			 provider = new TestDbProviderDerby();
+		}
+		
+		String persistenceUnitName = "ju-testing pu-test";
+		TestDbInfo testDbInfo = provider.getTestDbInfo(persistenceUnitName);
+		
 		JuEmfUtil emfUtil = JuEmfUtil.create()
-			.persistenceUnitName("ju-testing pu-test")
-			.connectionUrl("jdbc:derby:memory:ju-testing_pu-test;create=true")
+			.persistenceUnitName(persistenceUnitName)
+			.connectionUrl(testDbInfo.getConnectionUrl())
 			.build();
 		
 		this.emfWork = emfUtil.startWork();
