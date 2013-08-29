@@ -13,7 +13,7 @@
 	<modules>
 		<module>ju-util</module>
 		<module>ju-dbutil</module>
-		<module>ju-dbutil-test</module>
+		<module>ju-dbutil-test-legacy</module>
 		<module>ju-testing</module>
 	</modules>
 

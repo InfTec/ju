@@ -8,9 +8,9 @@
 		<version>4.0-SNAPSHOT</version>
 	</parent>
 
-	<artifactId>ju-dbutil-test</artifactId>
+	<artifactId>ju-dbutil-test-legacy</artifactId>
 
-	<name>JU dbutil tests</name>
+	<name>JU dbutil tests (Legacy)</name>
 	<description>Separate testing project to avoid circular references between ju-dbutil and ju-testing</description>
 
 	<dependencies>
