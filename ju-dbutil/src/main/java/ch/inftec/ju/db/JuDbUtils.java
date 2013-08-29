@@ -48,8 +48,11 @@ import ch.inftec.ju.util.JuObjectUtils;
  * </ul>
  * 
  * @author tgdmemae
+ * 
+ * @deprecated Use JuEmUtil instead
  *
  */
+@Deprecated
 public class JuDbUtils {
 	// TODO: Refactor, remove Apache DbUtils...
 	static Logger log = LoggerFactory.getLogger(JuDbUtils.class);
@@ -141,7 +144,8 @@ public class JuDbUtils {
 		session.doWork(work);
 	}
 	
-	/**Executes some DB work using a raw JDBC connection.
+	/**
+	 * Executes some DB work using a raw JDBC connection.
 	 * <p>
 	 * Makes use of the Hibernate Work facility.
 	 * @param work Work callback interface
