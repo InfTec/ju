@@ -2,6 +2,11 @@ package ch.inftec.ju.util;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
+
+import org.slf4j.Logger;
+
+import org.slf4j.LoggerFactory;
 
 /**
  * Builder to create PropertyChain instances.
@@ -14,6 +19,8 @@ import java.util.List;
  *
  */
 public class PropertyChainBuilder {
+	private Logger logger = LoggerFactory.getLogger(PropertyChainBuilder.class);
+	
 	private final List<PropertyEvaluator> evaluators = new ArrayList<>();
 	
 	// Attributes of the PropertyChain
@@ -25,6 +32,20 @@ public class PropertyChainBuilder {
 	 */
 	public PropertyChainBuilder addSystemPropertyEvaluator() {
 		return this.addPropertyEvaluator(new SystemPropertyEvaluator());
+	}
+	
+	public PropertyChainBuilder addResourcePropertyEvaluator(String resourceName, boolean ignoreMissingResource) {
+		try {
+			Properties props = new IOUtil().loadPropertiesFromResource(resourceName);
+			return this.addPropertyEvaluator(new PropertiesPropertyEvaluator(props));
+		} catch (JuException ex) {
+			if (ignoreMissingResource) {
+				logger.debug(String.format("Ignoring missing resource %s (Exception: %s)", resourceName, ex.getMessage()));
+				return this;
+			} else {
+				throw new JuRuntimeException("Couldn't load properties from resource " + resourceName, ex);
+			}
+		}
 	}
 	
 	/**
@@ -86,8 +107,22 @@ public class PropertyChainBuilder {
 	}
 	
 	private static class SystemPropertyEvaluator implements PropertyEvaluator {
+		@Override
 		public Object get(String key) {
 			return System.getProperty(key);
+		};
+	}
+	
+	private static class PropertiesPropertyEvaluator implements PropertyEvaluator {
+		private final Properties props;
+		
+		public PropertiesPropertyEvaluator(Properties props) {
+			this.props = props;
+		}
+		
+		@Override
+		public Object get(String key) {
+			return this.props.get(key);
 		};
 	}
 }
