@@ -13,10 +13,11 @@
 	<modules>
 		<module>ju-util</module>
 		<module>ju-dbutil</module>
+		<module>ju-testing</module>
+		<module>ju-testing-ee</module>
 		<module>ju-dbutil-test</module>
 		<module>ju-dbutil-test-derby</module>
 		<module>ju-dbutil-test-legacy</module>
-		<module>ju-testing</module>
 	</modules>
 
 	<properties>
@@ -37,6 +38,11 @@
 		<version.junit>4.11</version.junit>
 		<version.dbunit>2.4.8</version.dbunit>
 		
+		<!-- Arquillian -->
+		<version.arquillian>1.1.1.Final</version.arquillian>
+		<version.arquillian.container.weld>1.0.0.CR3</version.arquillian.container.weld>
+		<version.weld>1.1.5.Final</version.weld>
+		
 		<!-- Apache Commons -->
 		<version.commons-io>2.1</version.commons-io>
 		<version.commons-lang>3.1</version.commons-lang>
@@ -50,6 +56,9 @@
 		<version.mysql>5.1.26</version.mysql>
 		<version.my-ojdbc6>11.2.0.3</version.my-ojdbc6>
 		<version.liquibase>3.0.2</version.liquibase>
+		
+		<!-- EE -->
+		<version.org.jboss.spec.jboss-javaee-6.0>1.0.0.Final</version.org.jboss.spec.jboss-javaee-6.0>
 		
 		<!-- Various -->
 		<version.joda-time>2.1</version.joda-time>
@@ -81,12 +90,17 @@
 			</dependency>
 			<dependency>
 				<groupId>${project.groupId}</groupId>
-				<artifactId>ju-dbutil-test</artifactId>
+				<artifactId>ju-testing</artifactId>
 				<version>4.0-SNAPSHOT</version>
 			</dependency>
 			<dependency>
 				<groupId>${project.groupId}</groupId>
-				<artifactId>ju-testing</artifactId>
+				<artifactId>ju-testing-ee</artifactId>
+				<version>4.0-SNAPSHOT</version>
+			</dependency>
+			<dependency>
+				<groupId>${project.groupId}</groupId>
+				<artifactId>ju-dbutil-test</artifactId>
 				<version>4.0-SNAPSHOT</version>
 			</dependency>
 			
@@ -250,6 +264,32 @@
 				<version>${version.javafx}</version>
 				<systemPath>${java.home}/lib/jfxrt.jar</systemPath>
 				<scope>system</scope>
+			</dependency>
+			
+			<!-- Arquillian and EE-->
+	        <dependency>
+	            <groupId>org.jboss.arquillian</groupId>
+	            <artifactId>arquillian-bom</artifactId>
+	            <version>${version.arquillian}</version>
+	            <scope>import</scope>
+	            <type>pom</type>
+	        </dependency>
+	        <dependency>
+		        <groupId>org.jboss.spec</groupId>
+		        <artifactId>jboss-javaee-6.0</artifactId>
+		        <version>${version.org.jboss.spec.jboss-javaee-6.0}</version>
+		        <type>pom</type>
+		        <scope>provided</scope>
+		    </dependency>
+			<dependency>
+			    <groupId>org.jboss.arquillian.container</groupId>
+			    <artifactId>arquillian-weld-ee-embedded-1.1</artifactId>
+			    <version>${version.arquillian.container.weld}</version>
+			</dependency>
+			<dependency>
+			    <groupId>org.jboss.weld</groupId>
+			    <artifactId>weld-core</artifactId>
+			    <version>${version.weld}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
