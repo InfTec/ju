@@ -33,8 +33,9 @@ public class AbstractDbTest {
 		URL url = IOUtil.getResourceURL("META-INF/testDbProvider.impl");
 		if (url != null) {
 			// TODO: Implement
+			throw new UnsupportedOperationException("Not yet implemented");
 		} else {
-			 provider = new TestDbProviderDerby();
+			 provider = new TestDbProviderProperties();
 		}
 		
 		String persistenceUnitName = "ju-testing pu-test";
@@ -43,6 +44,8 @@ public class AbstractDbTest {
 		JuEmfUtil emfUtil = JuEmfUtil.create()
 			.persistenceUnitName(persistenceUnitName)
 			.connectionUrl(testDbInfo.getConnectionUrl())
+			.user(testDbInfo.getUser())
+			.password(testDbInfo.getPassword())
 			.build();
 		
 		this.emfWork = emfUtil.startWork();

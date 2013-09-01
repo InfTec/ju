@@ -45,7 +45,7 @@ public class JuEmfUtil {
 		
 		private String connectionUrl;
 		
-		private String userName;
+		private String user;
 		private String password;
 		
 		private String hostName;
@@ -55,6 +55,16 @@ public class JuEmfUtil {
 		
 		public JuEmfUtilBuilder persistenceUnitName(String persistenceUnitName) {
 			this.persistenceUnitName = persistenceUnitName;
+			return this;
+		}
+		
+		public JuEmfUtilBuilder user(String user) {
+			this.user = user;
+			return this;
+		}
+		
+		public JuEmfUtilBuilder password(String password) {
+			this.password = password;
 			return this;
 		}
 		
@@ -80,8 +90,12 @@ public class JuEmfUtil {
 				if (!StringUtils.isEmpty(this.connectionUrl)) {
 					if (this.connectionUrl.startsWith("jdbc:derby")) {
 						// Derby DB
-						dialect = "org.hibernate.dialect.DerbyDialect";
+						dialect = "org.hibernate.dialect.DerbyTenSevenDialect";
 						driver = "org.apache.derby.jdbc.EmbeddedDriver";
+					} else if (this.connectionUrl.startsWith("jdbc:mysql")) {
+						// MySQL DB
+						dialect = "org.hibernate.dialect.MySQLDialect";
+						driver = "com.mysql.jdbc.Driver";
 					} else {
 						throw new IllegalStateException("Cannot evaluate DB type from connection URL " + this.connectionUrl);
 					}
@@ -91,7 +105,10 @@ public class JuEmfUtil {
 				Map<String, String> props = new HashMap<>();
 				if (dialect != null) props.put("hibernate.dialect", dialect);
 				if (driver != null) props.put("javax.persistence.jdbc.driver", driver);
+				
 				if (this.connectionUrl != null) props.put("javax.persistence.jdbc.url", this.connectionUrl);
+				if (this.user != null) props.put("javax.persistence.jdbc.user", this.user);
+				if (this.password != null) props.put("javax.persistence.jdbc.password", this.password);
 				
 				EntityManagerFactory emf = Persistence.createEntityManagerFactory(this.persistenceUnitName, props);
 				JuEmfUtilBuilder.emfUtils.put(xs, new JuEmfUtil(emf));

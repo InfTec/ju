@@ -47,6 +47,7 @@
 		<version.org.hibernate>4.1.6.Final</version.org.hibernate> <!-- Same as in JBoss EAP 6.0.1.GA -->
 		<version.org.hibernate.javax.persistence>1.0.1.Final</version.org.hibernate.javax.persistence>
 		<version.derby>10.8.2.2</version.derby>
+		<version.mysql>5.1.26</version.mysql>
 		<version.my-ojdbc6>11.2.0.3</version.my-ojdbc6>
 		<version.liquibase>3.0.2</version.liquibase>
 		
@@ -203,6 +204,12 @@
 				<groupId>org.apache.derby</groupId>
 				<artifactId>derby</artifactId>
 				<version>${version.derby}</version>
+			</dependency>
+			
+			<dependency>
+				<groupId>mysql</groupId>
+				<artifactId>mysql-connector-java</artifactId>
+				<version>${version.mysql}</version>
 			</dependency>
 			
 			<dependency>

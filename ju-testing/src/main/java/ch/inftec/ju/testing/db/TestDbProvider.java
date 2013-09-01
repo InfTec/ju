@@ -24,9 +24,13 @@ public interface TestDbProvider {
 	 */
 	public class TestDbInfo {
 		private final String connectionUrl;
+		private final String user;
+		private final String password;
 		
-		public TestDbInfo(String connectionUrl) {
+		public TestDbInfo(String connectionUrl, String user, String password) {
 			this.connectionUrl = connectionUrl;
+			this.user = user;
+			this.password = password;
 		}
 		
 		/**
@@ -35,6 +39,22 @@ public interface TestDbProvider {
 		 */
 		public String getConnectionUrl() {
 			return this.connectionUrl;
+		}
+		
+		/**
+		 * Gets the user name used to connect to the test DB
+		 * @return DB User name
+		 */
+		public String getUser() {
+			return user;
+		}
+		
+		/**
+		 * Gets the password to connect to the test DB
+		 * @return DB password
+		 */
+		public String getPassword() {
+			return password;
 		}
 	}
 }

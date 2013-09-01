@@ -57,6 +57,19 @@ public class PropertyChainBuilder {
 		this.evaluators.add(evaluator);
 		return this;
 	}
+
+	/**
+	 * Sets the default exception throwing behaviour if a property is undefined.
+	 * <p>
+	 * Initial value is false, i.e. no exceptions are thrown if a property is undefined and null
+	 * is returned.
+	 * @param defaultThrowExceptionIfUndefined True if by default, an exception should be thrown if a property is undefined
+	 * @return This builder to allow for chaining
+	 */
+	public PropertyChainBuilder setDefaultThrowExceptionIfUndefined(boolean defaultThrowExceptionIfUndefined) {
+		this.defaultThrowExceptionIfUndefined = defaultThrowExceptionIfUndefined;
+		return this;
+	}
 	
 	/**
 	 * Gets the PropertyChain that was built using this builder.
