@@ -17,6 +17,7 @@
 		<module>ju-testing-ee</module>
 		<module>ju-dbutil-test</module>
 		<module>ju-dbutil-test-derby</module>
+		<module>ju-dbutil-test-mysql</module>
 		<module>ju-dbutil-test-legacy</module>
 	</modules>
 
