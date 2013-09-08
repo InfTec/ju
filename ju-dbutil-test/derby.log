@@ -1,7 +1,7 @@
 ----------------------------------------------------------------
-Sat Aug 31 08:14:09 CEST 2013:
-Booting Derby version The Apache Software Foundation - Apache Derby - 10.8.2.2 - (1181258): instance a816c00e-0140-d301-dc11-00001a7690b8 
-on database directory memory:C:\prog\java\workspaces\test\ch.inftec.ju\ju-dbutil-test\ju-testing_mysql-test  with class loader sun.misc.Launcher$AppClassLoader@6140c973 
+Sun Sep 08 23:28:57 CEST 2013:
+Booting Derby version The Apache Software Foundation - Apache Derby - 10.8.2.2 - (1181258): instance a816c00e-0140-ff7a-4206-00001aa025c8 
+on database directory memory:C:\prog\java\workspaces\test\ch.inftec.ju\ju-dbutil-test\ju-testing_pu-test  with class loader sun.misc.Launcher$AppClassLoader@372bab9 
 Loaded from file:/C:/Users/Martin/.m2/repository/org/apache/derby/derby/10.8.2.2/derby-10.8.2.2.jar
 java.vendor=Oracle Corporation
 java.runtime.version=1.7.0_17-b02
