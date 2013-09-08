@@ -96,6 +96,9 @@ public class JuEmfUtil {
 						// MySQL DB
 						dialect = "org.hibernate.dialect.MySQLDialect";
 						driver = "com.mysql.jdbc.Driver";
+					} else if (this.connectionUrl.startsWith("jdbc:oracle:thin")) {
+						dialect = "org.hibernate.dialect.Oracle10gDialect";
+						driver = "oracle.jdbc.OracleDriver";
 					} else {
 						throw new IllegalStateException("Cannot evaluate DB type from connection URL " + this.connectionUrl);
 					}

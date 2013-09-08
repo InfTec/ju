@@ -35,6 +35,11 @@
 		    <groupId>org.jboss.arquillian.container</groupId>
 		    <artifactId>arquillian-weld-ee-embedded-1.1</artifactId>
 		</dependency>
+<!-- 		<dependency> -->
+<!-- 		    <groupId>org.jboss.arquillian.container</groupId> -->
+<!-- 		    <artifactId>arquillian-weld-se-embedded-1.1</artifactId> -->
+<!-- 		    <version>1.0.0.CR7</version> -->
+<!-- 		</dependency> -->
 		<dependency>
 		    <groupId>org.jboss.weld</groupId>
 		    <artifactId>weld-core</artifactId>

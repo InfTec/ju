@@ -54,6 +54,7 @@ public class EntityManagerProvider {
 	}
 	
 	@Produces
+	@RequestScoped
 	public EntityManager createEntityManager(EmfWork emfWork) {
 		logger.debug("Getting EntityManager from EmfWork");
 		return emfWork.getEm();

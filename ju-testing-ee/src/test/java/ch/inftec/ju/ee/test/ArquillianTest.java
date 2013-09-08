@@ -17,11 +17,15 @@ public class ArquillianTest {
     public static JavaArchive createDeployment() {
         return ShrinkWrap.create(JavaArchive.class)
             .addClass(Greeter.class)
+            .addClass(RequestScopedBean.class)
             .addAsManifestResource(EmptyAsset.INSTANCE, "beans.xml");
     }
 	
 	@Inject
 	Greeter greeter;
+	
+	@Inject
+	RequestScopedBean requestScopedBean;
 	
 	@Test
     public void should_create_greeting() {
@@ -31,4 +35,9 @@ public class ArquillianTest {
 		
 		greeter.greet(System.out, "Earthling");
     }
+	
+	@Test
+	public void canInject_requestScopedBean() {
+		Assert.assertEquals("RequestScopedBean", this.requestScopedBean.getName());
+	}
 }

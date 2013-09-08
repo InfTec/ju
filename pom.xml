@@ -18,6 +18,7 @@
 		<module>ju-dbutil-test</module>
 		<module>ju-dbutil-test-derby</module>
 		<module>ju-dbutil-test-mysql</module>
+		<module>ju-dbutil-test-oracle</module>
 		<module>ju-dbutil-test-legacy</module>
 	</modules>
 
@@ -41,7 +42,7 @@
 		
 		<!-- Arquillian -->
 		<version.arquillian>1.1.1.Final</version.arquillian>
-		<version.arquillian.container.weld>1.0.0.CR3</version.arquillian.container.weld>
+		<version.arquillian.container.weld>1.0.0.CR7</version.arquillian.container.weld>
 		<version.weld>1.1.5.Final</version.weld>
 		
 		<!-- Apache Commons -->
