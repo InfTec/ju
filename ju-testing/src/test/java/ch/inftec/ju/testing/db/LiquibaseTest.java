@@ -1,27 +1,18 @@
 package ch.inftec.ju.testing.db;
 
-import javax.persistence.EntityManager;
-
-import junit.framework.Assert;
-
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
+import org.junit.Assert;
 import org.junit.Test;
 
-import ch.inftec.ju.db.EmWork;
-import ch.inftec.ju.db.JuDbUtils;
-import ch.inftec.ju.testing.db.data.entity.TestingEntity;
-
-public class LiquibaseTest {
+@JuDbTest(profile="derby-lb", persistenceUnit="ju-testing-pu-liquibase")
+public class LiquibaseTest extends AbstractDbTest {
 	@Test
 	public void canGenerateSchema_usingLiquibase() {
-		new DbSchemaUtil().runLiquibaseChangeLog("ju pu-liquibase", "ch/inftec/ju/testing/db/LiquibaseTest_testingEntityChangeLog.xml");
+		Assert.assertEquals(0, this.emUtil.getTableNames().size());
 		
-		JuDbUtils.createByPersistenceUnitName("ju pu-liquibase").doWork(new EmWork() {
-			@Override
-			public void execute(EntityManager em) {
-				TestingEntity te = new TestingEntity();
-				em.persist(te);
-				Assert.assertNotNull(te);
-			}
-		});
+		new DbSchemaUtil(this.em).runLiquibaseChangeLog("ch/inftec/ju/testing/db/LiquibaseTest_testingEntityChangeLog.xml");
+		
+		assertThat(this.emUtil.getTableNames(), hasItem("TESTINGENTITY"));
 	}
 }
