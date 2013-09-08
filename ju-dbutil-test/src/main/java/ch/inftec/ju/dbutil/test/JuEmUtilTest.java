@@ -22,4 +22,9 @@ public class JuEmUtilTest extends AbstractDbTest {
 		logger.debug("Got DB URL: " + url);
 		Assert.assertTrue(url.startsWith("jdbc:"));
 	}
+	
+	@Test
+	public void getDriverName_returnsNotNull() {
+		Assert.assertNotNull(this.emUtil.getDbType());
+	}
 }

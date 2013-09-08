@@ -61,4 +61,38 @@ public class JuEmUtil {
 		
 		return res.getValue();
 	}
+	
+	/**
+	 * Gets the type of the DB implementation of this EntityManager. If the type is not known (or supported)
+	 * by JuEmUtil, an exception is thrown.
+	 * @return DbType
+	 */
+	public DbType getDbType() {
+		String productName = this.extractDatabaseMetaData(new DatabaseMetaDataCallback<String>() {
+			@Override
+			public String processMetaData(DatabaseMetaData dbmd) throws SQLException {
+				return dbmd.getDatabaseProductName();
+			}
+		});
+		
+		return DbType.evaluateDbType(productName);
+	}
+	
+	public enum DbType {
+		DERBY,
+		MYSQL,
+		ORACLE;
+		
+		private static DbType evaluateDbType(String productName) {
+			if (productName.toLowerCase().contains("derby")) {
+				return DERBY;
+			} else if (productName.toLowerCase().contains("mysql")) {
+				return MYSQL;
+			} else if (productName.toLowerCase().contains("oracle")) {
+				return ORACLE;
+			} else {
+				throw new JuDbException("Unknown DB. Product name: " + productName);
+			}
+		}
+	}
 }
