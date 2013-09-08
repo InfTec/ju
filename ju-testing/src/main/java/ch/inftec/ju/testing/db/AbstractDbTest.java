@@ -4,8 +4,11 @@ import javax.persistence.EntityManager;
 
 import org.junit.After;
 import org.junit.Before;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ch.inftec.ju.db.EmfWork;
+import ch.inftec.ju.db.JuEmUtil;
 
 /**
  * Base class for DB tests.
@@ -16,7 +19,10 @@ import ch.inftec.ju.db.EmfWork;
  *
  */
 public class AbstractDbTest {
+	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
+	
 	protected EntityManager em;
+	protected JuEmUtil emUtil;
 	
 	private EmfWork emfWork;
 	
@@ -24,6 +30,7 @@ public class AbstractDbTest {
 	public void initDb() {
 		this.emfWork = new EmfWorkProvider().createEmfWork();
 		this.em = this.emfWork.getEm();
+		this.emUtil = new JuEmUtil(this.em);
 	}
 	
 	@After
