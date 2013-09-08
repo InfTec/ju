@@ -13,8 +13,13 @@
 	<modules>
 		<module>ju-util</module>
 		<module>ju-dbutil</module>
-		<module>ju-dbutil-test</module>
 		<module>ju-testing</module>
+		<module>ju-testing-ee</module>
+		<module>ju-dbutil-test</module>
+		<module>ju-dbutil-test-derby</module>
+		<module>ju-dbutil-test-mysql</module>
+		<module>ju-dbutil-test-oracle</module>
+		<module>ju-dbutil-test-legacy</module>
 	</modules>
 
 	<properties>
@@ -32,8 +37,13 @@
 		<version.log4j>1.2.17</version.log4j>
 		
 		<!-- Testing -->
-		<version.junit>4.10</version.junit>
+		<version.junit>4.11</version.junit>
 		<version.dbunit>2.4.8</version.dbunit>
+		
+		<!-- Arquillian -->
+		<version.arquillian>1.1.1.Final</version.arquillian>
+		<version.arquillian.container.weld>1.0.0.CR7</version.arquillian.container.weld>
+		<version.weld>1.1.5.Final</version.weld>
 		
 		<!-- Apache Commons -->
 		<version.commons-io>2.1</version.commons-io>
@@ -44,8 +54,14 @@
 		<!-- DB -->
 		<version.org.hibernate>4.1.6.Final</version.org.hibernate> <!-- Same as in JBoss EAP 6.0.1.GA -->
 		<version.org.hibernate.javax.persistence>1.0.1.Final</version.org.hibernate.javax.persistence>
+		<version.org.hibernate.validator>4.1.0.Final</version.org.hibernate.validator>
 		<version.derby>10.8.2.2</version.derby>
+		<version.mysql>5.1.26</version.mysql>
 		<version.my-ojdbc6>11.2.0.3</version.my-ojdbc6>
+		<version.liquibase>3.0.2</version.liquibase>
+		
+		<!-- EE -->
+		<version.org.jboss.spec.jboss-javaee-6.0>1.0.0.Final</version.org.jboss.spec.jboss-javaee-6.0>
 		
 		<!-- Various -->
 		<version.joda-time>2.1</version.joda-time>
@@ -57,6 +73,7 @@
 		<version.maven-eclipse-plugin>2.9</version.maven-eclipse-plugin>
 		<version.maven-source-plugin>2.2.1</version.maven-source-plugin>
 		<version.maven-jar-plugin>2.4</version.maven-jar-plugin>
+		<version.maven-surefire-plugin>2.16</version.maven-surefire-plugin>
 		<version.version-maven-plugin>2.0</version.version-maven-plugin>
 		<version.build-helper-maven-plugin>1.8</version.build-helper-maven-plugin>
 	</properties>
@@ -77,6 +94,16 @@
 			<dependency>
 				<groupId>${project.groupId}</groupId>
 				<artifactId>ju-testing</artifactId>
+				<version>4.0-SNAPSHOT</version>
+			</dependency>
+			<dependency>
+				<groupId>${project.groupId}</groupId>
+				<artifactId>ju-testing-ee</artifactId>
+				<version>4.0-SNAPSHOT</version>
+			</dependency>
+			<dependency>
+				<groupId>${project.groupId}</groupId>
+				<artifactId>ju-dbutil-test</artifactId>
 				<version>4.0-SNAPSHOT</version>
 			</dependency>
 			
@@ -197,6 +224,12 @@
 			</dependency>
 			
 			<dependency>
+				<groupId>mysql</groupId>
+				<artifactId>mysql-connector-java</artifactId>
+				<version>${version.mysql}</version>
+			</dependency>
+			
+			<dependency>
 				<groupId>org.hibernate</groupId>
 				<artifactId>hibernate-core</artifactId>
 				<version>${version.org.hibernate}</version>
@@ -214,6 +247,18 @@
 				<version>${version.org.hibernate.javax.persistence}</version>
 			</dependency>
 			
+			<dependency>
+				<groupId>org.hibernate</groupId>
+				<artifactId>hibernate-validator-annotation-processor</artifactId>
+				<version>${version.org.hibernate.validator}</version>
+			</dependency>
+			
+			<dependency>
+			    <groupId>org.liquibase</groupId>
+			    <artifactId>liquibase-core</artifactId>
+			    <version>${version.liquibase}</version>
+			</dependency>
+			
 			<!-- Oracle driver -->
 			<dependency>
 				<groupId>com.oracle</groupId>
@@ -229,6 +274,32 @@
 				<systemPath>${java.home}/lib/jfxrt.jar</systemPath>
 				<scope>system</scope>
 			</dependency>
+			
+			<!-- Arquillian and EE-->
+	        <dependency>
+	            <groupId>org.jboss.arquillian</groupId>
+	            <artifactId>arquillian-bom</artifactId>
+	            <version>${version.arquillian}</version>
+	            <scope>import</scope>
+	            <type>pom</type>
+	        </dependency>
+	        <dependency>
+		        <groupId>org.jboss.spec</groupId>
+		        <artifactId>jboss-javaee-6.0</artifactId>
+		        <version>${version.org.jboss.spec.jboss-javaee-6.0}</version>
+		        <type>pom</type>
+		        <scope>provided</scope>
+		    </dependency>
+			<dependency>
+			    <groupId>org.jboss.arquillian.container</groupId>
+			    <artifactId>arquillian-weld-ee-embedded-1.1</artifactId>
+			    <version>${version.arquillian.container.weld}</version>
+			</dependency>
+			<dependency>
+			    <groupId>org.jboss.weld</groupId>
+			    <artifactId>weld-core</artifactId>
+			    <version>${version.weld}</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
@@ -239,7 +310,11 @@
 	                <groupId>org.codehouse.mojo</groupId>
 	                <artifactId>build-helper-maven-plugin</artifactId>
 	                <version>${version.build-helper-maven-plugin}</version>	                
-	            </plugin>	            
+	            </plugin>
+	            <plugin>
+	       			<artifactId>maven-surefire-plugin</artifactId>
+	            	<version>${version.maven-surefire-plugin}</version>
+	            </plugin>
 	        </plugins>	        
 	    </pluginManagement>
 	    

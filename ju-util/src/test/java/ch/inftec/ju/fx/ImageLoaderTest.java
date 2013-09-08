@@ -3,8 +3,9 @@ package ch.inftec.ju.fx;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.image.Image;
-import junit.framework.Assert;
 
+import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import ch.inftec.ju.util.JuRuntimeException;
 import ch.inftec.ju.util.ThreadUtils;
 
+@Ignore("TODO: Make sure GUI tests run smoothly on CI server or allow flagging of execution")
 public class ImageLoaderTest {
 	private final Logger logger = LoggerFactory.getLogger(ImageLoaderTest.class);
 	
