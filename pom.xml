@@ -52,6 +52,7 @@
 		<!-- DB -->
 		<version.org.hibernate>4.1.6.Final</version.org.hibernate> <!-- Same as in JBoss EAP 6.0.1.GA -->
 		<version.org.hibernate.javax.persistence>1.0.1.Final</version.org.hibernate.javax.persistence>
+		<version.org.hibernate.validator>4.1.0.Final</version.org.hibernate.validator>
 		<version.derby>10.8.2.2</version.derby>
 		<version.mysql>5.1.26</version.mysql>
 		<version.my-ojdbc6>11.2.0.3</version.my-ojdbc6>
@@ -242,6 +243,12 @@
 				<groupId>org.hibernate.javax.persistence</groupId>
 				<artifactId>hibernate-jpa-2.0-api</artifactId>
 				<version>${version.org.hibernate.javax.persistence}</version>
+			</dependency>
+			
+			<dependency>
+				<groupId>org.hibernate</groupId>
+				<artifactId>hibernate-validator-annotation-processor</artifactId>
+				<version>${version.org.hibernate.validator}</version>
 			</dependency>
 			
 			<dependency>
