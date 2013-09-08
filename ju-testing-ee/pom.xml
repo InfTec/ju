@@ -13,6 +13,22 @@
 	<name>JU Testing EE</name>
 	<description>Contains helping classes for Unit Testing, supporting CDI and EE features, including DB access</description>
 
+	<repositories>
+		<repository>
+			<id>repo</id>
+			<name>repo</name>
+			<releases>
+				<enabled>true</enabled>
+				<checksumPolicy>ignore</checksumPolicy>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+
+			<url>file://${project.basedir}/../repo</url>
+		</repository>
+	</repositories>
+	
 	<dependencies>
 
 		<dependency>
@@ -43,6 +59,18 @@
 		<dependency>
 		    <groupId>org.jboss.weld</groupId>
 		    <artifactId>weld-core</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.apache.derby</groupId>
+			<artifactId>derby</artifactId>
+			<scope>test</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.oracle</groupId>
+			<artifactId>my-ojdbc6</artifactId>
+			<scope>test</scope>
 		</dependency>
 		
 		<dependency>
