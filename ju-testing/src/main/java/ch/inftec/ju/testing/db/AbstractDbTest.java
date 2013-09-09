@@ -3,7 +3,6 @@ package ch.inftec.ju.testing.db;
 import javax.persistence.EntityManager;
 
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
