@@ -61,7 +61,7 @@ public class AbstractDbTest {
 			// class annotation)
 			JuDbTest juDbTest = method.getAnnotation(JuDbTest.class);
 			if (juDbTest == null) {
-				juDbTest = this.getClass().getAnnotation(JuDbTest.class);
+				juDbTest = target.getClass().getAnnotation(JuDbTest.class);
 			}
 			if (juDbTest != null) {
 				persistenceUnit = juDbTest.persistenceUnit();
