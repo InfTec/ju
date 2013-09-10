@@ -16,7 +16,7 @@ import javax.persistence.TemporalType;
 import ch.inftec.ju.util.JuStringUtils;
 
 @Entity
-final class MementoObject {
+public class MementoObject {
 	@Id
 	@GeneratedValue
 	private Long id;

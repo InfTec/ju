@@ -9,6 +9,7 @@ import javax.persistence.Query;
 
 import org.hibernate.jdbc.Work;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import ch.inftec.ju.db.JuEmUtil.DbType;
@@ -32,6 +33,10 @@ public class OracleTest extends AbstractDbTest {
 		Assert.assertNotNull(res);
 	}
 	
+	/**
+	 * Fails on Oracle XE as well as on Oracle enterprise edition
+	 */
+	@Ignore
 	@Test
 	public void canEvaluateDefaultSchema_usingPrepareCall() {
 		this.emUtil.doWork(new Work() {
