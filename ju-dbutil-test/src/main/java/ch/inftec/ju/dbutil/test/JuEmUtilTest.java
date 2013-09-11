@@ -27,4 +27,9 @@ public class JuEmUtilTest extends AbstractDbTest {
 	public void getDriverName_returnsNotNull() {
 		Assert.assertNotNull(this.emUtil.getDbType());
 	}
+	
+	@Test
+	public void getMetaDataUserName_returnsNotNull() {
+		Assert.assertNotNull(this.emUtil.getMetaDataUserName());
+	}
 }

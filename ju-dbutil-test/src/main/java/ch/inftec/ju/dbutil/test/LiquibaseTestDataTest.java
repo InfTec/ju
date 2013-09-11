@@ -11,7 +11,9 @@ import static org.hamcrest.Matchers.*;
 public class LiquibaseTestDataTest extends AbstractDbTest {
 	@Test
 	public void tablesAreCreated_usingLiquibaseExplicitly() {
-		// TODO: Clear Schema...
+		DbSchemaUtil su = new DbSchemaUtil(this.em);
+		
+		su.clearSchema();
 		assertThat(this.emUtil.getTableNames(), not(hasItem("TESTINGENTITY")));
 		
 		new DbSchemaUtil(this.em).runLiquibaseChangeLog("ch/inftec/ju/dbutil/test/LiquibaseTestDataTest_testingEntity.xml");

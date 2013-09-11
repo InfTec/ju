@@ -24,7 +24,7 @@ import ch.inftec.ju.util.DataHolder;
  *
  */
 public class JuEmUtil {
-	private EntityManager em;
+	private final EntityManager em;
 	
 	/**
 	 * Creates a new JuDbUtil based on the specified EntityManager instance.
@@ -34,6 +34,14 @@ public class JuEmUtil {
 	 */
 	public JuEmUtil(EntityManager em) {
 		this.em = em;
+	}
+	
+	/**
+	 * Gets the EntityManager wrapped by this util instance.
+	 * @return EntityManager
+	 */
+	public EntityManager getEm() {
+		return this.em;
 	}
 	
 	/**
@@ -80,6 +88,19 @@ public class JuEmUtil {
 		});
 	}
 	
+	/**
+	 * Gets the UserName from the connection of this EntityManager from the MetaData.
+	 * @return Connection UserName
+	 */
+	public String getMetaDataUserName() {
+		return this.extractDatabaseMetaData(new DatabaseMetaDataCallback<String>() {
+			@Override
+			public String processMetaData(DatabaseMetaData dbmd)
+					throws SQLException {
+				return dbmd.getUserName();
+			}
+		});
+	}	
 	
 	/**
 	 * Gets a list of all table names of the DB. Table names are all upper case.
@@ -90,8 +111,13 @@ public class JuEmUtil {
 		List<String> tableNames = this.extractDatabaseMetaData(new DatabaseMetaDataCallback<List<String>>() {
 			@Override
 			public List<String> processMetaData(DatabaseMetaData dbmd) throws SQLException {
-				// XXX: Consider Schema name
-				ResultSet rs = dbmd.getTables(/*connectionInfo.getSchema()*/null, null, null, new String[]{"TABLE"});
+				// TODO: Consider Schema names for other DBs; refactor
+				String schemaName = null;
+				if (getDbType() == DbType.ORACLE) {
+					schemaName = getMetaDataUserName();
+				}
+				
+				ResultSet rs = dbmd.getTables(schemaName, schemaName, null, new String[]{"TABLE"});
 				
 				List<String> tableNames = new ArrayList<>();
 				while (rs.next()) {
