@@ -60,6 +60,7 @@
 		<version.mysql>5.1.26</version.mysql>
 		<version.my-ojdbc6>11.2.0.4</version.my-ojdbc6>
 		<version.liquibase>3.0.3</version.liquibase>
+		<version.flyway>2.2.1</version.flyway>
 		
 		<!-- EE -->
 		<version.org.jboss.spec.jboss-javaee-6.0>1.0.0.Final</version.org.jboss.spec.jboss-javaee-6.0>
@@ -263,6 +264,12 @@
 			    <groupId>org.liquibase</groupId>
 			    <artifactId>liquibase-core</artifactId>
 			    <version>${version.liquibase}</version>
+			</dependency>
+			
+			<dependency>
+			    <groupId>com.googlecode.flyway</groupId>
+			    <artifactId>flyway-core</artifactId>
+			    <version>${version.flyway}</version>
 			</dependency>
 			
 			<!-- Oracle driver -->

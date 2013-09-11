@@ -55,6 +55,12 @@
 		</dependency>
 		
 		<dependency>
+		    <groupId>com.googlecode.flyway</groupId>
+		    <artifactId>flyway-core</artifactId>
+		    <optional>true</optional>
+		</dependency>
+		
+		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 		</dependency>
