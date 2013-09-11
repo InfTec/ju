@@ -92,6 +92,10 @@ public class JuEmfUtil {
 						// Derby DB
 						dialect = "org.hibernate.dialect.DerbyTenSevenDialect";
 						driver = "org.apache.derby.jdbc.EmbeddedDriver";
+					} else if (this.connectionUrl.startsWith("jdbc:h2")) {
+						// H2 DB
+						dialect = "org.hibernate.dialect.H2Dialect";
+						driver = "org.h2.Driver";
 					} else if (this.connectionUrl.startsWith("jdbc:mysql")) {
 						// MySQL DB
 						dialect = "org.hibernate.dialect.MySQLDialect";

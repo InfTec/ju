@@ -189,12 +189,15 @@ public class JuEmUtil {
 	
 	public enum DbType {
 		DERBY,
+		H2,
 		MYSQL,
 		ORACLE;
 		
 		private static DbType evaluateDbType(String productName) {
 			if (productName.toLowerCase().contains("derby")) {
 				return DERBY;
+			} else if (productName.toLowerCase().contains("h2")) {
+				return H2; 
 			} else if (productName.toLowerCase().contains("mysql")) {
 				return MYSQL;
 			} else if (productName.toLowerCase().contains("oracle")) {
