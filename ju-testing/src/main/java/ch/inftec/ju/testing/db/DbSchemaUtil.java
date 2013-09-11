@@ -1,7 +1,14 @@
 package ch.inftec.ju.testing.db;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URL;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Enumeration;
 
 import javax.persistence.EntityManager;
 import javax.sql.DataSource;
@@ -11,6 +18,7 @@ import liquibase.database.Database;
 import liquibase.database.DatabaseFactory;
 import liquibase.database.jvm.JdbcConnection;
 import liquibase.resource.ClassLoaderResourceAccessor;
+import liquibase.resource.ResourceAccessor;
 
 import org.hibernate.jdbc.Work;
 import org.slf4j.Logger;
@@ -19,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import ch.inftec.ju.db.DsWork;
 import ch.inftec.ju.db.JuEmUtil;
 import ch.inftec.ju.db.JuEmUtil.DbType;
+import ch.inftec.ju.util.IOUtil;
 import ch.inftec.ju.util.JuRuntimeException;
 
 import com.googlecode.flyway.core.Flyway;
@@ -50,7 +59,7 @@ public class DbSchemaUtil {
 				try {
 					JdbcConnection jdbcConn = new JdbcConnection(connection);
 					
-					/**
+					/*
 					 * The default implementation of Liquibase for Oracle has an error in the default Schema
 					 * lookup, so we'll set it here to avoid problems.
 					 */
@@ -59,7 +68,18 @@ public class DbSchemaUtil {
 						db.setDefaultSchemaName(emUtil.getMetaDataUserName());
 					}
 					
-					Liquibase liquibase = new Liquibase(changeLogResourceName, new ClassLoaderResourceAccessor(), db);
+					/*
+					 * Derby doesn't support the CREATE OR REPLACE syntax for Views and Liquibase will throw
+					 * an error if the attribute is specified for DERBY.
+					 * As we will use Derby in memory, we'll just remote the attribute in all change logs
+					 * using a custom ResourceAccessor that will filter the character stream.
+					 */
+					ResourceAccessor resourceAccessor = new ClassLoaderResourceAccessor();
+					if (emUtil.getDbType() == DbType.DERBY) {
+						resourceAccessor = new ResourceAccessorFilter(resourceAccessor);
+					}
+					
+					Liquibase liquibase = new Liquibase(changeLogResourceName, resourceAccessor, db);
 					liquibase.update(null);
 				} catch (Exception ex) {
 					throw new JuRuntimeException("Couldn't run Liquibase change log " + changeLogResourceName, ex);
@@ -98,5 +118,37 @@ public class DbSchemaUtil {
 				flyway.clean();
 			}
 		});
+	}
+	
+	private class ResourceAccessorFilter implements ResourceAccessor {
+		private final ResourceAccessor accessor;
+		
+		private ResourceAccessorFilter(ResourceAccessor accessor) {
+			this.accessor = accessor;
+		}
+
+		@Override
+		public InputStream getResourceAsStream(String file) throws IOException {
+			logger.debug("Removing replaceIfExists attribute for Derby for resource " + file);
+			InputStream is = this.accessor.getResourceAsStream(file);
+			InputStreamReader reader = new InputStreamReader(is, "UTF-8");
+			String text = IOUtil.toString(reader);
+			String newText = text.replaceAll("replaceIfExists=\"true\"", "");
+			
+			return new BufferedInputStream(new ByteArrayInputStream(newText.getBytes()));
+		}
+
+		@Override
+		public Enumeration<URL> getResources(String packageName)
+				throws IOException {
+			return this.accessor.getResources(packageName);
+		}
+
+		@Override
+		public ClassLoader toClassLoader() {
+			return this.accessor.toClassLoader();
+		}
+		
+		
 	}
 }
