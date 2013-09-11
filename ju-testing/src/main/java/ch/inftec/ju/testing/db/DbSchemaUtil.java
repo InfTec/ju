@@ -70,12 +70,12 @@ public class DbSchemaUtil {
 					
 					/*
 					 * Derby doesn't support the CREATE OR REPLACE syntax for Views and Liquibase will throw
-					 * an error if the attribute is specified for DERBY.
-					 * As we will use Derby in memory, we'll just remote the attribute in all change logs
+					 * an error if the attribute is specified for Derby or H2.
+					 * As we will use those DBs usually in memory, we'll just remote the attribute in all change logs
 					 * using a custom ResourceAccessor that will filter the character stream.
 					 */
 					ResourceAccessor resourceAccessor = new ClassLoaderResourceAccessor();
-					if (emUtil.getDbType() == DbType.DERBY) {
+					if (emUtil.getDbType() == DbType.DERBY || emUtil.getDbType() == DbType.H2) {
 						resourceAccessor = new ResourceAccessorFilter(resourceAccessor);
 					}
 					
