@@ -69,6 +69,22 @@ public class DbSchemaUtil {
 	}
 	
 	/**
+	 * Runs Flyway migration scripts.
+	 * @param locations Locations containing scripts in Flyway structure (e.g. db/migration).
+	 */
+	public void runFlywayMigration(final String... locations) {
+		this.emUtil.doWork(new DsWork() {
+			@Override
+			public void execute(DataSource ds) {
+				Flyway flyway = new Flyway();
+				flyway.setDataSource(ds);
+				flyway.setLocations(locations);
+				flyway.migrate();
+			}
+		});
+	}
+	
+	/**
 	 * Clears the DB Schema.
 	 * <p>
 	 * Uses Flyway functionality.
@@ -79,10 +95,8 @@ public class DbSchemaUtil {
 			public void execute(DataSource ds) {
 				Flyway flyway = new Flyway();
 				flyway.setDataSource(ds);
-				
 				flyway.clean();
 			}
 		});
-		
 	}
 }
