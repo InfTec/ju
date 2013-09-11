@@ -4,7 +4,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 import javax.persistence.EntityManager;
-import javax.persistence.Query;
+import javax.sql.DataSource;
 
 import liquibase.Liquibase;
 import liquibase.database.Database;
@@ -16,9 +16,12 @@ import org.hibernate.jdbc.Work;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.inftec.ju.db.DsWork;
 import ch.inftec.ju.db.JuEmUtil;
 import ch.inftec.ju.db.JuEmUtil.DbType;
 import ch.inftec.ju.util.JuRuntimeException;
+
+import com.googlecode.flyway.core.Flyway;
 
 /**
  * Util class containing methods to perform DB Schema actions. Uses an EntityManager
@@ -66,14 +69,34 @@ public class DbSchemaUtil {
 	}
 	
 	/**
+	 * Runs Flyway migration scripts.
+	 * @param locations Locations containing scripts in Flyway structure (e.g. db/migration).
+	 */
+	public void runFlywayMigration(final String... locations) {
+		this.emUtil.doWork(new DsWork() {
+			@Override
+			public void execute(DataSource ds) {
+				Flyway flyway = new Flyway();
+				flyway.setDataSource(ds);
+				flyway.setLocations(locations);
+				flyway.migrate();
+			}
+		});
+	}
+	
+	/**
 	 * Clears the DB Schema.
+	 * <p>
+	 * Uses Flyway functionality.
 	 */
 	public void clearSchema() {
-		for (String tableName : this.emUtil.getTableNames()) {			
-			String dropSql = String.format("DROP TABLE %s", tableName);
-			logger.debug("Dropping table: " + dropSql);
-			Query qry = this.emUtil.getEm().createNativeQuery(dropSql);
-			qry.executeUpdate();
-		}
+		this.emUtil.doWork(new DsWork() {
+			@Override
+			public void execute(DataSource ds) {
+				Flyway flyway = new Flyway();
+				flyway.setDataSource(ds);
+				flyway.clean();
+			}
+		});
 	}
 }

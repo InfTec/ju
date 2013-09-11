@@ -1,17 +1,29 @@
 package ch.inftec.ju.db;
 
+import java.io.PrintWriter;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLFeatureNotSupportedException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Logger;
 
 import javax.persistence.EntityManager;
+import javax.sql.DataSource;
 
 import org.hibernate.Session;
+import org.hibernate.ejb.EntityManagerImpl;
+import org.hibernate.ejb.HibernateEntityManagerFactory;
+import org.hibernate.internal.SessionFactoryImpl;
 import org.hibernate.jdbc.Work;
+import org.hibernate.service.jdbc.connections.internal.DatasourceConnectionProviderImpl;
+import org.hibernate.service.jdbc.connections.spi.ConnectionProvider;
 
 import ch.inftec.ju.util.DataHolder;
 
@@ -53,6 +65,25 @@ public class JuEmUtil {
 	public void doWork(Work work) {
 		Session session = this.em.unwrap(Session.class);
 		session.doWork(work);
+	}
+	
+	/**
+	 * Executes some DB work that require a DataSource instance.
+	 * @param work DsWork callback interface
+	 */
+	public void doWork(DsWork work) {
+		HibernateEntityManagerFactory factory = (HibernateEntityManagerFactory) ((EntityManagerImpl) this.em).getEntityManagerFactory();
+		SessionFactoryImpl sessionFactory = (SessionFactoryImpl) factory.getSessionFactory();
+		
+		ConnectionProvider connProvider = sessionFactory.getConnectionProvider();
+		DataSource ds = null;
+		if (connProvider instanceof DatasourceConnectionProviderImpl) {
+			ds = ((DatasourceConnectionProviderImpl) connProvider).getDataSource();
+		} else {
+			ds = new ConnectionProviderDataSource(connProvider);
+		}
+		
+		work.execute(ds);
 	}
 
 	/**
@@ -172,5 +203,83 @@ public class JuEmUtil {
 				throw new JuDbException("Unknown DB. Product name: " + productName);
 			}
 		}
+	}
+	
+	private static class ConnectionProviderDataSource implements DataSource {
+		private final ConnectionProvider connectionProvider;
+		
+		public ConnectionProviderDataSource(ConnectionProvider connProvider) {
+			this.connectionProvider = connProvider;
+		}
+		
+		@Override
+		public PrintWriter getLogWriter() throws SQLException {
+			throw new UnsupportedOperationException("unwrap");
+		}
+
+		@Override
+		public void setLogWriter(PrintWriter out) throws SQLException {
+			throw new UnsupportedOperationException("unwrap");			
+		}
+
+		@Override
+		public void setLoginTimeout(int seconds) throws SQLException {
+			throw new UnsupportedOperationException("unwrap");			
+		}
+
+		@Override
+		public int getLoginTimeout() throws SQLException {
+			throw new UnsupportedOperationException("unwrap");
+		}
+
+		@Override
+		public Logger getParentLogger() throws SQLFeatureNotSupportedException {
+			throw new UnsupportedOperationException("unwrap");
+		}
+
+		@Override
+		public <T> T unwrap(Class<T> iface) throws SQLException {
+			throw new UnsupportedOperationException("unwrap");
+		}
+
+		@Override
+		public boolean isWrapperFor(Class<?> iface) throws SQLException {
+			throw new UnsupportedOperationException("unwrap");
+		}
+
+		@Override
+		public Connection getConnection() throws SQLException {
+			Connection conn = this.connectionProvider.getConnection();
+			Connection connProxy = (Connection) Proxy.newProxyInstance(Connection.class.getClassLoader(), new Class[] { Connection.class}, new ConnectionInvocationHandler(conn));
+			return connProxy;
+			
+			
+		}
+
+		@Override
+		public Connection getConnection(String username, String password) throws SQLException {
+			throw new UnsupportedOperationException("unwrap");
+		}
+		
+		private class ConnectionInvocationHandler implements InvocationHandler {
+			private final Connection wrappedConnection;
+			
+			private ConnectionInvocationHandler(Connection wrappedConnection) {
+				this.wrappedConnection = wrappedConnection;
+			}
+
+			@Override
+			public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+				if (method.getName().equals("close")) {
+					connectionProvider.closeConnection(this.wrappedConnection);
+					return null;
+				} else {
+					return method.invoke(this.wrappedConnection, args);
+				}
+			}
+			
+			
+		}
+		
 	}
 }
