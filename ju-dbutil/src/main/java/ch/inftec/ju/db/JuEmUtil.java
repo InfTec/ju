@@ -2,7 +2,11 @@ package ch.inftec.ju.db;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import javax.persistence.EntityManager;
 
@@ -20,7 +24,7 @@ import ch.inftec.ju.util.DataHolder;
  *
  */
 public class JuEmUtil {
-	private EntityManager em;
+	private final EntityManager em;
 	
 	/**
 	 * Creates a new JuDbUtil based on the specified EntityManager instance.
@@ -30,6 +34,14 @@ public class JuEmUtil {
 	 */
 	public JuEmUtil(EntityManager em) {
 		this.em = em;
+	}
+	
+	/**
+	 * Gets the EntityManager wrapped by this util instance.
+	 * @return EntityManager
+	 */
+	public EntityManager getEm() {
+		return this.em;
 	}
 	
 	/**
@@ -60,6 +72,72 @@ public class JuEmUtil {
 		});
 		
 		return res.getValue();
+	}
+	
+	/**
+	 * Gets the Connection URL of this EntityManager from the MetaData.
+	 * @return Connection URL
+	 */
+	public String getMetaDataUrl() {
+		return this.extractDatabaseMetaData(new DatabaseMetaDataCallback<String>() {
+			@Override
+			public String processMetaData(DatabaseMetaData dbmd)
+					throws SQLException {
+				return dbmd.getURL();
+			}
+		});
+	}
+	
+	/**
+	 * Gets the UserName from the connection of this EntityManager from the MetaData.
+	 * @return Connection UserName
+	 */
+	public String getMetaDataUserName() {
+		return this.extractDatabaseMetaData(new DatabaseMetaDataCallback<String>() {
+			@Override
+			public String processMetaData(DatabaseMetaData dbmd)
+					throws SQLException {
+				return dbmd.getUserName();
+			}
+		});
+	}	
+	
+	/**
+	 * Gets a list of all table names of the DB. Table names are all upper case.
+	 * @return List of Table names
+	 * @throws JuDbException If the list cannot be evaluated
+	 */
+	public List<String> getTableNames() throws JuDbException {
+		List<String> tableNames = this.extractDatabaseMetaData(new DatabaseMetaDataCallback<List<String>>() {
+			@Override
+			public List<String> processMetaData(DatabaseMetaData dbmd) throws SQLException {
+				// TODO: Consider Schema names for other DBs; refactor
+				String schemaName = null;
+				if (getDbType() == DbType.ORACLE) {
+					schemaName = getMetaDataUserName();
+				}
+				
+				ResultSet rs = dbmd.getTables(schemaName, schemaName, null, new String[]{"TABLE"});
+				
+				List<String> tableNames = new ArrayList<>();
+				while (rs.next()) {
+					String tableName = rs.getString("TABLE_NAME").toUpperCase();
+					// We check if the TableName already exists in the list as
+					// Oracle seems to return the same table names multiple times on some
+					// Schemas...
+					if (!tableNames.contains(tableName)) {
+						tableNames.add(tableName);
+					}
+				}
+				rs.close();
+				
+				Collections.sort(tableNames);
+				
+				return tableNames;
+			}
+		});
+		
+		return tableNames;		
 	}
 	
 	/**

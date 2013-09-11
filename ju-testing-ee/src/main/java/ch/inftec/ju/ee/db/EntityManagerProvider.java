@@ -23,7 +23,7 @@ public class EntityManagerProvider {
 	@Produces
 	@RequestScoped
 	private EmfWork createEmfWork() {
-		return new EmfWorkProvider().createEmfWork();
+		return new EmfWorkProvider().createEmfWork("ju-pu-test", null);
 	}
 	
 	@Produces

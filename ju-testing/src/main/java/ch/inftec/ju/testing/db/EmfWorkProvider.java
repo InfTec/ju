@@ -18,24 +18,27 @@ import ch.inftec.ju.util.PropertyChainBuilder;
  */
 public final class EmfWorkProvider {
 	private Logger logger = LoggerFactory.getLogger(EmfWorkProvider.class);
-	
-	public EmfWork createEmfWork() {
+
+	/**
+	 * Create an EmfWork instance for the specified persistence unit and profile.
+	 * @param persistenceUnitName PersistenceUnit name
+	 * @param profile Profile name. If null, it will be loaded from the property files / system properties
+	 * @return EmfWork instance
+	 */
+	public EmfWork createEmfWork(String persistenceUnitName, String profile) {
 		logger.debug("Creating EmfWork");
-		
-		String persistenceUnitName = "ju-pu-test";
 		
 		PropertyChain pc = new PropertyChainBuilder()
 			.addSystemPropertyEvaluator()
 			.addResourcePropertyEvaluator("/META-INF/ju-testing.properties", true)
 			.addResourcePropertyEvaluator("/META-INF/ju-testing_user.properties", true)
 			.addResourcePropertyEvaluator("/META-INF/ju-testing_default.properties", false)				
-			.setDefaultThrowExceptionIfUndefined(true)
 			.getPropertyChain();
 		
-		String profileName = pc.get("ju-dbutil-test.profile");
+		String profileName = profile != null ? profile : pc.get("ju-dbutil-test.profile", true);
 		String prefix = "ju-dbutil-test." + profileName;
 		
-		String connectionUrl = pc.get(prefix + ".connectionUrl");
+		String connectionUrl = pc.get(prefix + ".connectionUrl", false);
 		String user = pc.get(prefix + ".user", false);
 		String password = pc.get(prefix + ".password", false);
 		

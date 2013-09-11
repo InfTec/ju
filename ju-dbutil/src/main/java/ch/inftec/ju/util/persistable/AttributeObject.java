@@ -13,7 +13,7 @@ import ch.inftec.ju.util.JuStringUtils;
 import ch.inftec.ju.util.persistable.GenericMemento.MementoAttribute;
 
 @Entity
-final class AttributeObject implements MementoAttribute {
+public class AttributeObject implements MementoAttribute {
 	@Id
 	@GeneratedValue
 	private Long id;
