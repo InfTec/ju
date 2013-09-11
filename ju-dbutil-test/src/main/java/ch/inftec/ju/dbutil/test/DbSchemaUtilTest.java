@@ -32,4 +32,14 @@ public class DbSchemaUtilTest extends AbstractDbTest {
 		
 		assertThat(this.emUtil.getTableNames(), hasItem("TESTINGENTITY"));
 	}
+	
+	/**
+	 * Check if we can use the replaceOrExists tag. Liquibase doesn't support it with Derby, throwing an Exception.
+	 * Therefore we filter the change logs before submitting them to Liquibase.
+	 */
+	@Test
+	public void liquibase_canUseReplaceOrExists() {
+		DbSchemaUtil su = new DbSchemaUtil(this.em);
+		su.runLiquibaseChangeLog("ch/inftec/ju/dbutil/test/DbSchemaUtilTest_liquibase_canUseReplaceOrExists.xml");
+	}
 }
