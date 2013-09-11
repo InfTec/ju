@@ -1,7 +1,11 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-
+	
+	<prerequisites>
+	    <maven>3.0.4</maven>	    
+	</prerequisites>
+	
 	<groupId>ch.inftec.ju</groupId>
 	<artifactId>ju-root</artifactId>
 	<version>4.0-SNAPSHOT</version>
@@ -73,12 +77,18 @@
 		<version.javafx>2.2</version.javafx>
 		
 		<!-- Plugin versions -->
-		<version.maven-compiler-plugin>2.3.2</version.maven-compiler-plugin>
+		<version.maven-clean-plugin>2.5</version.maven-clean-plugin>
+		<version.maven-compiler-plugin>3.1</version.maven-compiler-plugin>
+		<version.maven-deploy-plugin>2.7</version.maven-deploy-plugin>
+		<version.maven-install-plugin>2.5</version.maven-install-plugin>
+		<version.maven-jar-plugin>2.4</version.maven-jar-plugin>
+		<version.maven-resources-plugin>2.6</version.maven-resources-plugin>
+		<version.maven-site-plugin>3.3</version.maven-site-plugin>
 		<version.maven-eclipse-plugin>2.9</version.maven-eclipse-plugin>
 		<version.maven-source-plugin>2.2.1</version.maven-source-plugin>
 		<version.maven-jar-plugin>2.4</version.maven-jar-plugin>
 		<version.maven-surefire-plugin>2.16</version.maven-surefire-plugin>
-		<version.version-maven-plugin>2.0</version.version-maven-plugin>
+		<version.version-maven-plugin>2.1</version.version-maven-plugin>
 		<version.build-helper-maven-plugin>1.8</version.build-helper-maven-plugin>
 	</properties>
 
@@ -327,15 +337,61 @@
 	<build>
 	    <pluginManagement>
 	        <plugins>
+	            <!-- Maven core plugins -->
+	            <plugin>
+	       			<artifactId>maven-clean-plugin</artifactId>
+	            	<version>${version.maven-clean-plugin}</version>
+	            </plugin>
+	            <plugin>
+	       			<artifactId>maven-compiler-plugin</artifactId>
+	            	<version>${version.maven-compiler-plugin}</version>
+	            </plugin>
+	            <plugin>
+	       			<artifactId>maven-deploy-plugin</artifactId>
+	            	<version>${version.maven-deploy-plugin}</version>
+	            </plugin>
+	            <plugin>
+	       			<artifactId>maven-install-plugin</artifactId>
+	            	<version>${version.maven-install-plugin}</version>
+	            </plugin>
+	            <plugin>
+	       			<artifactId>maven-jar-plugin</artifactId>
+	            	<version>${version.maven-jar-plugin}</version>
+	            </plugin>
+	            <plugin>
+	       			<artifactId>maven-resources-plugin</artifactId>
+	            	<version>${version.maven-resources-plugin}</version>
+	            </plugin>
+	            <plugin>
+	       			<artifactId>maven-site-plugin</artifactId>
+	            	<version>${version.maven-site-plugin}</version>
+	            </plugin>
+	            <plugin>
+	       			<artifactId>maven-surefire-plugin</artifactId>
+	            	<version>${version.maven-surefire-plugin}</version>
+	            </plugin>
+	            
+	            <!-- More plugins -->
 	            <plugin>
 	                <groupId>org.codehouse.mojo</groupId>
 	                <artifactId>build-helper-maven-plugin</artifactId>
 	                <version>${version.build-helper-maven-plugin}</version>	                
 	            </plugin>
 	            <plugin>
-	       			<artifactId>maven-surefire-plugin</artifactId>
-	            	<version>${version.maven-surefire-plugin}</version>
-	            </plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-eclipse-plugin</artifactId>
+					<version>${version.maven-eclipse-plugin}</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-source-plugin</artifactId>
+					<version>${version.maven-source-plugin}</version>
+				</plugin>
+				<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>versions-maven-plugin</artifactId>
+					<version>${version.version-maven-plugin}</version>
+				</plugin>
 	        </plugins>	        
 	    </pluginManagement>
 	    
@@ -343,7 +399,6 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>${version.maven-compiler-plugin}</version>
 				<configuration>
 					<source>1.7</source>
 					<target>1.7</target>
@@ -352,7 +407,6 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-eclipse-plugin</artifactId>
-				<version>${version.maven-eclipse-plugin}</version>
 				<configuration>
 					<downloadSources>true</downloadSources>
 					<downloadJavadocs>true</downloadJavadocs>
@@ -363,7 +417,6 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
-				<version>${version.maven-source-plugin}</version>
 				<executions>
 					<execution>
 						<goals>
@@ -376,7 +429,6 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
-				<version>${version.maven-jar-plugin}</version>
 				<configuration>
 					<skipIfEmpty>true</skipIfEmpty>
 				</configuration>
@@ -392,7 +444,6 @@
 				<!-- Versions Plugin that can be used to manage maven versions in various ways -->
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>versions-maven-plugin</artifactId>
-				<version>${version.version-maven-plugin}</version>
 				<configuration>
 					<generateBackupPoms>false</generateBackupPoms>
 				</configuration>
