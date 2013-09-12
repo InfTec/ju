@@ -19,8 +19,6 @@
 
   <TESTINGENTITY ID="1" NAME="Test1"/>
 
-  <!--   
-  <TEST_DATATYPES ID="1" INTEGERNUMBER="1" VARCHARTEXT="one" CLOBTEXT="oneClob" DATEFIELD="1980-12-03"/>
-  <TEST_DATATYPES ID="2"/> <!- Test for null values - ->
-   -->
+  <DATATYPES ID="1" INTNUMBER="1" BIGINTNUMBER="2" VARCHARTEXT="one" CLOBTEXT="oneClob" DATEFIELD="1980-12-03" TIMEFIELD="10:11:12" TIMESTAMPFIELD="1980-12-03 10:11:12"/>
+  <DATATYPES ID="2"/> <!-- Test for null values -->
 </dataset>

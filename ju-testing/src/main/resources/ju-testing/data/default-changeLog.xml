@@ -62,12 +62,27 @@
     		referencedColumnNames="id"/>
     </changeSet>
     
-    <changeSet id="1" author="mm">
+    <changeSet id="testingEntity-1" author="mm">
         <createTable tableName="TestingEntity">
             <column name="id" type="int" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="name" type="varchar(50)"/>
+        </createTable>
+    </changeSet>
+    
+    <changeSet id="dataTypes-1" author="mm">
+        <createTable tableName="DataTypes">
+            <column name="id" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="intNumber" type="int"/>
+            <column name="bigIntNumber" type="bigint"/>
+            <column name="varcharText" type="varchar(255)"/>
+            <column name="clobText" type="clob"/>
+            <column name="dateField" type="date"/>
+            <column name="timeField" type="time"/>
+            <column name="timeStampField" type="timestamp"/>
         </createTable>
     </changeSet>
  
