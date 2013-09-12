@@ -18,8 +18,11 @@ import org.dbunit.database.DatabaseConnection;
 import org.dbunit.database.IDatabaseConnection;
 import org.dbunit.database.QueryDataSet;
 import org.dbunit.dataset.IDataSet;
+import org.dbunit.dataset.datatype.DefaultDataTypeFactory;
 import org.dbunit.dataset.xml.FlatXmlDataSet;
 import org.dbunit.dataset.xml.FlatXmlDataSetBuilder;
+import org.dbunit.ext.h2.H2DataTypeFactory;
+import org.dbunit.ext.mysql.MySqlDataTypeFactory;
 import org.dbunit.ext.oracle.Oracle10DataTypeFactory;
 import org.dbunit.operation.DatabaseOperation;
 import org.hibernate.jdbc.Work;
@@ -27,7 +30,7 @@ import org.w3c.dom.Document;
 
 import ch.inftec.ju.db.ConnectionInfo;
 import ch.inftec.ju.db.JuDbException;
-import ch.inftec.ju.db.JuDbUtils;
+import ch.inftec.ju.db.JuEmUtil;
 import ch.inftec.ju.util.IOUtil;
 import ch.inftec.ju.util.ReflectUtils;
 import ch.inftec.ju.util.XString;
@@ -43,7 +46,7 @@ import ch.inftec.ju.util.xml.XmlOutputConverter;
  */
 public class DbDataUtil {
 	private final Connection connection;
-	private final EntityManager em;
+	private final JuEmUtil emUtil;
 	
 	private String schemaName = null;
 	
@@ -54,13 +57,19 @@ public class DbDataUtil {
 	 * <p>
 	 * If you need to specify a DB Schema, use the DbDataUtil(Connection, String) constructor.
 	 * @param connection Connection instance
+	 * @Deprecated Use constructor with EntityManager
 	 */
+	@Deprecated
 	public DbDataUtil(Connection connection) {
 		this(connection, (String)null);
 	}
 	
+	/**
+	   @Deprecated Use constructor with EntityManager
+	 */
+	@Deprecated
 	public DbDataUtil(Connection connection, String schema) {
-		this.em = null;
+		this.emUtil = null;
 		this.connection = connection;
 		this.schemaName = schema;
 	}
@@ -70,7 +79,9 @@ public class DbDataUtil {
 	 * from the ConnectionInfo
 	 * @param connection Connection instance
 	 * @param ConnectionInfo to get the Schema to use
+	 * @Deprecated Use constructor with EntityManager
 	 */
+	@Deprecated
 	public DbDataUtil(Connection connection, ConnectionInfo connectionInfo) {
 		this(connection, connectionInfo.getSchema());
 	}
@@ -81,8 +92,39 @@ public class DbDataUtil {
 	 * @param em EntityManager instance to execute SQL in a JDBC connection
 	 */
 	public DbDataUtil(EntityManager em) {
-		this.em = em;
+		this.emUtil = new JuEmUtil(em);
 		this.connection = null;
+
+		// Initialize
+		DefaultDataTypeFactory dataTypeFactory = null;
+		switch (this.emUtil.getDbType()) {
+		case DERBY:
+			dataTypeFactory = new DefaultDataTypeFactory();
+			break;
+		case H2:
+			dataTypeFactory = new H2DataTypeFactory();
+			break;
+		case MYSQL:
+			dataTypeFactory = new MySqlDataTypeFactory();
+			break;
+		case ORACLE:
+			this.setSchema(this.emUtil.getMetaDataUserName());
+			dataTypeFactory = new Oracle10DataTypeFactory();
+			break;
+		default:
+			throw new JuDbException("Unsupported DB: " + this.emUtil.getDbType());
+		}
+		
+		this.setConfigProperty("http://www.dbunit.org/properties/datatypeFactory", dataTypeFactory);
+	}
+	
+	/**
+	 * Loads the default test data (Player, Team, TestingEntity, ...), making
+	 * sure that the tables have been created using Liquibase.
+	 */
+	public void loadDefaultTestData() {
+		new DbSchemaUtil(this.emUtil).runLiquibaseChangeLog("ju-testing/data/default-changeLog.xml");
+		this.buildImport().from("/ju-testing/data/default-fullData.xml").executeCleanInsert();
 	}
 	
 	/**
@@ -108,20 +150,11 @@ public class DbDataUtil {
 		return this;
 	}
 	
-	/**
-	 * Sets all properties for DbDataUtil accordingly to cope with Oracle databases.
-	 * @return This instance to allow for chaining
-	 */
-	public DbDataUtil prepareForOracle() {
-		this.setConfigProperty("http://www.dbunit.org/properties/datatypeFactory", new Oracle10DataTypeFactory());
-		return this;
-	}
-	
 	private void execute(final DbUnitWork work) {
 		if (this.connection != null) {
 			this.doExecute(this.connection, work);
-		} else if (this.em != null){
-			JuDbUtils.doWork(em, new Work() {
+		} else if (this.emUtil != null) {
+			this.emUtil.doWork(new Work() {
 				@Override
 				public void execute(Connection connection) throws SQLException {
 					doExecute(connection, work);

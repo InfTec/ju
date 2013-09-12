@@ -10,4 +10,9 @@ public class DefaultTestDataTest extends AbstractDbTest {
 		
 		su.runLiquibaseChangeLog("ju-testing/data/default-changeLog.xml");
 	}
+	
+	@Test
+	public void defaultTestData_canBeLoaded() {
+		new DbDataUtil(this.em).loadDefaultTestData();
+	}
 }

@@ -43,8 +43,12 @@ public class DbSchemaUtil {
 	
 	private final JuEmUtil emUtil;
 	
+	public DbSchemaUtil(JuEmUtil emUtil) {
+		this.emUtil = emUtil;
+	}
+	
 	public DbSchemaUtil(EntityManager em) {
-		this.emUtil = new JuEmUtil(em);
+		this(new JuEmUtil(em));
 	}
 	
 	/**
