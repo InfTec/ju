@@ -131,7 +131,24 @@ public class JuEmUtil {
 				return dbmd.getUserName();
 			}
 		});
-	}	
+	}
+	
+	/**
+	 * Gets the name of the connection catalog or null if there is none.
+	 * @return Catalog name
+	 */
+	public String getConnectionCatalog() {
+		final DataHolder<String> catalog = new DataHolder<>();
+		
+		this.doWork(new Work() {
+			@Override
+			public void execute(Connection connection) throws SQLException {
+				catalog.setValue(connection.getCatalog());
+			}
+		});
+		
+		return catalog.getValue();
+	}
 	
 	/**
 	 * Gets a list of all table names of the DB. Table names are all upper case.

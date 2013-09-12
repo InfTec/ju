@@ -4,8 +4,10 @@ import java.text.ParseException;
 
 import junit.framework.Assert;
 
+import org.junit.Assume;
 import org.junit.Test;
 
+import ch.inftec.ju.db.JuEmUtil.DbType;
 import ch.inftec.ju.testing.db.data.entity.DataTypes;
 import ch.inftec.ju.util.JuStringUtils;
 
@@ -36,8 +38,13 @@ public class DefaultTestDataTest extends AbstractDbTest {
 		Assert.assertEquals("oneClob", dt1.getClobText());
 		
 		Assert.assertEquals(JuStringUtils.DATE_FORMAT_DAYS.parseObject("03.12.1980"), dt1.getDateField());
-		String hours = JuStringUtils.DATE_FORMAT_SECONDS.format(dt1.getTimeField());
-		Assert.assertTrue(hours.endsWith("10:11:12")); // hours will be todays date, followed by the time
+		
+		// We'll skip TIME checking for Oracle as it isn't supported by this DB
+		if (this.emUtil.getDbType() != DbType.ORACLE) {
+			String hours = JuStringUtils.DATE_FORMAT_SECONDS.format(dt1.getTimeField());
+			Assert.assertTrue(hours.endsWith("10:11:12")); // hours will be todays date, followed by the time
+		}
+		
 		Assert.assertEquals(JuStringUtils.DATE_FORMAT_SECONDS.parseObject("03.12.1980 10:11:12"), dt1.getTimeStampField());
 	}
 	
@@ -55,6 +62,10 @@ public class DefaultTestDataTest extends AbstractDbTest {
 		
 		Assert.assertNull(dt2.getDateField());
 		Assert.assertNull(dt2.getTimeField());
+
+		// MySQL sets a TimeStamp field to the current time unless it has been created
+		// explicitly with a NULL attribute which Liquibase doesn't do.
+		Assume.assumeTrue(this.emUtil.getDbType() != DbType.MYSQL);
 		Assert.assertNull(dt2.getTimeStampField());
 	}
 }

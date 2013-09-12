@@ -31,6 +31,7 @@ import org.w3c.dom.Document;
 import ch.inftec.ju.db.ConnectionInfo;
 import ch.inftec.ju.db.JuDbException;
 import ch.inftec.ju.db.JuEmUtil;
+import ch.inftec.ju.db.JuEmUtil.DbType;
 import ch.inftec.ju.util.IOUtil;
 import ch.inftec.ju.util.ReflectUtils;
 import ch.inftec.ju.util.XString;
@@ -136,6 +137,11 @@ public class DbDataUtil {
 	public void loadDefaultTestData() {
 		new DbSchemaUtil(this.emUtil).runLiquibaseChangeLog("ju-testing/data/default-changeLog.xml");
 		this.buildImport().from("/ju-testing/data/default-fullData.xml").executeCleanInsert();
+		
+		// Load TIMEFIELD for non-oracle DBs
+		if (this.emUtil.getDbType() != DbType.ORACLE) {
+			this.buildImport().from("/ju-testing/data/default-fullData-dataTypes.xml").executeUpdate();
+		}
 	}
 	
 	/**
@@ -184,7 +190,7 @@ public class DbDataUtil {
 		 * proxy.
 		 */
 		Connection unwrappedConn = null;
-		if (connection instanceof Proxy) {
+		if (this.emUtil.getDbType() == DbType.ORACLE && connection instanceof Proxy) {
 			try {
 				unwrappedConn = connection.unwrap(Connection.class);
 			} catch (Exception ex) {
@@ -471,6 +477,23 @@ public class DbDataUtil {
 						DatabaseOperation.INSERT.execute(conn, flatXmlDataSet);
 					} catch (Exception ex) {
 						throw new JuDbException("Couldnt insert data into DB", ex);
+					}
+				};
+			});
+			
+		}
+		
+		/**
+		 * Performs an update of the existing data in the DB, without inserting new data.
+		 */
+		public void executeUpdate() {
+			this.dbDataUtil.execute(new DbUnitWork() {
+				@Override
+				public void execute(IDatabaseConnection conn) {
+					try {
+						DatabaseOperation.UPDATE.execute(conn, flatXmlDataSet);
+					} catch (Exception ex) {
+						throw new JuDbException("Couldnt update data in DB", ex);
 					}
 				};
 			});
