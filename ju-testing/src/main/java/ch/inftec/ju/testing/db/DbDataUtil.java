@@ -92,7 +92,16 @@ public class DbDataUtil {
 	 * @param em EntityManager instance to execute SQL in a JDBC connection
 	 */
 	public DbDataUtil(EntityManager em) {
-		this.emUtil = new JuEmUtil(em);
+		this(new JuEmUtil(em));
+	}
+	
+	/**
+	 * Create a new DbDataUtil that will use the specified EntityManager to get
+	 * a raw connection to the DB and execute SQL queries.
+	 * @param emUtil JuEmUtil wrapping an EntityManager instance to execute SQL in a JDBC connection
+	 */
+	public DbDataUtil(JuEmUtil emUtil) {
+		this.emUtil = emUtil;
 		this.connection = null;
 
 		// Initialize
@@ -121,6 +130,8 @@ public class DbDataUtil {
 	/**
 	 * Loads the default test data (Player, Team, TestingEntity, ...), making
 	 * sure that the tables have been created using Liquibase.
+	 * <p>
+	 * A persistence unit that supports the default entities is 
 	 */
 	public void loadDefaultTestData() {
 		new DbSchemaUtil(this.emUtil).runLiquibaseChangeLog("ju-testing/data/default-changeLog.xml");
