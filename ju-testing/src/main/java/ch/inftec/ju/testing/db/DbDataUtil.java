@@ -7,13 +7,16 @@ import java.lang.reflect.Proxy;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.persistence.EntityManager;
 
 import org.dbunit.Assertion;
 import org.dbunit.DatabaseUnitException;
+import org.dbunit.database.AmbiguousTableNameException;
 import org.dbunit.database.DatabaseConnection;
 import org.dbunit.database.IDatabaseConnection;
 import org.dbunit.database.QueryDataSet;
@@ -32,6 +35,7 @@ import ch.inftec.ju.db.ConnectionInfo;
 import ch.inftec.ju.db.JuDbException;
 import ch.inftec.ju.db.JuEmUtil;
 import ch.inftec.ju.db.JuEmUtil.DbType;
+import ch.inftec.ju.util.DataHolder;
 import ch.inftec.ju.util.IOUtil;
 import ch.inftec.ju.util.ReflectUtils;
 import ch.inftec.ju.util.XString;
@@ -252,18 +256,6 @@ public class DbDataUtil {
 		public void execute(IDatabaseConnection conn);
 	}
 	
-	private static abstract class DbUnitWorkWithReturn<T> implements DbUnitWork {
-		private T returnValue;
-		
-		protected void setReturnValue(T returnValue) {
-			this.returnValue = returnValue;
-		}
-		
-		public T getReturnValue() {
-			return this.returnValue;
-		}
-	}
-	
 	/**
 	 * Builder class to configure and execute DB data exports.
 	 * @author Martin
@@ -271,7 +263,8 @@ public class DbDataUtil {
 	 */
 	public static class ExportBuilder {
 		private final DbDataUtil dbDataUtil;
-		private QueryDataSet queryDataSet;
+		
+		private final List<ExportItem> exportItems = new ArrayList<>();
 		
 		private ExportBuilder(DbDataUtil dbDataUtil) {
 			this.dbDataUtil = dbDataUtil;	
@@ -298,24 +291,7 @@ public class DbDataUtil {
 		 * @return ExportBuilder to allow for chaining
 		 */
 		public ExportBuilder addTable(final String tableName, final String query) {
-			this.dbDataUtil.execute(new DbUnitWork() {
-				@Override
-				public void execute(IDatabaseConnection conn) {
-					try {
-						if (queryDataSet == null) {
-							queryDataSet = new QueryDataSet(conn);
-						}
-						
-						if (query == null) {
-							queryDataSet.addTable(tableName);
-						} else {
-							queryDataSet.addTable(tableName, query);
-						}
-					} catch (Exception ex) {
-						throw new JuDbException("Couldn't add table", ex);
-					}
-				}
-			});
+			this.exportItems.add(new TableQueryExportItem(tableName, query));
 			
 			return this;
 		}
@@ -341,27 +317,27 @@ public class DbDataUtil {
 			}
 		}
 
-		private IDataSet getExportSet() {
-			if (queryDataSet != null) {
-				return queryDataSet;
-			} else {
-				DbUnitWorkWithReturn<IDataSet> work = new DbUnitWorkWithReturn<IDataSet>() {
-					@Override
-					public void execute(IDatabaseConnection conn) {
+		private void doWork(final DataSetWork dataSetWork) {
+			this.dbDataUtil.execute(new DbUnitWork() {
+				@Override
+				public void execute(IDatabaseConnection conn) {
+					if (exportItems.size() > 0) {
+						QueryDataSet dataSet = new QueryDataSet(conn);
+						for (ExportItem item : exportItems) {
+							item.addToQueryDataSet(dataSet);
+						}
+						dataSetWork.execute(dataSet);
+					} else {
+						// Export whole DB
 						try {
-							try {
-								this.setReturnValue(conn.createDataSet());
-							} catch (Exception ex) {
-								throw new JuDbException("Couldn't create DataSet from DB");
-							}
+							IDataSet dataSet = conn.createDataSet();
+							dataSetWork.execute(dataSet);
 						} catch (Exception ex) {
-							throw new JuDbException("Couldn't add table", ex);
+							throw new JuDbException("Couldn't export whole DB");
 						}
 					}
 				};
-				this.dbDataUtil.execute(work);
-				return work.getReturnValue();
-			}
+			});
 		}
 		
 		/**
@@ -369,29 +345,73 @@ public class DbDataUtil {
 		 * @return Xml Document instance
 		 */
 		public Document writeToXmlDocument() {
-			try {
-				XmlOutputConverter xmlConv = new XmlOutputConverter();
-				FlatXmlDataSet.write(this.getExportSet(), xmlConv.getOutputStream());
-				
-				return xmlConv.getDocument();
-			} catch (Exception ex) {
-				throw new JuDbException("Couldn't write DB data to XML document", ex);
-			}
+			final DataHolder<Document> doc = new DataHolder<>();
+			
+			this.doWork(new DataSetWork() {
+				@Override
+				public void execute(IDataSet dataSet) {
+					try {
+						XmlOutputConverter xmlConv = new XmlOutputConverter();
+						FlatXmlDataSet.write(dataSet, xmlConv.getOutputStream());
+						doc.setValue(xmlConv.getDocument());
+					} catch (Exception ex) {
+						throw new JuDbException("Couldn't write DB data to XML document", ex);
+					}
+				}
+			});
+			
+			return doc.getValue();
 		}
 		
 		/**
 		 * Write the DB data to an XML file.
 		 * @param fileName Path of the file
 		 */
-		public void writeToXmlFile(String fileName) {
-			try (OutputStream stream = new BufferedOutputStream(
+		public void writeToXmlFile(final String fileName) {
+			try (final OutputStream stream = new BufferedOutputStream(
 							new FileOutputStream(fileName))) {
 
-				FlatXmlDataSet.write(this.getExportSet(), stream);
+				this.doWork(new DataSetWork() {
+					 @Override
+					public void execute(IDataSet dataSet) {
+						try {
+							FlatXmlDataSet.write(dataSet, stream);
+						} catch (Exception ex) {
+							throw new JuDbException("Couldn't write DB data to file " + fileName, ex);
+						}
+					}
+				});
 			} catch (Exception ex) {
 				throw new JuDbException("Couldn't write DB data to file " + fileName, ex);
 			}
-		}		
+		}
+		
+		private interface DataSetWork {
+			void execute(IDataSet dataSet);
+		}
+		
+		private interface ExportItem {
+			void addToQueryDataSet(QueryDataSet dataSet);
+		}
+		
+		private static class TableQueryExportItem implements ExportItem {
+			private final String tableName;
+			private final String query;
+			
+			private TableQueryExportItem(String tableName, String query) {
+				this.tableName = tableName;
+				this.query = query;
+			}
+			
+			@Override
+			public void addToQueryDataSet(QueryDataSet dataSet) {
+				try {
+					dataSet.addTable(this.tableName, this.query);
+				} catch (AmbiguousTableNameException ex) {
+					throw new JuDbException(String.format("Couldn't add table %s to QueryDataSet: %s", this.tableName, this.query), ex);
+				}
+			}
+		}
 	}
 	
 	/**

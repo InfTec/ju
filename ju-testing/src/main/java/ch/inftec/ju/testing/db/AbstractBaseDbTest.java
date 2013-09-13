@@ -98,7 +98,7 @@ public abstract class AbstractBaseDbTest {
 	 */
 	protected final DbDataUtil createDbDataUtil() {
 		DbDataUtil util = new DbDataUtil(this.em);
-		util.setSchema(this.connectionInfo.getSchema());
+//		util.setSchema(this.connectionInfo.getSchema());
 		if (this.dataTypeFactor != null) {
 			util.setConfigProperty("http://www.dbunit.org/properties/datatypeFactory", this.dataTypeFactor);
 		}

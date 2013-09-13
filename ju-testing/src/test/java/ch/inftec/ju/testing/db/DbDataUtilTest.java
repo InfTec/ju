@@ -27,16 +27,20 @@ public class DbDataUtilTest extends DefaultContextAbstractBaseDbTest {
 	 */
 	@Test
 	public void writeToXmlFile() {
-		// Whole table to file
-		String fileName = "writeToXmlFile_team.xml";
-		File file = new File(fileName);
-		if (file.exists()) Assert.fail(String.format("File %s already exists", fileName));
-		this.createDbDataUtil().buildExport()
-			.addTable("Team", null)
-			.writeToXmlFile(fileName);
-		
-		Assert.assertTrue(file.exists());
-		file.delete();
+		File file = null;
+		try {
+			// Whole table to file
+			String fileName = "writeToXmlFile_team.xml";
+			file = new File(fileName);
+			if (file.exists()) file.delete();
+			this.createDbDataUtil().buildExport()
+				.addTable("Team", null)
+				.writeToXmlFile(fileName);
+			
+			Assert.assertTrue(file.exists());
+		} finally {
+			if (file != null && file.exists()) file.delete();
+		}
 	}
 	
 	/**
