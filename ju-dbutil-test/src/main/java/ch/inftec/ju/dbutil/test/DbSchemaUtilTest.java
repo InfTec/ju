@@ -41,6 +41,7 @@ public class DbSchemaUtilTest extends AbstractDbTest {
 	public void liquibase_canUseReplaceOrExists() {
 		DbSchemaUtil su = new DbSchemaUtil(this.em);
 		
+		su.clearSchema();
 		su.runLiquibaseChangeLog("ch/inftec/ju/dbutil/test/DbSchemaUtilTest_liquibase_canUseReplaceOrExists.xml");
 	}
 }
