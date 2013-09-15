@@ -94,29 +94,32 @@
 
 	<dependencyManagement>
 		<dependencies>
-			<!-- JU dependencies. These will be updated by versions:set as well. We must not use ${project.version} as this will change if a child project uses a different version than ju-root. -->
+			<!-- JU dependencies. These will be updated by versions:set as well.
+			     We must not use ${project.groupId} or ${project.version} as this will change 
+			     if a child project uses different values thann ju-root. 
+			-->
 			<dependency>
-				<groupId>${project.groupId}</groupId>
+				<groupId>ch.inftec.ju</groupId>
 				<artifactId>ju-util</artifactId>
 				<version>4.0-SNAPSHOT</version>
 			</dependency>
 			<dependency>
-				<groupId>${project.groupId}</groupId>
+				<groupId>ch.inftec.ju</groupId>
 				<artifactId>ju-dbutil</artifactId>
 				<version>4.0-SNAPSHOT</version>
 			</dependency>
 			<dependency>
-				<groupId>${project.groupId}</groupId>
+				<groupId>ch.inftec.ju</groupId>
 				<artifactId>ju-testing</artifactId>
 				<version>4.0-SNAPSHOT</version>
 			</dependency>
 			<dependency>
-				<groupId>${project.groupId}</groupId>
+				<groupId>ch.inftec.ju</groupId>
 				<artifactId>ju-testing-ee</artifactId>
 				<version>4.0-SNAPSHOT</version>
 			</dependency>
 			<dependency>
-				<groupId>${project.groupId}</groupId>
+				<groupId>ch.inftec.ju</groupId>
 				<artifactId>ju-dbutil-test</artifactId>
 				<version>4.0-SNAPSHOT</version>
 			</dependency>
