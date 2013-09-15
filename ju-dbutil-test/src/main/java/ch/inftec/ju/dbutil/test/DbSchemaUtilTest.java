@@ -26,11 +26,11 @@ public class DbSchemaUtilTest extends AbstractDbTest {
 		DbSchemaUtil su = new DbSchemaUtil(this.em);
 		
 		su.clearSchema();
-		assertThat(this.emUtil.getTableNames(), not(hasItem("TESTINGENTITY")));
+		assertThat(this.emUtil.getTableNames(), not(hasItem("TESTINGENTITY_FW")));
 		
 		su.runFlywayMigration("db/DbSchemaUtilTest-migration");
 		
-		assertThat(this.emUtil.getTableNames(), hasItem("TESTINGENTITY"));
+		assertThat(this.emUtil.getTableNames(), hasItem("TESTINGENTITY_FW"));
 	}
 	
 	/**

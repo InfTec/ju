@@ -26,6 +26,12 @@ public class DefaultTestDataTest extends AbstractDbTest {
 	}
 	
 	@Test
+	public void defaultTestData_canBeLoadedTwice() {
+		new DbDataUtil(this.em).loadDefaultTestData();
+		new DbDataUtil(this.em).loadDefaultTestData();
+	}
+	
+	@Test
 	public void canRead_allDataTypes_fromDefaultTestData() throws ParseException {
 		new DbDataUtil(this.em).loadDefaultTestData();
 		
