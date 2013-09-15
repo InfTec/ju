@@ -72,7 +72,7 @@ public class JuEmUtil {
 	 * @param work DsWork callback interface
 	 */
 	public void doWork(DsWork work) {
-		HibernateEntityManagerFactory factory = (HibernateEntityManagerFactory) ((EntityManagerImpl) this.em).getEntityManagerFactory();
+		HibernateEntityManagerFactory factory = (HibernateEntityManagerFactory) this.em.unwrap(EntityManagerImpl.class).getEntityManagerFactory();
 		SessionFactoryImpl sessionFactory = (SessionFactoryImpl) factory.getSessionFactory();
 		
 		ConnectionProvider connProvider = sessionFactory.getConnectionProvider();
