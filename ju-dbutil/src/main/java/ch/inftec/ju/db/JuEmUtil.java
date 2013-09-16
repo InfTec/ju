@@ -59,7 +59,8 @@ public class JuEmUtil {
 	/**
 	 * Executes some DB work using a raw JDBC connection.
 	 * <p>
-	 * Makes use of the Hibernate Work facility.
+	 * Makes use of the Hibernate Work facility to extract a Connection from an EntityManager.
+	 * Note that this connection will participate in the same transactional context as the EntityManager.
 	 * @param work Work callback interface
 	 */
 	public void doWork(Work work) {
@@ -69,6 +70,10 @@ public class JuEmUtil {
 	
 	/**
 	 * Executes some DB work that require a DataSource instance.
+	 * <p>
+	 * If we cannot get a DataSource from the connection provider, we'll just provide a 
+	 * dummy DataSource that returns the connection extracted from the EntityManager as
+	 * in doWork(Work).
 	 * @param work DsWork callback interface
 	 */
 	public void doWork(DsWork work) {

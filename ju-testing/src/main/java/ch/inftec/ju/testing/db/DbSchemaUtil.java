@@ -7,7 +7,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.Enumeration;
 
 import javax.persistence.EntityManager;
@@ -20,7 +19,6 @@ import liquibase.database.jvm.JdbcConnection;
 import liquibase.resource.ClassLoaderResourceAccessor;
 import liquibase.resource.ResourceAccessor;
 
-import org.hibernate.jdbc.Work;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,11 +55,11 @@ public class DbSchemaUtil {
 	 * default class loader.
 	 */
 	public void runLiquibaseChangeLog(final String changeLogResourceName) {
-		this.emUtil.doWork(new Work() {
+		this.emUtil.doWork(new DsWork() {
 			@Override
-			public void execute(Connection connection) throws SQLException {
-				try {
-					JdbcConnection jdbcConn = new JdbcConnection(connection);
+			public void execute(DataSource ds) {
+				try (Connection conn = ds.getConnection()) {
+					JdbcConnection jdbcConn = new JdbcConnection(conn);
 					
 					/*
 					 * The default implementation of Liquibase for Oracle has an error in the default Schema
