@@ -132,7 +132,11 @@ public class MultiplePersistenceUnitsTest {
 		private Long doInsertTeam(String name) {
 			Team t = new Team();
 			t.setName(name);
-			this.teamRepo.save(t);
+			
+//			entityManager.persist(t);
+			
+			// See http://stackoverflow.com/questions/8625150/why-to-use-returned-instance-after-save-on-spring-data-jpa-repository
+			t = this.teamRepo.save(t);
 			return t.getId();
 		}
 	}
