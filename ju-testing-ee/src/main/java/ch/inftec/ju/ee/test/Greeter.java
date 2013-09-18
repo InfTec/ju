@@ -6,6 +6,8 @@ import javax.enterprise.context.RequestScoped;
 
 /**
  * Greeter class from the Arquillain getting started guide.
+ * <p>
+ * Can be used for simple CDI testing
  * @author Martin
  *
  */
