@@ -41,6 +41,12 @@
 			<artifactId>spring-context</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<!-- Needed for pre-3.2 version of Spring to generate proxies for non-interfaces -->
+		<dependency>
+	    	<groupId>cglib</groupId>
+			<artifactId>cglib</artifactId>
+			<optional>true</optional>
+    	</dependency>
  	
 		<dependency>
 			<groupId>org.springframework</groupId>
