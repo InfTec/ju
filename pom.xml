@@ -357,6 +357,11 @@
             </dependency>
             <dependency>
             	<groupId>org.seleniumhq.selenium</groupId>
+		        <artifactId>selenium-htmlunit-driver</artifactId>
+		        <version>${version.selenium}</version>
+            </dependency>
+            <dependency>
+            	<groupId>org.seleniumhq.selenium</groupId>
 		        <artifactId>selenium-chrome-driver</artifactId>
 		        <version>${version.selenium}</version>
             </dependency>
