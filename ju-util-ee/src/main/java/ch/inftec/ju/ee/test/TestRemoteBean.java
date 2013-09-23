@@ -5,5 +5,5 @@ package ch.inftec.ju.ee.test;
  * @author Martin
  *
  */
-public class TestRemoteInterfaceBean extends AbstractTestBean implements TestRemote {
+public class TestRemoteBean extends AbstractTestBean implements TestRemote {
 }

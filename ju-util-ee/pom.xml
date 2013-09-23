@@ -97,39 +97,47 @@
            <scope>runtime</scope>
        </dependency>
 
-       <!-- client communications with the server use XNIO -->
-       <dependency>
-           <groupId>org.jboss.xnio</groupId>
-           <artifactId>xnio-api</artifactId>
-           <scope>runtime</scope>
-       </dependency>
+       
+<!--        <dependency> -->
+<!--            <groupId>org.jboss.xnio</groupId> -->
+<!--            <artifactId>xnio-api</artifactId> -->
+<!--            <scope>runtime</scope> -->
+<!--        </dependency> -->
 
-       <dependency>
-           <groupId>org.jboss.xnio</groupId>
-           <artifactId>xnio-nio</artifactId>
-           <scope>runtime</scope>
-       </dependency>
+		<!-- client communications with the server use XNIO -->
+        <dependency>
+            <groupId>org.jboss.xnio</groupId>
+            <artifactId>xnio-nio</artifactId>
+            <scope>runtime</scope>
+        </dependency>
 
       <!-- The client needs JBoss remoting to access the server -->
-       <dependency>
-            <groupId>org.jboss.remoting3</groupId>
-            <artifactId>jboss-remoting</artifactId>
+<!--        <dependency> -->
+<!--             <groupId>org.jboss.remoting3</groupId> -->
+<!--             <artifactId>jboss-remoting</artifactId> -->
+<!--             <scope>runtime</scope> -->
+<!--         </dependency> -->
+        
+<!--         <version.org.jboss.remote-naming>1.0.5.Final</version.org.jboss.remote-naming> -->
+        <dependency>
+            <groupId>org.jboss</groupId>
+            <artifactId>jboss-remote-naming</artifactId>
             <scope>runtime</scope>
         </dependency>
 
         <!-- Remote EJB accesses can be secured -->
-        <dependency>
-            <groupId>org.jboss.sasl</groupId>
-            <artifactId>jboss-sasl</artifactId>
-            <scope>runtime</scope>
-        </dependency>
+<!--         <dependency> -->
+<!--             <groupId>org.jboss.sasl</groupId> -->
+<!--             <artifactId>jboss-sasl</artifactId> -->
+<!--             <scope>runtime</scope> -->
+<!--         </dependency> -->
 
         <!-- data serialization for invoking remote EJBs -->
-        <dependency>
-            <groupId>org.jboss.marshalling</groupId>
-            <artifactId>jboss-marshalling-river</artifactId>
-            <scope>runtime</scope>
-        </dependency>
+<!--         <dependency> -->
+<!--             <groupId>org.jboss.marshalling</groupId> -->
+<!--             <artifactId>jboss-marshalling-river</artifactId> -->
+<!--             <scope>runtime</scope> -->
+<!--         </dependency> -->
 		
 	</dependencies>
 </project>
