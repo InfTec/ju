@@ -13,13 +13,14 @@
 	<artifactId>ju-util-ee</artifactId>
 	<name>JU util EE</name>
 
+	<!-- TODO: Try to move to ju-root -->
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
 	             <groupId>org.jboss.as</groupId>
 	             <artifactId>jboss-as-ejb-client-bom</artifactId>
 	<!--              <version>${version.jboss.as}</version> -->
-				<version>7.2.0.Final</version>
+				 <version>7.2.0.Final</version>
 	             <type>pom</type>
 	             <scope>import</scope>
 	         </dependency>

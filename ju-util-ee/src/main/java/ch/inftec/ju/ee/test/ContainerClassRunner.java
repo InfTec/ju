@@ -11,7 +11,9 @@ import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
 
+import ch.inftec.ju.ee.client.JndiServiceLocator;
 import ch.inftec.ju.ee.client.RemoteServiceLocator;
+import ch.inftec.ju.ee.client.ServiceLocatorBuilder;
 import ch.inftec.ju.ee.test.TestRunnerFacade.TestRunnerContext;
 
 /**
@@ -36,8 +38,14 @@ public class ContainerClassRunner extends BlockJUnit4ClassRunner {
 			TestRunnerContext context = new TestRunnerContext();
 			Path localRoot = Paths.get(".").toAbsolutePath();
 			context.setLocalRoot(localRoot.toString());
-						
-			TestRunnerFacade testRunnerFacade = RemoteServiceLocator.getFacadeEjb3(TestRunnerFacade.class);
+			
+			JndiServiceLocator serviceLocator = ServiceLocatorBuilder.buildRemote()
+				.remoteServer("localhost", 14447)
+				.appName("ee-ear-ear")
+				.moduleName("ee-ear-ejb")
+				.createServiceLocator();
+			
+			TestRunnerFacade testRunnerFacade = serviceLocator.lookup(TestRunnerFacade.class);
 			testRunnerFacade.runTestMethodInEjbContext(this.getTestClass().getName(), method.getName(), context);
 			notifier.fireTestFinished(desc);
 		} catch (Throwable t) {

@@ -5,6 +5,14 @@ import java.util.Properties;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 
+import org.jboss.ejb.client.ContextSelector;
+import org.jboss.ejb.client.EJBClientConfiguration;
+import org.jboss.ejb.client.EJBClientContext;
+import org.jboss.ejb.client.PropertiesBasedEJBClientConfiguration;
+import org.jboss.ejb.client.remoting.ConfigBasedEJBClientContextSelector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ch.inftec.ju.util.JuRuntimeException;
 
 /**
@@ -76,11 +84,30 @@ public final class ServiceLocatorBuilder {
 		 */
 		public JndiServiceLocator createServiceLocator() {
 			try {
-				Properties jndiProps = new Properties();
-				jndiProps.put(Context.INITIAL_CONTEXT_FACTORY, "org.jboss.naming.remote.client.InitialContextFactory");
-				jndiProps.put(Context.PROVIDER_URL, String.format("remote://%s:%d", this.host, this.port));
-				// create a context passing these properties
-				Context ctx = new InitialContext(jndiProps);
+				// Set EJB Client API properties programmatically instead of using
+				// jboss-ejb-client.properties file
+				Properties clientProp = new Properties();
+				clientProp.put("remote.connectionprovider.create.options.org.xnio.Options.SSL_ENABLED", "false");
+				clientProp.put("remote.connections", "default");
+				clientProp.put("remote.connection.default.port", Integer.toString(this.port)); // Not working if not a String...
+				clientProp.put("remote.connection.default.host", this.host);
+//				clientProp.put("remote.connection.default.username", "ejbUser");
+//				clientProp.put("remote.connection.default.password", "ejbPassword");
+				clientProp.put("remote.connection.default.connect.options.org.xnio.Options.SASL_POLICY_NOANONYMOUS", "false");
+				 
+				EJBClientConfiguration cc = new PropertiesBasedEJBClientConfiguration(clientProp);
+				ContextSelector<EJBClientContext> selector = new ConfigBasedEJBClientContextSelector(cc);
+				EJBClientContext.setSelector(selector);
+				 
+				Properties props = new Properties();
+				props.put(Context.URL_PKG_PREFIXES, "org.jboss.ejb.client.naming");
+				Context ctx = new InitialContext(props);
+				
+//				Properties jndiProps = new Properties();
+//				jndiProps.put(Context.INITIAL_CONTEXT_FACTORY, "org.jboss.naming.remote.client.InitialContextFactory");
+//				jndiProps.put(Context.PROVIDER_URL, String.format("remote://%s:%d", this.host, this.port));
+//				// create a context passing these properties
+//				Context ctx = new InitialContext(jndiProps);
 				
 				return new JndiServiceLocatorImpl(ctx, this.appName, this.moduleName);
 			} catch (Exception ex) {
@@ -90,6 +117,8 @@ public final class ServiceLocatorBuilder {
 	}
 	
 	private static class JndiServiceLocatorImpl implements JndiServiceLocator {
+		private Logger logger = LoggerFactory.getLogger(ServiceLocatorBuilder.class);
+		
 		private final Context ctx;
 		private final String appName;
 		private final String moduleName;
@@ -102,10 +131,12 @@ public final class ServiceLocatorBuilder {
 
 		@Override
 		public <T> T lookup(String jndiName) {
-			String lookupString = String.format("java:%s/%s/%s"
+			String lookupString = String.format("ejb:%s/%s/%s"
 					, this.appName
 					, this.moduleName
 					, jndiName);
+			
+			logger.debug("JNDI lookup: " + lookupString);
 			
 			try {
 				@SuppressWarnings("unchecked")
