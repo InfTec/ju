@@ -1,11 +1,13 @@
 package ch.inftec.ju.ee.client;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import ch.inftec.ju.ee.test.TestRemote;
 
 public class RemoteServiceLocatorTest {
+	@Ignore("Needs running JBoss")
 	@Test
 	public void canLookup_testFacadeBean() {
 //		RemoteServiceLocator.getFacadeEjb(TestNoInterfaceBean.class);
