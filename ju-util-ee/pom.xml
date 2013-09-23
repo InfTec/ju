@@ -90,12 +90,10 @@
 <!--          <version>${project.version}</version> -->
 <!--        </dependency> -->
 
-       <!-- JBoss EJB client API jar. We use runtime scope because the EJB client API
-        isn't directly used in this example. We just need it in our runtime classpath -->
        <dependency>
            <groupId>org.jboss</groupId>
            <artifactId>jboss-ejb-client</artifactId>
-           <scope>runtime</scope>
+           <optional>true</optional> <!-- Must be included if used as pure client -->
        </dependency>
 
        
