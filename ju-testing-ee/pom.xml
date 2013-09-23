@@ -35,6 +35,10 @@
 			<groupId>${project.groupId}</groupId>
 			<artifactId>ju-testing</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>ju-util-ee</artifactId>
+		</dependency>
 		
 		<dependency>
 	        <groupId>org.jboss.spec</groupId>

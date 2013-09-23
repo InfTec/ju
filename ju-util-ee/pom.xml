@@ -1,0 +1,135 @@
+<?xml version="1.0"?>
+<project
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<artifactId>ju-root</artifactId>
+		<groupId>ch.inftec.ju</groupId>
+		<version>4.0-SNAPSHOT</version>
+	</parent>
+
+	<artifactId>ju-util-ee</artifactId>
+	<name>JU util EE</name>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+	             <groupId>org.jboss.as</groupId>
+	             <artifactId>jboss-as-ejb-client-bom</artifactId>
+	<!--              <version>${version.jboss.as}</version> -->
+				<version>7.2.0.Final</version>
+	             <type>pom</type>
+	             <scope>import</scope>
+	         </dependency>
+	    </dependencies>
+	</dependencyManagement>
+
+	<dependencies>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>ju-util</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<optional>true</optional>
+		</dependency>
+		
+		<!-- Needed by Log4jAppenderModel, imported by slf4j with scope runtime, but we need it to 
+		     build the project. We don't want to include it as a dependency though as not all
+		     project using JU will use the log4j appender
+		-->
+		 
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<optional>true</optional>
+		</dependency>
+		
+		<dependency>
+           <groupId>org.jboss</groupId>
+           <artifactId>jboss-ejb-client</artifactId>
+           <scope>runtime</scope>
+       </dependency>
+       
+       <dependency>
+            <groupId>org.jboss.remoting3</groupId>
+            <artifactId>jboss-remoting</artifactId>
+            <scope>runtime</scope>
+       </dependency>
+       
+       
+       
+       
+       
+              <!-- Import the transaction spec API, we use runtime scope because we aren't using any direct
+        reference to the spec API in our client code -->
+      <dependency>
+         <groupId>org.jboss.spec.javax.transaction</groupId>
+         <artifactId>jboss-transaction-api_1.1_spec</artifactId>
+         <scope>runtime</scope>
+      </dependency>
+
+      <!-- Import the EJB 3.1 API, we use runtime scope because we aren't using any direct
+       reference to EJB spec API in our client code -->
+      <dependency>
+         <groupId>org.jboss.spec.javax.ejb</groupId>
+         <artifactId>jboss-ejb-api_3.1_spec</artifactId>
+         <scope>runtime</scope>
+      </dependency>
+
+<!--        We depend on the EJB remote business interfaces  of this application -->
+<!--        <dependency> -->
+<!--           <groupId>org.jboss.quickstarts.eap</groupId> -->
+<!--           <artifactId>jboss-ejb-remote-server-side</artifactId> -->
+<!--           <type>ejb-client</type> -->
+<!--          <version>${project.version}</version> -->
+<!--        </dependency> -->
+
+       <!-- JBoss EJB client API jar. We use runtime scope because the EJB client API
+        isn't directly used in this example. We just need it in our runtime classpath -->
+       <dependency>
+           <groupId>org.jboss</groupId>
+           <artifactId>jboss-ejb-client</artifactId>
+           <scope>runtime</scope>
+       </dependency>
+
+       <!-- client communications with the server use XNIO -->
+       <dependency>
+           <groupId>org.jboss.xnio</groupId>
+           <artifactId>xnio-api</artifactId>
+           <scope>runtime</scope>
+       </dependency>
+
+       <dependency>
+           <groupId>org.jboss.xnio</groupId>
+           <artifactId>xnio-nio</artifactId>
+           <scope>runtime</scope>
+       </dependency>
+
+      <!-- The client needs JBoss remoting to access the server -->
+       <dependency>
+            <groupId>org.jboss.remoting3</groupId>
+            <artifactId>jboss-remoting</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- Remote EJB accesses can be secured -->
+        <dependency>
+            <groupId>org.jboss.sasl</groupId>
+            <artifactId>jboss-sasl</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- data serialization for invoking remote EJBs -->
+        <dependency>
+            <groupId>org.jboss.marshalling</groupId>
+            <artifactId>jboss-marshalling-river</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+		
+	</dependencies>
+</project>

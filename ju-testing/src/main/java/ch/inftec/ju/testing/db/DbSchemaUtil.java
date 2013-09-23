@@ -117,7 +117,7 @@ public class DbSchemaUtil {
 			public void execute(DataSource ds) {
 				Flyway flyway = new Flyway();
 				flyway.setDataSource(ds);
-				flyway.clean();
+				flyway.clean(); // FIXME: Try Liquibase.dropAll()
 			}
 		});
 	}
