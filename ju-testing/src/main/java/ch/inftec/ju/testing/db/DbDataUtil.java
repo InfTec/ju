@@ -216,6 +216,10 @@ public class DbDataUtil {
 		}
 	}
 	
+	/**
+	 * Shortcut to execute a clean import from a dataset resource file.
+	 * @param resourcePath Path to dataset resource
+	 */
 	public void cleanImport(String resourcePath) {
 		this.buildImport().from(resourcePath).executeCleanInsert();
 	}
