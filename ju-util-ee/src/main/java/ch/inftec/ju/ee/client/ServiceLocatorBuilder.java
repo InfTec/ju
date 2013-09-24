@@ -1,7 +1,13 @@
 package ch.inftec.ju.ee.client;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 
+import javax.enterprise.context.spi.CreationalContext;
+import javax.enterprise.inject.spi.Bean;
+import javax.enterprise.inject.spi.BeanManager;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 
@@ -30,6 +36,15 @@ public final class ServiceLocatorBuilder {
 	 */
 	public static RemoteServiceLocatorBuilder buildRemote() {
 		return new RemoteServiceLocatorBuilder();
+	}
+	
+	/**
+	 * Gets a builder to create a new Local ServiceLocator, i.e. a ServiceLocator
+	 * that will perform local JNDI and CDI lookups.
+	 * @return Builder instance
+	 */
+	public static LocalServiceLocatorBuilder buildLocal() {
+		return new LocalServiceLocatorBuilder();
 	}
 	
 	/**
@@ -109,43 +124,101 @@ public final class ServiceLocatorBuilder {
 //				// create a context passing these properties
 //				Context ctx = new InitialContext(jndiProps);
 				
-				return new JndiServiceLocatorImpl(ctx, this.appName, this.moduleName);
+				return new RemoteServiceLocatorImpl(ctx, this.appName, this.moduleName);
 			} catch (Exception ex) {
 				throw new JuRuntimeException("Couldn't create ServiceLocator", ex);
 			}
 		}
 	}
 	
-	private static class JndiServiceLocatorImpl implements JndiServiceLocator {
-		private Logger logger = LoggerFactory.getLogger(ServiceLocatorBuilder.class);
+	/**
+	 * Helper class to build local ServiceLocator instances
+	 * @author Martin
+	 *
+	 */
+	public static class LocalServiceLocatorBuilder {
+		private String moduleName;
+		
+		/**
+		 * Sets the module name. This is usually the name of the EJB jar that contains
+		 * the EJB bean without the .jar suffix, e.g. 'test' for test.jar
+		 * <p>
+		 * Is used to look up remote interfaces in the same (local) app.
+		 * @param moduleName Module name
+		 * @return This builder to allow for chaining
+		 */
+		public LocalServiceLocatorBuilder moduleName(String moduleName) {
+			this.moduleName = moduleName;
+			return this;
+		}
+		
+		/**
+		 * Creates a new LocalServiceLocatorBuilder instance with the attributes specified
+		 * to the builder.
+		 * @return ServiceLocator instance
+		 */
+		public ServiceLocator createServiceLocator() {
+			return new LocalServiceLocatorImpl(this.moduleName);
+		}
+	}
+		
+	
+	private static abstract class AbstractJndiServiceLocator implements JndiServiceLocator {
+		protected Logger logger = LoggerFactory.getLogger(this.getClass());
 		
 		private final Context ctx;
-		private final String appName;
-		private final String moduleName;
 		
-		public JndiServiceLocatorImpl(Context ctx, String appName, String moduleName) {
+		protected AbstractJndiServiceLocator(Context ctx) {
 			this.ctx = ctx;
-			this.appName = appName;
-			this.moduleName = moduleName;
 		}
-
+		
+		/**
+		 * Gets the absolute JNDI name (i.e. the JNDI name that will actually be used
+		 * for the lookup) based on the submitted relative JNDI name.
+		 * <p>
+		 * The default implementation just returns the same JNDI
+		 * @param jndiName (Relative) JNDI name
+		 * @return Absolute JNDI name used to perform the lookup
+		 */
+		protected String getAbsoluteJndiName(String jndiName) {
+			return jndiName;
+		}
+		
 		@Override
 		public <T> T lookup(String jndiName) {
-			String lookupString = String.format("ejb:%s/%s/%s"
-					, this.appName
-					, this.moduleName
-					, jndiName);
-			
-			logger.debug("JNDI lookup: " + lookupString);
+			String absoluteJndiName = this.getAbsoluteJndiName(jndiName);
+			logger.debug(String.format("JNDI lookup (relative: %s, absolute: %s)", jndiName, absoluteJndiName));
 			
 			try {
 				@SuppressWarnings("unchecked")
-				T obj = (T) this.ctx.lookup(lookupString);
+				T obj = (T) this.ctx.lookup(absoluteJndiName);
 				
 				return obj;
 			} catch (Exception ex) {
 				throw new JuRuntimeException(ex);
 			}
+		}
+	}
+	
+	private static class RemoteServiceLocatorImpl extends AbstractJndiServiceLocator {
+		private final String appName;
+		private final String moduleName;
+		
+		public RemoteServiceLocatorImpl(Context ctx, String appName, String moduleName) {
+			super(ctx);
+
+			this.appName = appName;
+			this.moduleName = moduleName;
+		}
+
+		@Override
+		protected String getAbsoluteJndiName(String jndiName) {
+			String absoluteJndiName = String.format("ejb:%s/%s/%s"
+					, this.appName
+					, this.moduleName
+					, jndiName);
+			
+			return absoluteJndiName;
 		}
 		
 		@Override
@@ -155,6 +228,70 @@ public final class ServiceLocatorBuilder {
 					, clazz.getName());
 			
 			return this.lookup(lookupString);
+		}
+	}
+	
+	private static class LocalServiceLocatorImpl extends AbstractJndiServiceLocator implements ServiceLocator {
+		private static final String JNDI_NAME_BEAN_MANAGER = "java:comp/BeanManager";
+		
+		private final String moduleName;
+		private BeanManager bm;
+		
+		private LocalServiceLocatorImpl(String moduleName) {
+			super(createInitialContext());
+
+			this.moduleName = moduleName == null ? "" : moduleName;
+			this.bm = this.lookup(JNDI_NAME_BEAN_MANAGER);
+		}
+		
+		private static Context createInitialContext() {
+			try {
+				return new InitialContext();
+			} catch (Exception ex) {
+				throw new JuRuntimeException("Couldn't create InitialContext", ex);
+			}
+		}
+
+		@Override
+		public <T> T lookup(Class<T> clazz) {
+//			java:global/ee-ear-ear/ee-ear-ejb/TestLocalBean!ch.inftec.ju.ee.test.TestLocal
+//			java:app/ee-ear-ejb/TestLocalBean!ch.inftec.ju.ee.test.TestLocal
+//			java:module/TestLocalBean!ch.inftec.ju.ee.test.TestLocal
+//			java:global/ee-ear-ear/ee-ear-ejb/TestLocalBean
+//			java:app/ee-ear-ejb/TestLocalBean
+//			java:module/TestLocalBean
+			
+			String jndiName = String.format("java:app/%s/%s!%s"
+					, this.moduleName
+					, clazz.getSimpleName() + "Bean"
+					, clazz.getName());
+			
+			return this.lookup(jndiName);
+		}
+
+		@Override
+		public <T> T cdi(Class<T> clazz) {
+			Set<Bean<?>> beans = this.bm.getBeans(clazz);
+			List<T> instances = this.getInstances(beans, clazz);
+			if (instances.size() != 1) {
+				throw new JuRuntimeException("Expected exactly one result for CDI lookup of " + clazz);
+			} else {
+				return instances.get(0);
+			}
+		}
+		
+		private <T> List<T> getInstances(Set<Bean<?>> beans, Class<T> clazz) {
+			List<T> instances = new ArrayList<>();
+			for (Bean<?> bean : beans) {
+				CreationalContext<?> cont = this.bm.createCreationalContext(bean);
+				
+				@SuppressWarnings("unchecked")
+				T t = (T) this.bm.getReference(bean, clazz, cont);
+				
+				instances.add(t);
+			}
+			
+			return instances;
 		}
 	}
 }

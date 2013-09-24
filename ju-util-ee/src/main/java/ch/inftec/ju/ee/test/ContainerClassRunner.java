@@ -12,7 +12,6 @@ import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
 
 import ch.inftec.ju.ee.client.JndiServiceLocator;
-import ch.inftec.ju.ee.client.RemoteServiceLocator;
 import ch.inftec.ju.ee.client.ServiceLocatorBuilder;
 import ch.inftec.ju.ee.test.TestRunnerFacade.TestRunnerContext;
 

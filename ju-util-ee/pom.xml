@@ -81,6 +81,13 @@
          <artifactId>jboss-ejb-api_3.1_spec</artifactId>
          <scope>provided</scope>
       </dependency>
+      
+      <!-- Import the CDI API, we use provided scope as the API is included in JBoss AS 7 -->
+      <dependency>
+            <groupId>javax.enterprise</groupId>
+            <artifactId>cdi-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
 
 <!--        We depend on the EJB remote business interfaces  of this application -->
 <!--        <dependency> -->
