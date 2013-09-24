@@ -9,9 +9,8 @@ import javax.ejb.TransactionAttributeType;
 
 import org.jboss.logging.Logger;
 
-// TODO: Add common base class for EJB3 Beans
 public class TestRunnerFacadeBean implements TestRunnerFacade {
-	private static Logger _log = Logger.getLogger(TestRunnerFacadeBean.class);
+	private static Logger logger = Logger.getLogger(TestRunnerFacadeBean.class);
 	
 	@Resource
 	private EJBContext ctx;
@@ -22,7 +21,7 @@ public class TestRunnerFacadeBean implements TestRunnerFacade {
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
 	public void runTestMethodInEjbContext(String className, String methodName, TestRunnerContext context) throws Exception {
-		_log.debug(String.format("Running Test %s.%s()", className, methodName));
+		logger.debug(String.format("Running Test %s.%s()", className, methodName));
 //		this.dateProvider.resetProvider();
 		
 		try {
@@ -34,10 +33,15 @@ public class TestRunnerFacadeBean implements TestRunnerFacade {
 				((ContextAware) instance).setContext(context);
 			}
 			
+			// Try to call the init method (if the class implements Initializable)
+			if (Initializable.class.isAssignableFrom(clazz)) {
+				((Initializable) instance).init();
+			}
+			
 			Method method = clazz.getMethod(methodName);
 			method.invoke(instance);
 		} finally {
-			_log.debug("Rolling back changes");
+			logger.debug("Rolling back changes");
 			this.ctx.setRollbackOnly();
 		}
 	}

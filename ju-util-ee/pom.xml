@@ -32,76 +32,79 @@
 			<groupId>${project.groupId}</groupId>
 			<artifactId>ju-util</artifactId>
 		</dependency>
-
+	
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<optional>true</optional>
 		</dependency>
-		
-		<!-- Needed by Log4jAppenderModel, imported by slf4j with scope runtime, but we need it to 
-		     build the project. We don't want to include it as a dependency though as not all
-		     project using JU will use the log4j appender
-		-->
-		 
+	
+		<!-- Needed by Log4jAppenderModel, imported by slf4j with scope runtime, 
+			but we need it to build the project. We don't want to include it as a dependency 
+			though as not all project using JU will use the log4j appender -->
+	
 		<dependency>
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
 			<optional>true</optional>
 		</dependency>
-		
+	
 		<dependency>
-           <groupId>org.jboss</groupId>
-           <artifactId>jboss-ejb-client</artifactId>
-           <scope>runtime</scope>
-       </dependency>
-       
-       <dependency>
-            <groupId>org.jboss.remoting3</groupId>
-            <artifactId>jboss-remoting</artifactId>
-            <scope>runtime</scope>
-       </dependency>
-       
-       
-       
-       
-       
-              <!-- Import the transaction spec API, we use runtime scope because we aren't using any direct
-        reference to the spec API in our client code -->
-      <dependency>
-         <groupId>org.jboss.spec.javax.transaction</groupId>
-         <artifactId>jboss-transaction-api_1.1_spec</artifactId>
-         <scope>runtime</scope>
-      </dependency>
-
-      <!-- Import the EJB 3.1 API. We'll use provided as this has to be provided by
-           a container anyway -->
-      <dependency>
-         <groupId>org.jboss.spec.javax.ejb</groupId>
-         <artifactId>jboss-ejb-api_3.1_spec</artifactId>
-         <scope>provided</scope>
-      </dependency>
-      
-      <!-- Import the CDI API, we use provided scope as the API is included in JBoss AS 7 -->
-      <dependency>
-            <groupId>javax.enterprise</groupId>
-            <artifactId>cdi-api</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
-<!--        We depend on the EJB remote business interfaces  of this application -->
-<!--        <dependency> -->
-<!--           <groupId>org.jboss.quickstarts.eap</groupId> -->
-<!--           <artifactId>jboss-ejb-remote-server-side</artifactId> -->
-<!--           <type>ejb-client</type> -->
-<!--          <version>${project.version}</version> -->
-<!--        </dependency> -->
-
-       <dependency>
-           <groupId>org.jboss</groupId>
-           <artifactId>jboss-ejb-client</artifactId>
-           <optional>true</optional> <!-- Must be included if used as pure client -->
-       </dependency>
+			<groupId>org.jboss</groupId>
+			<artifactId>jboss-ejb-client</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+	
+		<dependency>
+			<groupId>org.jboss.remoting3</groupId>
+			<artifactId>jboss-remoting</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+	
+		<!-- Import the transaction spec API, we use runtime scope because we aren't 
+			using any direct reference to the spec API in our client code -->
+		<dependency>
+			<groupId>org.jboss.spec.javax.transaction</groupId>
+			<artifactId>jboss-transaction-api_1.1_spec</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+	
+		<!-- Import the EJB 3.1 API. We'll use provided as this has to be provided 
+			by a container anyway -->
+		<dependency>
+			<groupId>org.jboss.spec.javax.ejb</groupId>
+			<artifactId>jboss-ejb-api_3.1_spec</artifactId>
+			<scope>provided</scope>
+		</dependency>
+	
+		<!-- Import the CDI API, we use provided scope as the API is included in 
+			JBoss AS 7 -->
+		<dependency>
+			<groupId>javax.enterprise</groupId>
+			<artifactId>cdi-api</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<!-- Import the JPA API, we use provided scope as the API is included in 
+			JBoss AS 7 -->
+		<dependency>
+			<groupId>org.hibernate.javax.persistence</groupId>
+			<artifactId>hibernate-jpa-2.0-api</artifactId>
+			<scope>provided</scope>
+		</dependency>
+	
+		<!-- We depend on the EJB remote business interfaces of this application -->
+		<!-- <dependency> -->
+		<!-- <groupId>org.jboss.quickstarts.eap</groupId> -->
+		<!-- <artifactId>jboss-ejb-remote-server-side</artifactId> -->
+		<!-- <type>ejb-client</type> -->
+		<!-- <version>${project.version}</version> -->
+		<!-- </dependency> -->
+	
+		<dependency>
+			<groupId>org.jboss</groupId>
+			<artifactId>jboss-ejb-client</artifactId>
+			<optional>true</optional> <!-- Must be included if used as pure client -->
+		</dependency>
 
        
 <!--        <dependency> -->

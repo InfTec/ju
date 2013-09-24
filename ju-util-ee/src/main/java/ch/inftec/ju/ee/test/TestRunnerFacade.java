@@ -61,4 +61,19 @@ public interface TestRunnerFacade {
 		 */
 		void setContext(TestRunnerContext context);
 	}
+	
+	/**
+	 * Interfaces for classes that would like to be initialized before the test method is run
+	 * (some functionality as a @Before method would provide).
+	 * @author Martin
+	 *
+	 */
+	public interface Initializable {
+		/**
+		 * Initializer method that is called before the unit test is executed.
+		 * <p>
+		 * The method will be called within the same EJB / transaction context as the test method
+		 */
+		void init();
+	}
 }
