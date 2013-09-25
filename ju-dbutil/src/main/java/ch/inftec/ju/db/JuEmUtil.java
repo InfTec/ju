@@ -67,6 +67,9 @@ public class JuEmUtil {
 	 * @param work Work callback interface
 	 */
 	public void doWork(Work work) {
+		// Flush the EntityManager to make sure we have all entities available
+		this.em.flush();
+		
 		Session session = this.em.unwrap(Session.class);
 		session.doWork(work);
 	}
@@ -80,6 +83,9 @@ public class JuEmUtil {
 	 * @param work DsWork callback interface
 	 */
 	public void doWork(DsWork work) {
+		// Flush the EntityManager to make sure we have all entities available
+		this.em.flush();
+				
 		HibernateEntityManagerFactory factory = (HibernateEntityManagerFactory) this.em.unwrap(EntityManagerImpl.class).getEntityManagerFactory();
 		SessionFactoryImpl sessionFactory = (SessionFactoryImpl) factory.getSessionFactory();
 		

@@ -2,6 +2,7 @@ package ch.inftec.ju.testing.db;
 
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Proxy;
 import java.net.URL;
@@ -17,15 +18,20 @@ import javax.persistence.EntityManager;
 import org.dbunit.Assertion;
 import org.dbunit.DatabaseUnitException;
 import org.dbunit.database.AmbiguousTableNameException;
+import org.dbunit.database.DatabaseConfig;
 import org.dbunit.database.DatabaseConnection;
+import org.dbunit.database.DefaultMetadataHandler;
 import org.dbunit.database.IDatabaseConnection;
+import org.dbunit.database.IMetadataHandler;
 import org.dbunit.database.QueryDataSet;
+import org.dbunit.dataset.DataSetException;
 import org.dbunit.dataset.IDataSet;
 import org.dbunit.dataset.datatype.DefaultDataTypeFactory;
 import org.dbunit.dataset.xml.FlatXmlDataSet;
 import org.dbunit.dataset.xml.FlatXmlDataSetBuilder;
 import org.dbunit.ext.h2.H2DataTypeFactory;
 import org.dbunit.ext.mysql.MySqlDataTypeFactory;
+import org.dbunit.ext.mysql.MySqlMetadataHandler;
 import org.dbunit.ext.oracle.Oracle10DataTypeFactory;
 import org.dbunit.operation.DatabaseOperation;
 import org.hibernate.jdbc.Work;
@@ -111,6 +117,7 @@ public class DbDataUtil {
 
 		// Initialize
 		DefaultDataTypeFactory dataTypeFactory = null;
+		IMetadataHandler metadataHandler = new DefaultMetadataHandler();
 		switch (this.emUtil.getDbType()) {
 		case DERBY:
 			dataTypeFactory = new DefaultDataTypeFactory();
@@ -120,6 +127,7 @@ public class DbDataUtil {
 			break;
 		case MYSQL:
 			dataTypeFactory = new MySqlDataTypeFactory();
+			metadataHandler = new MySqlMetadataHandler();
 			break;
 		case ORACLE:
 			this.setSchema(this.emUtil.getMetaDataUserName());
@@ -129,27 +137,52 @@ public class DbDataUtil {
 			throw new JuDbException("Unsupported DB: " + this.emUtil.getDbType());
 		}
 		
-		this.setConfigProperty("http://www.dbunit.org/properties/datatypeFactory", dataTypeFactory);
+		this.setConfigProperty(DatabaseConfig.PROPERTY_DATATYPE_FACTORY, dataTypeFactory);
+		this.setConfigProperty(DatabaseConfig.PROPERTY_METADATA_HANDLER, metadataHandler);
+	}
+	
+	/**
+	 * Loads the default test data (Player, Team, TestingEntity...), creating the
+	 * DB Schema as well.
+	 */
+	public void prepareDefaultTestData() {
+		this.prepareDefaultTestData(false, false, true);
 	}
 	
 	/**
 	 * Loads the default test data (Player, Team, TestingEntity, ...), making
 	 * sure that the tables have been created using Liquibase.
-	 * <p>
-	 * A persistence unit that supports the default entities is 
+	 * @param emptyTables If true, the default tables will be cleaned
+	 * @param resetSequences If true, sequences (or identity columns) will be reset to 1
+	 * @param createSchema If true, the Schema will be created (or verified) using Liquibase
 	 */
-	public void loadDefaultTestData() {
-		DbSchemaUtil du = new DbSchemaUtil(this.emUtil);
-		du.runLiquibaseChangeLog("ju-testing/data/default-changeLog.xml");
-		this.buildImport().from("/ju-testing/data/default-fullData.xml").executeCleanInsert();
+	public void prepareDefaultTestData(boolean emptyTables, boolean resetSequences, boolean createSchema) {
+		if (createSchema) {
+			DbSchemaUtil su = new DbSchemaUtil(this.emUtil);
+			su.runLiquibaseChangeLog("ju-testing/data/default-changeLog.xml");
+			
+			// For non-MySQL DBs, we also need to create the hibernate_sequence sequence...
+			if (this.emUtil.getDbType() != DbType.MYSQL) {
+				su.runLiquibaseChangeLog("ju-testing/data/default-changeLog-hibernateSequence.xml");
+			}
+		}
+		
+		ImportBuilder fullData = this.buildImport().from("/ju-testing/data/default-fullData.xml");
+		if (emptyTables) {
+			fullData.executeDeleteAll();
+		} else {
+			fullData.executeCleanInsert();
+		}
 		
 		// Load TIMEFIELD for non-oracle DBs
-		if (this.emUtil.getDbType() != DbType.ORACLE) {
+		if (this.emUtil.getDbType() != DbType.ORACLE && !emptyTables) {
 			this.buildImport().from("/ju-testing/data/default-fullData-dataTypes.xml").executeUpdate();
-		} else {
-			// For Oracle, we also need to create the hibernate_sequence sequence...
-			du.runLiquibaseChangeLog("ju-testing/data/default-changeLog-hibernateSequence.xml");
 		}
+		
+		if (resetSequences) {
+			this.emUtil.resetIdentityGenerationOrSequences(1);
+		}
+		
 	}
 	
 	/**
@@ -330,7 +363,7 @@ public class DbDataUtil {
 				@Override
 				public void execute(IDatabaseConnection conn) {
 					if (exportItems.size() > 0) {
-						QueryDataSet dataSet = new QueryDataSet(conn);
+						QueryDataSet dataSet = new QueryDataSet(conn, false);
 						for (ExportItem item : exportItems) {
 							item.addToQueryDataSet(dataSet);
 						}
@@ -360,7 +393,7 @@ public class DbDataUtil {
 				public void execute(IDataSet dataSet) {
 					try {
 						XmlOutputConverter xmlConv = new XmlOutputConverter();
-						FlatXmlDataSet.write(dataSet, xmlConv.getOutputStream());
+						ExportBuilder.writeToXml(dataSet, xmlConv.getOutputStream());
 						doc.setValue(xmlConv.getDocument());
 					} catch (Exception ex) {
 						throw new JuDbException("Couldn't write DB data to XML document", ex);
@@ -383,7 +416,7 @@ public class DbDataUtil {
 					 @Override
 					public void execute(IDataSet dataSet) {
 						try {
-							FlatXmlDataSet.write(dataSet, stream);
+							ExportBuilder.writeToXml(dataSet, stream);
 						} catch (Exception ex) {
 							throw new JuDbException("Couldn't write DB data to file " + fileName, ex);
 						}
@@ -420,6 +453,19 @@ public class DbDataUtil {
 				}
 			}
 		}
+		
+		/**
+		 * Custom implementation of FlatXmlDataSet.write so we can enforce column casing
+		 * @param dataSet
+		 * @param out
+		 * @throws IOException
+		 * @throws DataSetException
+		 */
+		private static void writeToXml(IDataSet dataSet, OutputStream out) throws IOException, DataSetException {
+			CaseAwareFlatXmlWriter datasetWriter = new CaseAwareFlatXmlWriter(out);
+	        datasetWriter.setIncludeEmptyTable(true);
+	        datasetWriter.write(dataSet);
+		}
 	}
 	
 	/**
@@ -436,7 +482,9 @@ public class DbDataUtil {
 		}
 		
 		/**
-		 * Imports DB data from the specified XML
+		 * Imports DB data from the specified XML.
+		 * <p>
+		 * Only one 'from' is possible per import.
 		 * @param resourcePath Resource path, either absolute or relative to the current class
 		 * @return ImportBuilder
 		 */
@@ -453,6 +501,7 @@ public class DbDataUtil {
 			try {
 				flatXmlDataSet = new FlatXmlDataSetBuilder()
 					.setColumnSensing(true)
+					.setCaseSensitiveTableNames(false)
 					.build(xmlUrl);
 				return this;
 			} catch (Exception ex) {

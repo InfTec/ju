@@ -10,6 +10,7 @@ import javax.persistence.EntityManager;
 import org.jboss.logging.Logger;
 import org.junit.runner.RunWith;
 
+import ch.inftec.ju.db.JuEmUtil;
 import ch.inftec.ju.ee.client.ServiceLocator;
 import ch.inftec.ju.ee.client.ServiceLocatorBuilder;
 import ch.inftec.ju.ee.test.TestRunnerFacade.TestRunnerContext;
@@ -36,6 +37,11 @@ public class ContainerTest implements TestRunnerFacade.ContextAware, TestRunnerF
      * EntityManager provided by the container.
      */
     protected EntityManager em;
+    
+    /**
+     * JuEmUtil instance wrapped around the EntityManager.
+     */
+    protected JuEmUtil emUtil;
 
     /**
      * ServiceLocator instance that can be used to lookup JNDI or CDI objects on the server.
@@ -53,6 +59,7 @@ public class ContainerTest implements TestRunnerFacade.ContextAware, TestRunnerF
 	public final void init() {
 		this.serviceLocator = ServiceLocatorBuilder.buildLocal().createServiceLocator();
 		this.em = this.serviceLocator.cdi(EntityManager.class);
+		this.emUtil = new JuEmUtil(this.em);
 		
 		this.doInit();
 	}

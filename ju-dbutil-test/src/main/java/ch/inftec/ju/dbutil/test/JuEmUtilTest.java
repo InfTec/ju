@@ -51,7 +51,7 @@ public class JuEmUtilTest extends AbstractDbTest {
 	
 	@Test
 	public void canResetIdentityGeneration_orSequences() {
-		new DbDataUtil(this.emUtil).loadDefaultTestData();
+		new DbDataUtil(this.emUtil).prepareDefaultTestData();
 		
 		// Try to set identity generation to 10
 		this.emUtil.resetIdentityGenerationOrSequences(10);

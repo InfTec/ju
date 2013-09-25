@@ -21,18 +21,18 @@ public class DefaultTestDataTest extends AbstractDbTest {
 	
 	@Test
 	public void defaultTestData_canBeLoaded() {
-		new DbDataUtil(this.em).loadDefaultTestData();
+		new DbDataUtil(this.em).prepareDefaultTestData();
 	}
 	
 	@Test
 	public void defaultTestData_canBeLoadedTwice() {
-		new DbDataUtil(this.em).loadDefaultTestData();
-		new DbDataUtil(this.em).loadDefaultTestData();
+		new DbDataUtil(this.em).prepareDefaultTestData();
+		new DbDataUtil(this.em).prepareDefaultTestData();
 	}
 	
 	@Test
 	public void canRead_allDataTypes_fromDefaultTestData() throws ParseException {
-		new DbDataUtil(this.em).loadDefaultTestData();
+		new DbDataUtil(this.em).prepareDefaultTestData();
 		
 		DataTypes dt1 = this.em.find(DataTypes.class, 1L);
 		
@@ -55,7 +55,7 @@ public class DefaultTestDataTest extends AbstractDbTest {
 	
 	@Test
 	public void canRead_allNullValues_fromDefaultTestData() throws ParseException {
-		new DbDataUtil(this.em).loadDefaultTestData();
+		new DbDataUtil(this.em).prepareDefaultTestData();
 		
 		DataTypes dt2 = this.em.find(DataTypes.class, 2L);
 		
