@@ -71,7 +71,7 @@ public class DbDataUtilTest extends DefaultContextAbstractBaseDbTest {
 		
 		XPathGetter xg = new XPathGetter(doc);
 		Assert.assertEquals(1, xg.getSingleLong("count(//TestingEntity)").intValue());
-		Assert.assertEquals(2, xg.getSingleLong("//TestingEntity/@ID").intValue());
+		Assert.assertEquals(2, xg.getSingleLong("//TestingEntity/@id").intValue());
 	}
 	
 	@Test
@@ -87,9 +87,9 @@ public class DbDataUtilTest extends DefaultContextAbstractBaseDbTest {
 			.writeToXmlDocument();
 		
 		XPathGetter xg = new XPathGetter(doc);
-		Assert.assertEquals(1, xg.getSingleLong("//TestingEntity[1]/@ID").intValue());
-		Assert.assertEquals(2, xg.getSingleLong("//TestingEntity[2]/@ID").intValue());
-		Assert.assertEquals(3, xg.getSingleLong("//TestingEntity[3]/@ID").intValue());
+		Assert.assertEquals(1, xg.getSingleLong("//TestingEntity[1]/@id").intValue());
+		Assert.assertEquals(2, xg.getSingleLong("//TestingEntity[2]/@id").intValue());
+		Assert.assertEquals(3, xg.getSingleLong("//TestingEntity[3]/@id").intValue());
 	}
 	
 	/**
