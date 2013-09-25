@@ -165,7 +165,8 @@ public class JuEmUtil {
 	}
 	
 	/**
-	 * Gets a list of all table names of the DB. Table names are all upper case.
+	 * Gets a list of all table names of the DB. Table names are returned the way the DB driver
+	 * returns them, which may be lower, mixed or upper case.
 	 * @return List of Table names
 	 * @throws JuDbException If the list cannot be evaluated
 	 */
@@ -183,7 +184,7 @@ public class JuEmUtil {
 				
 				List<String> tableNames = new ArrayList<>();
 				while (rs.next()) {
-					String tableName = rs.getString("TABLE_NAME").toUpperCase();
+					String tableName = rs.getString("TABLE_NAME");
 					// We check if the TableName already exists in the list as
 					// Oracle seems to return the same table names multiple times on some
 					// Schemas...
@@ -210,10 +211,13 @@ public class JuEmUtil {
 	 * @return List of all columns that make up the primary key. If no primary key is applied, an empty list is returned.
 	 */
 	public List<String> getPrimaryKeyColumns(final String tableName) {
+		final String actualTableName = this.getDbType().getDbSpecificHandler(this).convertTableNameCasing(tableName);
+		
 		List<String> columnNames = this.extractDatabaseMetaData(new DatabaseMetaDataCallback<List<String>>() {
 			@Override
 			public List<String> processMetaData(DatabaseMetaData dbmd) throws SQLException {
-				ResultSet rs = dbmd.getPrimaryKeys(null, null, tableName.toUpperCase());
+				
+				ResultSet rs = dbmd.getPrimaryKeys(null, null, actualTableName);
 				
 				List<String> columnNames = new ArrayList<>();
 				while (rs.next()) {
@@ -368,7 +372,12 @@ public class JuEmUtil {
 	public enum DbType {
 		DERBY,
 		H2,
-		MYSQL,
+		MYSQL {
+			@Override
+			protected DbSpecificHandler getDbSpecificHandler(JuEmUtil emUtil) {
+				return new DbSpecificHandlerMySql(emUtil);
+			}
+		},
 		ORACLE;
 		
 		private static DbType evaluateDbType(String productName) {
@@ -383,6 +392,10 @@ public class JuEmUtil {
 			} else {
 				throw new JuDbException("Unknown DB. Product name: " + productName);
 			}
+		}
+		
+		protected DbSpecificHandler getDbSpecificHandler(JuEmUtil emUtil) {
+			return new DbSpecificHandlerDefault(emUtil);
 		}
 	}
 	
