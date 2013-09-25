@@ -66,4 +66,24 @@ public class JuEmUtilTest extends AbstractDbTest {
 		this.em.persist(te2);
 		Assert.assertEquals(new Long(1L), te2.getId());
 	}
+	
+	@Test
+	public void canEvaluate_primaryKeyColumnName_withSingleColumn() {
+		new DbDataUtil(this.emUtil).prepareDefaultTestData();
+		
+		List<String> primaryKeyColumns = this.emUtil.getPrimaryKeyColumns("TestingEntity");
+		Assert.assertEquals(1, primaryKeyColumns.size());
+		Assert.assertEquals("id", primaryKeyColumns.get(0).toLowerCase());
+	}
+	
+	@Test
+	public void canEvaluate_primaryKeyColumnName_withMultipleColumns() {
+		new DbDataUtil(this.emUtil).prepareDefaultTestData();
+		
+		List<String> primaryKeyColumns = this.emUtil.getPrimaryKeyColumns("Team_Player");
+		Assert.assertEquals(2, primaryKeyColumns.size());
+		Assert.assertEquals("players_id", primaryKeyColumns.get(0).toLowerCase());
+		Assert.assertEquals("teams_id", primaryKeyColumns.get(1).toLowerCase());
+	}
+	
 }

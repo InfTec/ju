@@ -48,10 +48,10 @@ public class JuEmfUtil {
 		private String user;
 		private String password;
 		
-		private String hostName;
-		private String dbName;
-		
-		private String driverClass;
+//		private String hostName;
+//		private String dbName;
+//		
+//		private String driverClass;
 		
 		public JuEmfUtilBuilder persistenceUnitName(String persistenceUnitName) {
 			this.persistenceUnitName = persistenceUnitName;

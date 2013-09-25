@@ -130,7 +130,7 @@ public class DbDataUtilTest extends AbstractDbTest {
 		
 		// Export table with camel case
 		Document doc = du.buildExport()
-			.addTablesByDataSet("/ch/inftec/ju/testing/db/DbDataUtilTest_testingEntity.xml")
+			.addTablesByDataSet("/ch/inftec/ju/testing/db/DbDataUtilTest_testingEntity.xml", false)
 			.writeToXmlDocument();
 		
 		XPathGetter xg = new XPathGetter(doc);
@@ -138,5 +138,47 @@ public class DbDataUtilTest extends AbstractDbTest {
 		
 		Assert.assertEquals(1, xg.getArray("//TestingEntity").length);
 		Assert.assertEquals("Export Test", xg.getSingle("//TestingEntity/@name"));
+	}
+	
+	@Test
+	public void exportTables_areSortedByPrimaryKey() {
+		DbDataUtil du = new DbDataUtil(this.em);
+		du.prepareDefaultTestData(true, true, true);
+		
+		du.cleanImport("/ch/inftec/ju/testing/db/DbDataUtilTest_testingEntity_unsorted.xml");
+		
+		// Export table with camel case
+		Document doc = du.buildExport()
+			.addTableSorted("TestingEntity")
+			.writeToXmlDocument();
+		
+		XPathGetter xg = new XPathGetter(doc);
+		logger.debug("Exported XML\n" + XmlUtils.toString(doc, false, true));
+		
+		Assert.assertEquals(3, xg.getArray("//TestingEntity").length);
+		Assert.assertEquals("1", xg.getSingle("//TestingEntity[1]/@id"));
+		Assert.assertEquals("2", xg.getSingle("//TestingEntity[2]/@id"));
+		Assert.assertEquals("3", xg.getSingle("//TestingEntity[3]/@id"));
+	}
+	
+	@Test
+	public void exportTables_basedOnDatasetXml_areSortedByPrimaryKey() {
+		DbDataUtil du = new DbDataUtil(this.em);
+		du.prepareDefaultTestData(true, true, true);
+		
+		du.cleanImport("/ch/inftec/ju/testing/db/DbDataUtilTest_testingEntity_unsorted.xml");
+		
+		// Export table with camel case
+		Document doc = du.buildExport()
+			.addTablesByDataSet("/ch/inftec/ju/testing/db/DbDataUtilTest_testingEntity.xml", true)
+			.writeToXmlDocument();
+		
+		XPathGetter xg = new XPathGetter(doc);
+		logger.debug("Exported XML\n" + XmlUtils.toString(doc, false, true));
+		
+		Assert.assertEquals(3, xg.getArray("//TestingEntity").length);
+		Assert.assertEquals("1", xg.getSingle("//TestingEntity[1]/@id"));
+		Assert.assertEquals("2", xg.getSingle("//TestingEntity[2]/@id"));
+		Assert.assertEquals("3", xg.getSingle("//TestingEntity[3]/@id"));
 	}
 }

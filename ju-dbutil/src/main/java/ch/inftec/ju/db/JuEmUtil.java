@@ -201,6 +201,32 @@ public class JuEmUtil {
 		
 		return tableNames;		
 	}
+
+	/**
+	 * Gets a list of the primery key columns for the specified table
+	 * <p>
+	 * Column names are kept the way the driver returns them (may be upper, lower or mixed case)
+	 * @param tableName Table name
+	 * @return List of all columns that make up the primary key. If no primary key is applied, an empty list is returned.
+	 */
+	public List<String> getPrimaryKeyColumns(final String tableName) {
+		List<String> columnNames = this.extractDatabaseMetaData(new DatabaseMetaDataCallback<List<String>>() {
+			@Override
+			public List<String> processMetaData(DatabaseMetaData dbmd) throws SQLException {
+				ResultSet rs = dbmd.getPrimaryKeys(null, null, tableName.toUpperCase());
+				
+				List<String> columnNames = new ArrayList<>();
+				while (rs.next()) {
+					columnNames.add(rs.getString("COLUMN_NAME"));
+				}
+				rs.close();
+				
+				return columnNames;
+			}
+		});
+		
+		return columnNames;		
+	}
 	
 	/**
 	 * Gets a list of all sequence names of the DB. Sequences names are all upper case.

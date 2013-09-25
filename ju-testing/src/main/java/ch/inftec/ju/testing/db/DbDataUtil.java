@@ -42,6 +42,7 @@ import ch.inftec.ju.db.ConnectionInfo;
 import ch.inftec.ju.db.JuDbException;
 import ch.inftec.ju.db.JuEmUtil;
 import ch.inftec.ju.db.JuEmUtil.DbType;
+import ch.inftec.ju.util.AssertUtil;
 import ch.inftec.ju.util.DataHolder;
 import ch.inftec.ju.util.IOUtil;
 import ch.inftec.ju.util.JuCollectionUtils;
@@ -347,6 +348,25 @@ public class DbDataUtil {
 		}
 		
 		/**
+		 * Adds the specific table to the builder, exporting the table data.
+		 * <p>
+		 * The data will be sorted by the tables primary key column.
+		 * <p>
+		 * Note: This works only if the DbDataUtil was initialized with an emUtil instance.
+		 * @param tableName Table name
+		 * @return ExportBuilder to allow for chaining
+		 */
+		public ExportBuilder addTableSorted(String tableName) {
+			AssertUtil.assertNotNull(
+					"Sorting by primary key only works with DbDataUtils that were initialized with an JuEmUtil instance"
+					, this.dbDataUtil.emUtil);
+			
+			List<String> primaryKeyColumns = this.dbDataUtil.emUtil.getPrimaryKeyColumns(tableName);
+			
+			return this.addTableSorted(tableName, primaryKeyColumns.toArray(new String[0]));
+		}
+		
+		/**
 		 * Adds the specified table to the builder, exporting the table data.
 		 * <p>
 		 * If no query is specified (null), all table data is exported. Otherwise, only
@@ -389,13 +409,18 @@ public class DbDataUtil {
 		 * <p>
 		 * It doesn't matter what kind of dataset we got, we're just extracting the table names.
 		 * @param resourcePath
-		 * @return
+		 * @param sortedByPrimaryKey If true, the entries will be sorted by primary key
+		 * @return ExportBuilder to allow for chaining
 		 */
-		public ExportBuilder addTablesByDataSet(String resourcePath) {
+		public ExportBuilder addTablesByDataSet(String resourcePath, boolean sortedByPrimaryKey) {
 			try {
 				Set<String> tableNames = JuCollectionUtils.asSameOrderSet(new XPathGetter(XmlUtils.loadXml(IOUtil.getResourceURL(resourcePath))).getNodeNames("dataset/*"));
 				for (String tableName : tableNames) {
-					this.addTable(tableName);
+					if (sortedByPrimaryKey) {
+						this.addTableSorted(tableName);
+					} else {
+						this.addTable(tableName);
+					}
 				}
 				
 				return this;
