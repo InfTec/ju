@@ -177,6 +177,22 @@ public class XPathGetter {
 	}
 	
 	/**
+	 * Evaluates the specified XPath expression and returns a list of names of the
+	 * nodes the query matched.
+	 * @param query XPath expression
+	 * @return List of node names
+	 * @throws JuRuntimeException If the XPath cannot be evaluated
+	 */
+	public List<String> getNodeNames(String query) throws JuRuntimeException {
+		List<String> nodeNames = new ArrayList<>();
+		for (Node node : this.getNodes(query)) {
+			nodeNames.add(node.getNodeName());
+		}
+		
+		return nodeNames;
+	}
+	
+	/**
 	 * Evaluates the specific XPath expression and returns true if there
 	 * is at least one matching node.
 	 * @param query XPath expression

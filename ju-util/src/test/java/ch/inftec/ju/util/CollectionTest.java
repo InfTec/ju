@@ -9,10 +9,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
-
-import junit.framework.Assert;
+import java.util.Set;
 
 import org.apache.commons.collections15.IteratorUtils;
+import org.junit.Assert;
 import org.junit.Test;
 
 import ch.inftec.ju.util.comparison.ValueComparator;
@@ -364,5 +364,23 @@ public class CollectionTest {
 		public LargeObject(boolean isWeak) {
 			this.isWeak = isWeak;
 		}	
+	}
+	
+	@Test
+	public void collectionUtils_asSameOrderSet() {
+		List<String> list = JuCollectionUtils.asArrayList("z", "a", "b", "z", "b");
+		
+		Set<String> set = JuCollectionUtils.asSameOrderSet(list);
+		Assert.assertEquals(3, set.size());
+		Assert.assertTrue(JuCollectionUtils.arrayEquals(new String[] {"z", "a", "b"}, set.toArray()));
+	}
+	
+	@Test
+	public void collectionUtils_asSortedSet() {
+		List<String> list = JuCollectionUtils.asArrayList("z", "a", "b", "z", "b");
+		
+		Set<String> set = JuCollectionUtils.asSortedSet(list);
+		Assert.assertEquals(3, set.size());
+		Assert.assertTrue(JuCollectionUtils.arrayEquals(new String[] {"a", "b", "z"}, set.toArray()));
 	}
 }

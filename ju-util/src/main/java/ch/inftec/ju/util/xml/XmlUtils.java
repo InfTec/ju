@@ -53,6 +53,16 @@ public class XmlUtils {
 	}
 	
 	/**
+	 * Loads the specified XML resource into a DOM structure and wraps it with an XPathGetter.
+	 * @param xmlUrl URL to the XML
+	 * @return XPathGetter instance on the document
+	 * @throws JuException If the XML cannot be loaded
+	 */
+	public static XPathGetter loadXmlAsXPathGetter(URL xmlUrl) throws JuException {
+		return new XPathGetter(XmlUtils.loadXml(xmlUrl));
+	}
+	
+	/**
 	 * Loads and parses an XML into a DOM structure.
 	 * @param xmlUrl URL to the XML
 	 * @param schemaUrl URL to an optional XML validation schema. If null, no validation is done.

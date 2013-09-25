@@ -14,11 +14,11 @@ public class DbSchemaUtilTest extends AbstractDbTest {
 		DbSchemaUtil su = new DbSchemaUtil(this.em);
 		
 		su.clearSchema();
-		assertThat(this.emUtil.getTableNames(), not(hasItem("TESTINGENTITY")));
+		assertThat(this.emUtil.getTableNames(), not(hasItem("TESTINGENTITY_LB")));
 		
 		su.runLiquibaseChangeLog("ch/inftec/ju/dbutil/test/LiquibaseTestDataTest_testingEntity.xml");
 		
-		assertThat(this.emUtil.getTableNames(), hasItem("TESTINGENTITY"));
+		assertThat(this.emUtil.getTableNames(), hasItem("TESTINGENTITY_LB"));
 	}
 	
 	@Test
@@ -26,11 +26,11 @@ public class DbSchemaUtilTest extends AbstractDbTest {
 		DbSchemaUtil su = new DbSchemaUtil(this.em);
 		
 		su.clearSchema();
-		assertThat(this.emUtil.getTableNames(), not(hasItem("TESTINGENTITY")));
+		assertThat(this.emUtil.getTableNames(), not(hasItem("TESTINGENTITY_FW")));
 		
 		su.runFlywayMigration("db/DbSchemaUtilTest-migration");
 		
-		assertThat(this.emUtil.getTableNames(), hasItem("TESTINGENTITY"));
+		assertThat(this.emUtil.getTableNames(), hasItem("TESTINGENTITY_FW"));
 	}
 	
 	/**
@@ -40,6 +40,8 @@ public class DbSchemaUtilTest extends AbstractDbTest {
 	@Test
 	public void liquibase_canUseReplaceOrExists() {
 		DbSchemaUtil su = new DbSchemaUtil(this.em);
+		
+		su.clearSchema();
 		su.runLiquibaseChangeLog("ch/inftec/ju/dbutil/test/DbSchemaUtilTest_liquibase_canUseReplaceOrExists.xml");
 	}
 }

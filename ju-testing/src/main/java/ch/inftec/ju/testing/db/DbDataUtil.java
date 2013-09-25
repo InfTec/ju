@@ -2,24 +2,37 @@ package ch.inftec.ju.testing.db;
 
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Proxy;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.persistence.EntityManager;
 
 import org.dbunit.Assertion;
 import org.dbunit.DatabaseUnitException;
+import org.dbunit.database.AmbiguousTableNameException;
+import org.dbunit.database.DatabaseConfig;
 import org.dbunit.database.DatabaseConnection;
+import org.dbunit.database.DefaultMetadataHandler;
 import org.dbunit.database.IDatabaseConnection;
+import org.dbunit.database.IMetadataHandler;
 import org.dbunit.database.QueryDataSet;
+import org.dbunit.dataset.DataSetException;
 import org.dbunit.dataset.IDataSet;
+import org.dbunit.dataset.datatype.DefaultDataTypeFactory;
 import org.dbunit.dataset.xml.FlatXmlDataSet;
 import org.dbunit.dataset.xml.FlatXmlDataSetBuilder;
+import org.dbunit.ext.h2.H2DataTypeFactory;
+import org.dbunit.ext.mysql.MySqlDataTypeFactory;
+import org.dbunit.ext.mysql.MySqlMetadataHandler;
 import org.dbunit.ext.oracle.Oracle10DataTypeFactory;
 import org.dbunit.operation.DatabaseOperation;
 import org.hibernate.jdbc.Work;
@@ -27,11 +40,17 @@ import org.w3c.dom.Document;
 
 import ch.inftec.ju.db.ConnectionInfo;
 import ch.inftec.ju.db.JuDbException;
-import ch.inftec.ju.db.JuDbUtils;
+import ch.inftec.ju.db.JuEmUtil;
+import ch.inftec.ju.db.JuEmUtil.DbType;
+import ch.inftec.ju.util.AssertUtil;
+import ch.inftec.ju.util.DataHolder;
 import ch.inftec.ju.util.IOUtil;
+import ch.inftec.ju.util.JuCollectionUtils;
 import ch.inftec.ju.util.ReflectUtils;
 import ch.inftec.ju.util.XString;
+import ch.inftec.ju.util.xml.XPathGetter;
 import ch.inftec.ju.util.xml.XmlOutputConverter;
+import ch.inftec.ju.util.xml.XmlUtils;
 
 /**
  * Utility class containing methods to import and export data from a DB.
@@ -43,7 +62,7 @@ import ch.inftec.ju.util.xml.XmlOutputConverter;
  */
 public class DbDataUtil {
 	private final Connection connection;
-	private final EntityManager em;
+	private final JuEmUtil emUtil;
 	
 	private String schemaName = null;
 	
@@ -54,13 +73,19 @@ public class DbDataUtil {
 	 * <p>
 	 * If you need to specify a DB Schema, use the DbDataUtil(Connection, String) constructor.
 	 * @param connection Connection instance
+	 * @Deprecated Use constructor with EntityManager
 	 */
+	@Deprecated
 	public DbDataUtil(Connection connection) {
 		this(connection, (String)null);
 	}
 	
+	/**
+	   @Deprecated Use constructor with EntityManager
+	 */
+	@Deprecated
 	public DbDataUtil(Connection connection, String schema) {
-		this.em = null;
+		this.emUtil = null;
 		this.connection = connection;
 		this.schemaName = schema;
 	}
@@ -70,7 +95,9 @@ public class DbDataUtil {
 	 * from the ConnectionInfo
 	 * @param connection Connection instance
 	 * @param ConnectionInfo to get the Schema to use
+	 * @Deprecated Use constructor with EntityManager
 	 */
+	@Deprecated
 	public DbDataUtil(Connection connection, ConnectionInfo connectionInfo) {
 		this(connection, connectionInfo.getSchema());
 	}
@@ -81,8 +108,86 @@ public class DbDataUtil {
 	 * @param em EntityManager instance to execute SQL in a JDBC connection
 	 */
 	public DbDataUtil(EntityManager em) {
-		this.em = em;
+		this(new JuEmUtil(em));
+	}
+	
+	/**
+	 * Create a new DbDataUtil that will use the specified EntityManager to get
+	 * a raw connection to the DB and execute SQL queries.
+	 * @param emUtil JuEmUtil wrapping an EntityManager instance to execute SQL in a JDBC connection
+	 */
+	public DbDataUtil(JuEmUtil emUtil) {
+		this.emUtil = emUtil;
 		this.connection = null;
+
+		// Initialize
+		DefaultDataTypeFactory dataTypeFactory = null;
+		IMetadataHandler metadataHandler = new DefaultMetadataHandler();
+		switch (this.emUtil.getDbType()) {
+		case DERBY:
+			dataTypeFactory = new DefaultDataTypeFactory();
+			break;
+		case H2:
+			dataTypeFactory = new H2DataTypeFactory();
+			break;
+		case MYSQL:
+			dataTypeFactory = new MySqlDataTypeFactory();
+			metadataHandler = new MySqlMetadataHandler();
+			break;
+		case ORACLE:
+			this.setSchema(this.emUtil.getMetaDataUserName());
+			dataTypeFactory = new Oracle10DataTypeFactory();
+			break;
+		default:
+			throw new JuDbException("Unsupported DB: " + this.emUtil.getDbType());
+		}
+		
+		this.setConfigProperty(DatabaseConfig.PROPERTY_DATATYPE_FACTORY, dataTypeFactory);
+		this.setConfigProperty(DatabaseConfig.PROPERTY_METADATA_HANDLER, metadataHandler);
+	}
+	
+	/**
+	 * Loads the default test data (Player, Team, TestingEntity...), creating the
+	 * DB Schema as well.
+	 */
+	public void prepareDefaultTestData() {
+		this.prepareDefaultTestData(false, false, true);
+	}
+	
+	/**
+	 * Loads the default test data (Player, Team, TestingEntity, ...), making
+	 * sure that the tables have been created using Liquibase.
+	 * @param emptyTables If true, the default tables will be cleaned
+	 * @param resetSequences If true, sequences (or identity columns) will be reset to 1
+	 * @param createSchema If true, the Schema will be created (or verified) using Liquibase
+	 */
+	public void prepareDefaultTestData(boolean emptyTables, boolean resetSequences, boolean createSchema) {
+		if (createSchema) {
+			DbSchemaUtil su = new DbSchemaUtil(this.emUtil);
+			su.runLiquibaseChangeLog("ju-testing/data/default-changeLog.xml");
+			
+			// For non-MySQL DBs, we also need to create the hibernate_sequence sequence...
+			if (this.emUtil.getDbType() != DbType.MYSQL) {
+				su.runLiquibaseChangeLog("ju-testing/data/default-changeLog-hibernateSequence.xml");
+			}
+		}
+		
+		ImportBuilder fullData = this.buildImport().from("/ju-testing/data/default-fullData.xml");
+		if (emptyTables) {
+			fullData.executeDeleteAll();
+		} else {
+			fullData.executeCleanInsert();
+		}
+		
+		// Load TIMEFIELD for non-oracle DBs
+		if (this.emUtil.getDbType() != DbType.ORACLE && !emptyTables) {
+			this.buildImport().from("/ju-testing/data/default-fullData-dataTypes.xml").executeUpdate();
+		}
+		
+		if (resetSequences) {
+			this.emUtil.resetIdentityGenerationOrSequences(1);
+		}
+		
 	}
 	
 	/**
@@ -108,20 +213,11 @@ public class DbDataUtil {
 		return this;
 	}
 	
-	/**
-	 * Sets all properties for DbDataUtil accordingly to cope with Oracle databases.
-	 * @return This instance to allow for chaining
-	 */
-	public DbDataUtil prepareForOracle() {
-		this.setConfigProperty("http://www.dbunit.org/properties/datatypeFactory", new Oracle10DataTypeFactory());
-		return this;
-	}
-	
 	private void execute(final DbUnitWork work) {
 		if (this.connection != null) {
 			this.doExecute(this.connection, work);
-		} else if (this.em != null){
-			JuDbUtils.doWork(em, new Work() {
+		} else if (this.emUtil != null) {
+			this.emUtil.doWork(new Work() {
 				@Override
 				public void execute(Connection connection) throws SQLException {
 					doExecute(connection, work);
@@ -140,7 +236,7 @@ public class DbDataUtil {
 		 * proxy.
 		 */
 		Connection unwrappedConn = null;
-		if (connection instanceof Proxy) {
+		if (this.emUtil.getDbType() == DbType.ORACLE && connection instanceof Proxy) {
 			try {
 				unwrappedConn = connection.unwrap(Connection.class);
 			} catch (Exception ex) {
@@ -162,6 +258,10 @@ public class DbDataUtil {
 		}
 	}
 	
+	/**
+	 * Shortcut to execute a clean import from a dataset resource file.
+	 * @param resourcePath Path to dataset resource
+	 */
 	public void cleanImport(String resourcePath) {
 		this.buildImport().from(resourcePath).executeCleanInsert();
 	}
@@ -202,18 +302,6 @@ public class DbDataUtil {
 		public void execute(IDatabaseConnection conn);
 	}
 	
-	private static abstract class DbUnitWorkWithReturn<T> implements DbUnitWork {
-		private T returnValue;
-		
-		protected void setReturnValue(T returnValue) {
-			this.returnValue = returnValue;
-		}
-		
-		public T getReturnValue() {
-			return this.returnValue;
-		}
-	}
-	
 	/**
 	 * Builder class to configure and execute DB data exports.
 	 * @author Martin
@@ -221,10 +309,33 @@ public class DbDataUtil {
 	 */
 	public static class ExportBuilder {
 		private final DbDataUtil dbDataUtil;
-		private QueryDataSet queryDataSet;
+		
+		private final List<ExportItem> exportItems = new ArrayList<>();
+		
+		/**
+		 * List that may contain table names the way we are supposed to write them (casing)
+		 */
+		private List<String> casedTableNames = new ArrayList<>();
 		
 		private ExportBuilder(DbDataUtil dbDataUtil) {
 			this.dbDataUtil = dbDataUtil;	
+		}
+		
+		/**
+		 * Loads the table names from the specified dataset XML resource and uses it as a template
+		 * of how to case any table name that will be exported.
+		 * <p>
+		 * Note that calling this method doesn't actually ADD a table.
+		 * @param resourcePath Resource path to dataset XML
+		 * @return ExportBuilder to allow for chaining
+		 */
+		public ExportBuilder setTableNamesCasingByDataSet(String resourcePath) {
+			try {
+				this.casedTableNames = new XPathGetter(XmlUtils.loadXml(IOUtil.getResourceURL(resourcePath))).getNodeNames("dataset/*");
+			} catch (Exception ex) {
+				throw new JuDbException("Couldn't load table names data set " + resourcePath, ex);
+			}
+			return this;
 		}
 		
 		/**
@@ -234,6 +345,25 @@ public class DbDataUtil {
 		 */
 		public ExportBuilder addTable(String tableName) {
 			return this.addTable(tableName, null);
+		}
+		
+		/**
+		 * Adds the specific table to the builder, exporting the table data.
+		 * <p>
+		 * The data will be sorted by the tables primary key column.
+		 * <p>
+		 * Note: This works only if the DbDataUtil was initialized with an emUtil instance.
+		 * @param tableName Table name
+		 * @return ExportBuilder to allow for chaining
+		 */
+		public ExportBuilder addTableSorted(String tableName) {
+			AssertUtil.assertNotNull(
+					"Sorting by primary key only works with DbDataUtils that were initialized with an JuEmUtil instance"
+					, this.dbDataUtil.emUtil);
+			
+			List<String> primaryKeyColumns = this.dbDataUtil.emUtil.getPrimaryKeyColumns(tableName);
+			
+			return this.addTableSorted(tableName, primaryKeyColumns.toArray(new String[0]));
 		}
 		
 		/**
@@ -248,24 +378,7 @@ public class DbDataUtil {
 		 * @return ExportBuilder to allow for chaining
 		 */
 		public ExportBuilder addTable(final String tableName, final String query) {
-			this.dbDataUtil.execute(new DbUnitWork() {
-				@Override
-				public void execute(IDatabaseConnection conn) {
-					try {
-						if (queryDataSet == null) {
-							queryDataSet = new QueryDataSet(conn);
-						}
-						
-						if (query == null) {
-							queryDataSet.addTable(tableName);
-						} else {
-							queryDataSet.addTable(tableName, query);
-						}
-					} catch (Exception ex) {
-						throw new JuDbException("Couldn't add table", ex);
-					}
-				}
-			});
+			this.exportItems.add(new TableQueryExportItem(tableName, query));
 			
 			return this;
 		}
@@ -291,27 +404,52 @@ public class DbDataUtil {
 			}
 		}
 
-		private IDataSet getExportSet() {
-			if (queryDataSet != null) {
-				return queryDataSet;
-			} else {
-				DbUnitWorkWithReturn<IDataSet> work = new DbUnitWorkWithReturn<IDataSet>() {
-					@Override
-					public void execute(IDatabaseConnection conn) {
+		/**
+		 * Adds the data of the tables contained in the specified data set.
+		 * <p>
+		 * It doesn't matter what kind of dataset we got, we're just extracting the table names.
+		 * @param resourcePath
+		 * @param sortedByPrimaryKey If true, the entries will be sorted by primary key
+		 * @return ExportBuilder to allow for chaining
+		 */
+		public ExportBuilder addTablesByDataSet(String resourcePath, boolean sortedByPrimaryKey) {
+			try {
+				Set<String> tableNames = JuCollectionUtils.asSameOrderSet(new XPathGetter(XmlUtils.loadXml(IOUtil.getResourceURL(resourcePath))).getNodeNames("dataset/*"));
+				for (String tableName : tableNames) {
+					if (sortedByPrimaryKey) {
+						this.addTableSorted(tableName);
+					} else {
+						this.addTable(tableName);
+					}
+				}
+				
+				return this;
+			} catch (Exception ex) {
+				throw new JuDbException("Couldn't add tables by dataset " + resourcePath, ex);
+			}
+		}
+		
+		private void doWork(final DataSetWork dataSetWork) {
+			this.dbDataUtil.execute(new DbUnitWork() {
+				@Override
+				public void execute(IDatabaseConnection conn) {
+					if (exportItems.size() > 0) {
+						QueryDataSet dataSet = new QueryDataSet(conn, false);
+						for (ExportItem item : exportItems) {
+							item.addToQueryDataSet(dataSet, casedTableNames);
+						}
+						dataSetWork.execute(dataSet);
+					} else {
+						// Export whole DB
 						try {
-							try {
-								this.setReturnValue(conn.createDataSet());
-							} catch (Exception ex) {
-								throw new JuDbException("Couldn't create DataSet from DB");
-							}
+							IDataSet dataSet = conn.createDataSet();
+							dataSetWork.execute(dataSet);
 						} catch (Exception ex) {
-							throw new JuDbException("Couldn't add table", ex);
+							throw new JuDbException("Couldn't export whole DB");
 						}
 					}
 				};
-				this.dbDataUtil.execute(work);
-				return work.getReturnValue();
-			}
+			});
 		}
 		
 		/**
@@ -319,29 +457,94 @@ public class DbDataUtil {
 		 * @return Xml Document instance
 		 */
 		public Document writeToXmlDocument() {
-			try {
-				XmlOutputConverter xmlConv = new XmlOutputConverter();
-				FlatXmlDataSet.write(this.getExportSet(), xmlConv.getOutputStream());
-				
-				return xmlConv.getDocument();
-			} catch (Exception ex) {
-				throw new JuDbException("Couldn't write DB data to XML document", ex);
-			}
+			final DataHolder<Document> doc = new DataHolder<>();
+			
+			this.doWork(new DataSetWork() {
+				@Override
+				public void execute(IDataSet dataSet) {
+					try {
+						XmlOutputConverter xmlConv = new XmlOutputConverter();
+						ExportBuilder.writeToXml(dataSet, xmlConv.getOutputStream());
+						doc.setValue(xmlConv.getDocument());
+					} catch (Exception ex) {
+						throw new JuDbException("Couldn't write DB data to XML document", ex);
+					}
+				}
+			});
+			
+			return doc.getValue();
 		}
 		
 		/**
 		 * Write the DB data to an XML file.
 		 * @param fileName Path of the file
 		 */
-		public void writeToXmlFile(String fileName) {
-			try (OutputStream stream = new BufferedOutputStream(
+		public void writeToXmlFile(final String fileName) {
+			try (final OutputStream stream = new BufferedOutputStream(
 							new FileOutputStream(fileName))) {
 
-				FlatXmlDataSet.write(this.getExportSet(), stream);
+				this.doWork(new DataSetWork() {
+					 @Override
+					public void execute(IDataSet dataSet) {
+						try {
+							ExportBuilder.writeToXml(dataSet, stream);
+						} catch (Exception ex) {
+							throw new JuDbException("Couldn't write DB data to file " + fileName, ex);
+						}
+					}
+				});
 			} catch (Exception ex) {
 				throw new JuDbException("Couldn't write DB data to file " + fileName, ex);
 			}
-		}		
+		}
+		
+		private interface DataSetWork {
+			void execute(IDataSet dataSet);
+		}
+		
+		private interface ExportItem {
+			void addToQueryDataSet(QueryDataSet dataSet, List<String> casedTableNames);
+		}
+		
+		private static class TableQueryExportItem implements ExportItem {
+			private final String tableName;
+			private final String query;
+			
+			private TableQueryExportItem(String tableName, String query) {
+				this.tableName = tableName;
+				this.query = query;
+			}
+			
+			@Override
+			public void addToQueryDataSet(QueryDataSet dataSet, List<String> casedTableNames) {
+				try {
+					String actualTableName = this.tableName;
+					for (String casedTableName : casedTableNames) {
+						if (casedTableName.equalsIgnoreCase(this.tableName)) {
+							actualTableName = casedTableName;
+							break;
+						}
+					}
+					
+					dataSet.addTable(actualTableName, this.query);
+				} catch (AmbiguousTableNameException ex) {
+					throw new JuDbException(String.format("Couldn't add table %s to QueryDataSet: %s", this.tableName, this.query), ex);
+				}
+			}
+		}
+		
+		/**
+		 * Custom implementation of FlatXmlDataSet.write so we can enforce column casing
+		 * @param dataSet
+		 * @param out
+		 * @throws IOException
+		 * @throws DataSetException
+		 */
+		private static void writeToXml(IDataSet dataSet, OutputStream out) throws IOException, DataSetException {
+			CaseAwareFlatXmlWriter datasetWriter = new CaseAwareFlatXmlWriter(out);
+	        datasetWriter.setIncludeEmptyTable(true);
+	        datasetWriter.write(dataSet);
+		}
 	}
 	
 	/**
@@ -358,7 +561,9 @@ public class DbDataUtil {
 		}
 		
 		/**
-		 * Imports DB data from the specified XML
+		 * Imports DB data from the specified XML.
+		 * <p>
+		 * Only one 'from' is possible per import.
 		 * @param resourcePath Resource path, either absolute or relative to the current class
 		 * @return ImportBuilder
 		 */
@@ -375,6 +580,7 @@ public class DbDataUtil {
 			try {
 				flatXmlDataSet = new FlatXmlDataSetBuilder()
 					.setColumnSensing(true)
+					.setCaseSensitiveTableNames(false)
 					.build(xmlUrl);
 				return this;
 			} catch (Exception ex) {
@@ -427,6 +633,23 @@ public class DbDataUtil {
 						DatabaseOperation.INSERT.execute(conn, flatXmlDataSet);
 					} catch (Exception ex) {
 						throw new JuDbException("Couldnt insert data into DB", ex);
+					}
+				};
+			});
+			
+		}
+		
+		/**
+		 * Performs an update of the existing data in the DB, without inserting new data.
+		 */
+		public void executeUpdate() {
+			this.dbDataUtil.execute(new DbUnitWork() {
+				@Override
+				public void execute(IDatabaseConnection conn) {
+					try {
+						DatabaseOperation.UPDATE.execute(conn, flatXmlDataSet);
+					} catch (Exception ex) {
+						throw new JuDbException("Couldnt update data in DB", ex);
 					}
 				};
 			});

@@ -9,9 +9,12 @@ import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.collections15.ListUtils;
@@ -277,6 +280,28 @@ public final class JuCollectionUtils {
 		for (T value : values) list.add(value);
 		
 		return list;
+	}
+	
+	/**
+	 * Returns a sorted set with all distinct values of the specified collection in their
+	 * natural order
+	 * @param collection Collection containing elements
+	 * @return Sorted set
+	 */
+	public static <T> Set<T> asSortedSet(Collection<T> collection) {
+		Set<T> set = new TreeSet<>(collection);
+		return set;
+	}
+	
+	/**
+	 * Returns a sorted set with all distinct values of the specified collection in the order
+	 * they first appear.
+	 * @param collection Collection containing elements
+	 * @return Sorted set
+	 */
+	public static <T> Set<T> asSameOrderSet(Collection<T> collection) {
+		Set<T> set = new LinkedHashSet<>(collection);
+		return set;
 	}
 	
 	/**
