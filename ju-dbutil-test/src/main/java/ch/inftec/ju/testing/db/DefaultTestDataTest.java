@@ -2,8 +2,7 @@ package ch.inftec.ju.testing.db;
 
 import java.text.ParseException;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Test;
 

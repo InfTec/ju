@@ -12,7 +12,6 @@ import java.sql.SQLFeatureNotSupportedException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.logging.Logger;
 
 import javax.persistence.EntityManager;
 import javax.sql.DataSource;
@@ -24,8 +23,11 @@ import org.hibernate.internal.SessionFactoryImpl;
 import org.hibernate.jdbc.Work;
 import org.hibernate.service.jdbc.connections.internal.DatasourceConnectionProviderImpl;
 import org.hibernate.service.jdbc.connections.spi.ConnectionProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ch.inftec.ju.util.DataHolder;
+import ch.inftec.ju.util.JuRuntimeException;
 
 /**
  * Helper class building on EntityManager that provides DB utility functions.
@@ -36,6 +38,7 @@ import ch.inftec.ju.util.DataHolder;
  *
  */
 public class JuEmUtil {
+	private final Logger logger = LoggerFactory.getLogger(JuEmUtil.class);
 	private final EntityManager em;
 	
 	/**
@@ -194,6 +197,127 @@ public class JuEmUtil {
 	}
 	
 	/**
+	 * Gets a list of all sequence names of the DB. Sequences names are all upper case.
+	 * @return List of Sequences names
+	 * @throws JuDbException If the list cannot be evaluated
+	 */
+	public List<String> getSequenceNames() throws JuDbException {
+		// There doesn't seem to be a generic way to retrieve sequences using JDBC meta data, so
+		// we have to use native queries
+		String nativeSql = null;
+		switch (this.getDbType()) {
+		case DERBY:
+			nativeSql = "select SEQUENCENAME name from SYS.SYSSEQUENCES";
+			break;
+		case H2:
+			nativeSql = "select SEQUENCE_NAME name from INFORMATION_SCHEMA.SEQUENCES";
+			break;
+		case ORACLE:
+			nativeSql = "select SEQUENCE_NAME from USER_SEQUENCES";
+			break;
+		default:
+			throw new JuRuntimeException("Unsupported DbType: " + this.getDbType());
+		}
+		
+		@SuppressWarnings("unchecked")
+		List<String> results = (List<String>) this.em.createNativeQuery(nativeSql).getResultList();
+		
+		return results;
+	}
+	
+	/**
+	 * Resets identity generation of all tables or sequences to allow for predictable
+	 * and repeatable entity generation.
+	 * <p>
+	 * The exact behaviour of identity generation may vary from DB to DB.
+	 * @param val Value for the next primary key
+	 */
+	public void resetIdentityGenerationOrSequences(int val) {
+		if (this.getDbType() == DbType.DERBY) {
+			List<?> res = this.em.createNativeQuery(
+				"select t.TABLENAME, c.COLUMNNAME " +
+				"from sys.SYSCOLUMNS c " +
+				"  inner join sys.SYSTABLES t on t.TABLEID = c.REFERENCEID " +
+				"where c.AUTOINCREMENTVALUE is not null").getResultList();
+			
+			for (Object row : res) {
+				Object[] aRow = (Object[]) row;
+				String tableName = aRow[0].toString();
+				String columnName = aRow[1].toString();
+				
+				logger.debug(String.format("Restarting ID column %s.%s with %d", tableName, columnName, val));
+				
+				this.em.createNativeQuery(String.format("alter table %s alter %s restart with %d"
+						, tableName
+						, columnName
+						, val)).executeUpdate();
+			}
+		} else if (this.getDbType() == DbType.H2) {
+			List<?> res = this.em.createNativeQuery(
+					"select c.TABLE_NAME, c.COLUMN_NAME " +
+					"from information_schema.columns c " +
+					"where c.SEQUENCE_NAME is not null").getResultList();
+				
+			for (Object row : res) {
+				Object[] aRow = (Object[]) row;
+				String tableName = aRow[0].toString();
+				String columnName = aRow[1].toString();
+				
+				logger.debug(String.format("Restarting ID column %s.%s with %d", tableName, columnName, val));
+				
+				this.em.createNativeQuery(String.format("alter table %s alter column %s restart with %d"
+						, tableName
+						, columnName
+						, val)).executeUpdate();
+			}
+		} else if (this.getDbType() == DbType.MYSQL) {
+			List<?> res = this.em.createNativeQuery(
+					"select c.TABLE_NAME, c.COLUMN_NAME " +
+					"from information_schema.columns c " +
+					"where c.EXTRA='auto_increment'" //c.TABLE_NAME='Player'" + 
+					).getResultList();
+				
+			for (Object row : res) {
+				Object[] aRow = (Object[]) row;
+				String tableName = aRow[0].toString();
+				String columnName = aRow[1].toString();
+				
+				logger.debug(String.format("Restarting ID column %s.%s with %d", tableName, columnName, val));
+				
+				this.em.createNativeQuery(String.format("alter table %s auto_increment = %d"
+						, tableName
+						, val)).executeUpdate();
+			}
+		} else if (this.getDbType() == DbType.ORACLE) {
+			for (String sequence : this.getSequenceNames()) {
+				// We'll just drop and recreate the sequence.
+				this.em.createNativeQuery("drop sequence " + sequence).executeUpdate();
+				this.em.createNativeQuery(String.format("create sequence %s start with %d", sequence, val)).executeUpdate();
+//				this.oracleSequenceSetNextVal(sequence, val);
+			}
+		} else {
+			throw new JuRuntimeException("Unsupported DbType " + this.getDbType());
+		}
+	}
+	
+//	/**
+//	 * Sets the nextVal of an Oracle sequence.
+//	 * <p>
+//	 * Only works with sequences that have an increment of +1.
+//	 * @param sequenceName Sequence name
+//	 * @param nextVal Value that should be yielded by next NEXVAL call
+//	 */
+//	public void oracleSequenceSetNextVal(String sequenceName, long nextVal) {
+//		Long currentValue = ((BigDecimal) this.em.createNativeQuery(String.format("SELECT %s.NEXTVAL from dual", sequenceName)).getSingleResult()).longValue();
+//		logger.debug(String.format("Restarting Sequence %s (currentVal=%d) with %d", sequenceName, currentValue, nextVal));
+//		
+//		Long increment = nextVal - currentValue.longValue() - 1;
+//		this.em.createNativeQuery(String.format("ALTER SEQUENCE %s INCREMENT BY %d", sequenceName, increment)).executeUpdate();
+//		this.em.createNativeQuery(String.format("SELECT %s.NEXTVAL from dual", sequenceName)).executeUpdate();
+//		this.em.createNativeQuery(String.format("ALTER SEQUENCE %s INCREMENT BY 1", sequenceName)).executeUpdate();
+//	}
+	
+	/**
 	 * Gets the type of the DB implementation of this EntityManager. If the type is not known (or supported)
 	 * by JuEmUtil, an exception is thrown.
 	 * @return DbType
@@ -258,7 +382,7 @@ public class JuEmUtil {
 		}
 
 		@Override
-		public Logger getParentLogger() throws SQLFeatureNotSupportedException {
+		public java.util.logging.Logger getParentLogger() throws SQLFeatureNotSupportedException {
 			throw new UnsupportedOperationException("unwrap");
 		}
 

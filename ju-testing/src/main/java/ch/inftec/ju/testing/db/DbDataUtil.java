@@ -139,12 +139,16 @@ public class DbDataUtil {
 	 * A persistence unit that supports the default entities is 
 	 */
 	public void loadDefaultTestData() {
-		new DbSchemaUtil(this.emUtil).runLiquibaseChangeLog("ju-testing/data/default-changeLog.xml");
+		DbSchemaUtil du = new DbSchemaUtil(this.emUtil);
+		du.runLiquibaseChangeLog("ju-testing/data/default-changeLog.xml");
 		this.buildImport().from("/ju-testing/data/default-fullData.xml").executeCleanInsert();
 		
 		// Load TIMEFIELD for non-oracle DBs
 		if (this.emUtil.getDbType() != DbType.ORACLE) {
 			this.buildImport().from("/ju-testing/data/default-fullData-dataTypes.xml").executeUpdate();
+		} else {
+			// For Oracle, we also need to create the hibernate_sequence sequence...
+			du.runLiquibaseChangeLog("ju-testing/data/default-changeLog-hibernateSequence.xml");
 		}
 	}
 	
