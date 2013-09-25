@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.persistence.EntityManager;
 
@@ -43,9 +44,12 @@ import ch.inftec.ju.db.JuEmUtil;
 import ch.inftec.ju.db.JuEmUtil.DbType;
 import ch.inftec.ju.util.DataHolder;
 import ch.inftec.ju.util.IOUtil;
+import ch.inftec.ju.util.JuCollectionUtils;
 import ch.inftec.ju.util.ReflectUtils;
 import ch.inftec.ju.util.XString;
+import ch.inftec.ju.util.xml.XPathGetter;
 import ch.inftec.ju.util.xml.XmlOutputConverter;
+import ch.inftec.ju.util.xml.XmlUtils;
 
 /**
  * Utility class containing methods to import and export data from a DB.
@@ -307,8 +311,30 @@ public class DbDataUtil {
 		
 		private final List<ExportItem> exportItems = new ArrayList<>();
 		
+		/**
+		 * List that may contain table names the way we are supposed to write them (casing)
+		 */
+		private List<String> casedTableNames = new ArrayList<>();
+		
 		private ExportBuilder(DbDataUtil dbDataUtil) {
 			this.dbDataUtil = dbDataUtil;	
+		}
+		
+		/**
+		 * Loads the table names from the specified dataset XML resource and uses it as a template
+		 * of how to case any table name that will be exported.
+		 * <p>
+		 * Note that calling this method doesn't actually ADD a table.
+		 * @param resourcePath Resource path to dataset XML
+		 * @return ExportBuilder to allow for chaining
+		 */
+		public ExportBuilder setTableNamesCasingByDataSet(String resourcePath) {
+			try {
+				this.casedTableNames = new XPathGetter(XmlUtils.loadXml(IOUtil.getResourceURL(resourcePath))).getNodeNames("dataset/*");
+			} catch (Exception ex) {
+				throw new JuDbException("Couldn't load table names data set " + resourcePath, ex);
+			}
+			return this;
 		}
 		
 		/**
@@ -358,6 +384,26 @@ public class DbDataUtil {
 			}
 		}
 
+		/**
+		 * Adds the data of the tables contained in the specified data set.
+		 * <p>
+		 * It doesn't matter what kind of dataset we got, we're just extracting the table names.
+		 * @param resourcePath
+		 * @return
+		 */
+		public ExportBuilder addTablesByDataSet(String resourcePath) {
+			try {
+				Set<String> tableNames = JuCollectionUtils.asSameOrderSet(new XPathGetter(XmlUtils.loadXml(IOUtil.getResourceURL(resourcePath))).getNodeNames("dataset/*"));
+				for (String tableName : tableNames) {
+					this.addTable(tableName);
+				}
+				
+				return this;
+			} catch (Exception ex) {
+				throw new JuDbException("Couldn't add tables by dataset " + resourcePath, ex);
+			}
+		}
+		
 		private void doWork(final DataSetWork dataSetWork) {
 			this.dbDataUtil.execute(new DbUnitWork() {
 				@Override
@@ -365,7 +411,7 @@ public class DbDataUtil {
 					if (exportItems.size() > 0) {
 						QueryDataSet dataSet = new QueryDataSet(conn, false);
 						for (ExportItem item : exportItems) {
-							item.addToQueryDataSet(dataSet);
+							item.addToQueryDataSet(dataSet, casedTableNames);
 						}
 						dataSetWork.execute(dataSet);
 					} else {
@@ -432,7 +478,7 @@ public class DbDataUtil {
 		}
 		
 		private interface ExportItem {
-			void addToQueryDataSet(QueryDataSet dataSet);
+			void addToQueryDataSet(QueryDataSet dataSet, List<String> casedTableNames);
 		}
 		
 		private static class TableQueryExportItem implements ExportItem {
@@ -445,9 +491,17 @@ public class DbDataUtil {
 			}
 			
 			@Override
-			public void addToQueryDataSet(QueryDataSet dataSet) {
+			public void addToQueryDataSet(QueryDataSet dataSet, List<String> casedTableNames) {
 				try {
-					dataSet.addTable(this.tableName, this.query);
+					String actualTableName = this.tableName;
+					for (String casedTableName : casedTableNames) {
+						if (casedTableName.equalsIgnoreCase(this.tableName)) {
+							actualTableName = casedTableName;
+							break;
+						}
+					}
+					
+					dataSet.addTable(actualTableName, this.query);
 				} catch (AmbiguousTableNameException ex) {
 					throw new JuDbException(String.format("Couldn't add table %s to QueryDataSet: %s", this.tableName, this.query), ex);
 				}

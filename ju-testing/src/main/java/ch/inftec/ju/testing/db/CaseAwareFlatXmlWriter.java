@@ -205,7 +205,7 @@ public class CaseAwareFlatXmlWriter implements IDataSetConsumer
             Column[] columns = _activeMetaData.getColumns();
             for (int i = 0; i < columns.length; i++)
             {
-                String columnName = columns[i].getColumnName().toUpperCase(); // JU: Always use upper case column names
+                String columnName = columns[i].getColumnName().toLowerCase(); // JU: Always use upper case column names
                 Object value = values[i];
 
                 // Skip null value

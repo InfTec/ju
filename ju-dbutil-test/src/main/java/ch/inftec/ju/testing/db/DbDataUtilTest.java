@@ -34,7 +34,7 @@ public class DbDataUtilTest extends AbstractDbTest {
 		logger.debug("Exported XML\n" + XmlUtils.toString(doc, false, true));
 		
 		Assert.assertEquals(1, xg.getArray("//TestingEntity").length);
-		Assert.assertEquals("Export Test", xg.getSingle("//TestingEntity/@NAME"));
+		Assert.assertEquals("Export Test", xg.getSingle("//TestingEntity/@name"));
 	}
 	
 	@Test
@@ -52,7 +52,7 @@ public class DbDataUtilTest extends AbstractDbTest {
 		logger.debug("Exported XML\n" + XmlUtils.toString(doc, false, true));
 		
 		Assert.assertEquals(1, xg.getArray("//TestingEntity").length);
-		Assert.assertEquals("Export Test", xg.getSingle("//TestingEntity/@NAME"));
+		Assert.assertEquals("Export Test", xg.getSingle("//TestingEntity/@name"));
 	}
 	
 	@Test
@@ -73,7 +73,7 @@ public class DbDataUtilTest extends AbstractDbTest {
 		logger.debug("Exported XML\n" + XmlUtils.toString(doc, false, true));
 		
 		Assert.assertEquals(1, xg.getArray("//testingentity").length);
-		Assert.assertEquals("Export Test", xg.getSingle("//testingentity/@NAME"));
+		Assert.assertEquals("Export Test", xg.getSingle("//testingentity/@name"));
 	}
 	
 	@Test
@@ -94,6 +94,49 @@ public class DbDataUtilTest extends AbstractDbTest {
 		logger.debug("Exported XML\n" + XmlUtils.toString(doc, false, true));
 		
 		Assert.assertEquals(1, xg.getArray("//TESTINGENTITY").length);
-		Assert.assertEquals("Export Test", xg.getSingle("//TESTINGENTITY/@NAME"));
+		Assert.assertEquals("Export Test", xg.getSingle("//TESTINGENTITY/@name"));
+	}
+	
+	@Test
+	public void xmlExport_canApply_casedTableNames() {
+		DbDataUtil du = new DbDataUtil(this.em);
+		du.prepareDefaultTestData(true, true, true);
+		
+		TestingEntity te = new TestingEntity();
+		te.setName("Export Test");
+		this.em.persist(te);
+		
+		// Export table with camel case
+		Document doc = du.buildExport()
+			.addTable("TESTINGENTITY")
+			.setTableNamesCasingByDataSet("/ch/inftec/ju/testing/db/DbDataUtilTest_testingEntity.xml")
+			.writeToXmlDocument();
+		
+		XPathGetter xg = new XPathGetter(doc);
+		logger.debug("Exported XML\n" + XmlUtils.toString(doc, false, true));
+		
+		Assert.assertEquals(1, xg.getArray("//TestingEntity").length);
+		Assert.assertEquals("Export Test", xg.getSingle("//TestingEntity/@name"));
+	}
+	
+	@Test
+	public void canExportTables_basedOnDatasetXml() {
+		DbDataUtil du = new DbDataUtil(this.em);
+		du.prepareDefaultTestData(true, true, true);
+		
+		TestingEntity te = new TestingEntity();
+		te.setName("Export Test");
+		this.em.persist(te);
+		
+		// Export table with camel case
+		Document doc = du.buildExport()
+			.addTablesByDataSet("/ch/inftec/ju/testing/db/DbDataUtilTest_testingEntity.xml")
+			.writeToXmlDocument();
+		
+		XPathGetter xg = new XPathGetter(doc);
+		logger.debug("Exported XML\n" + XmlUtils.toString(doc, false, true));
+		
+		Assert.assertEquals(1, xg.getArray("//TestingEntity").length);
+		Assert.assertEquals("Export Test", xg.getSingle("//TestingEntity/@name"));
 	}
 }
