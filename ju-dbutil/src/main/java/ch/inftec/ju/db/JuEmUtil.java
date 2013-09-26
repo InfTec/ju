@@ -23,6 +23,8 @@ import org.hibernate.internal.SessionFactoryImpl;
 import org.hibernate.jdbc.Work;
 import org.hibernate.service.jdbc.connections.internal.DatasourceConnectionProviderImpl;
 import org.hibernate.service.jdbc.connections.spi.ConnectionProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ch.inftec.ju.util.DataHolder;
 
@@ -35,8 +37,14 @@ import ch.inftec.ju.util.DataHolder;
  *
  */
 public class JuEmUtil {
-//	private final Logger logger = LoggerFactory.getLogger(JuEmUtil.class);
+	private final Logger logger = LoggerFactory.getLogger(JuEmUtil.class);
 	private final EntityManager em;
+	
+	/**
+	 * We'll cache the DbType to avoid transaction problems in certain cases (Liquibase log executions) as we
+	 * need a running transaction to evaluate the DbType.
+	 */
+	private DbType dbType;
 	
 	/**
 	 * Creates a new JuDbUtil based on the specified EntityManager instance.
@@ -81,7 +89,7 @@ public class JuEmUtil {
 	 */
 	public void doWork(DsWork work) {
 		// Flush the EntityManager to make sure we have all entities available
-		this.em.flush();
+		//this.em.flush();
 				
 		HibernateEntityManagerFactory factory = (HibernateEntityManagerFactory) this.em.unwrap(EntityManagerImpl.class).getEntityManagerFactory();
 		SessionFactoryImpl sessionFactory = (SessionFactoryImpl) factory.getSessionFactory();
@@ -90,8 +98,10 @@ public class JuEmUtil {
 		DataSource ds = null;
 		if (connProvider instanceof DatasourceConnectionProviderImpl) {
 			ds = ((DatasourceConnectionProviderImpl) connProvider).getDataSource();
+			logger.debug("Using actual DataSource to execute DataSource work: " + ds);
 		} else {
 			ds = new ConnectionProviderDataSource(connProvider);
+			logger.debug("Using ConnectionProviderDataSource to execute DataSource work.");
 		}
 		
 		work.execute(ds);
@@ -275,14 +285,18 @@ public class JuEmUtil {
 	 * @return DbType
 	 */
 	public DbType getDbType() {
-		String productName = this.extractDatabaseMetaData(new DatabaseMetaDataCallback<String>() {
-			@Override
-			public String processMetaData(DatabaseMetaData dbmd) throws SQLException {
-				return dbmd.getDatabaseProductName();
-			}
-		});
+		if (this.dbType == null) {
+			String productName = this.extractDatabaseMetaData(new DatabaseMetaDataCallback<String>() {
+				@Override
+				public String processMetaData(DatabaseMetaData dbmd) throws SQLException {
+					return dbmd.getDatabaseProductName();
+				}
+			});
+			
+			this.dbType = DbType.evaluateDbType(productName);
+		}
 		
-		return DbType.evaluateDbType(productName);
+		return this.dbType;
 	}
 	
 	public enum DbType {
