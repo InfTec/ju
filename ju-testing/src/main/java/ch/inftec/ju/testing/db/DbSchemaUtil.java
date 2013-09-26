@@ -157,11 +157,22 @@ public class DbSchemaUtil {
 	}
 	
 	/**
-	 * Loads the default test data (Player, Team, TestingEntity...), creating the
-	 * DB Schema as well.
+	 * Creates the Default test DB Schema (Player, Team, TestingEntity...) and
+	 * loads the default test data.
+	 * <p>
+	 * Also resets the sequences to 1.
 	 */
-	public void prepareDefaultTestData() {
+	public void prepareDefaultSchemaAndTestData() {
 		this.prepareDefaultTestData(false, false, true);
+	}
+	
+	/**
+	 * Loads the default test data and resets the sequences to 1.
+	 * <p>
+	 * Doesn't perform Schema updates.
+	 */
+	public void loadDefaultTestData() {
+		this.prepareDefaultTestData(false, true, false);
 	}
 	
 	/**

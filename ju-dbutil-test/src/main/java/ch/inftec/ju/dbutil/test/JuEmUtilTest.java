@@ -10,7 +10,6 @@ import org.junit.Test;
 import ch.inftec.ju.db.DatabaseMetaDataCallback;
 import ch.inftec.ju.db.JuEmUtil.DbType;
 import ch.inftec.ju.testing.db.AbstractDbTest;
-import ch.inftec.ju.testing.db.DbDataUtil;
 import ch.inftec.ju.testing.db.DbSchemaUtil;
 import ch.inftec.ju.testing.db.JuAssumeUtil;
 import ch.inftec.ju.testing.db.data.entity.TestingEntity;
@@ -51,7 +50,7 @@ public class JuEmUtilTest extends AbstractDbTest {
 	
 	@Test
 	public void canResetIdentityGeneration_orSequences() {
-		new DbSchemaUtil(this.emUtil).prepareDefaultTestData();
+		new DbSchemaUtil(this.emUtil).prepareDefaultSchemaAndTestData();
 		
 		// Try to set identity generation to 10
 		this.emUtil.resetIdentityGenerationOrSequences(10);
@@ -69,7 +68,7 @@ public class JuEmUtilTest extends AbstractDbTest {
 	
 	@Test
 	public void canEvaluate_primaryKeyColumnName_withSingleColumn() {
-		new DbSchemaUtil(this.emUtil).prepareDefaultTestData();
+		new DbSchemaUtil(this.emUtil).prepareDefaultSchemaAndTestData();
 		
 		List<String> primaryKeyColumns = this.emUtil.getPrimaryKeyColumns("TestingEntity");
 		Assert.assertEquals(1, primaryKeyColumns.size());
@@ -78,7 +77,7 @@ public class JuEmUtilTest extends AbstractDbTest {
 	
 	@Test
 	public void canEvaluate_primaryKeyColumnName_withMultipleColumns() {
-		new DbSchemaUtil(this.emUtil).prepareDefaultTestData();
+		new DbSchemaUtil(this.emUtil).prepareDefaultSchemaAndTestData();
 		
 		List<String> primaryKeyColumns = this.emUtil.getPrimaryKeyColumns("Team_Player");
 		Assert.assertEquals(2, primaryKeyColumns.size());
