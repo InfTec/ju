@@ -1,12 +1,15 @@
 package ch.inftec.ju.dbutil.test;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.not;
+
+import org.junit.Assert;
 import org.junit.Test;
 
 import ch.inftec.ju.testing.db.AbstractDbTest;
 import ch.inftec.ju.testing.db.DbSchemaUtil;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import ch.inftec.ju.util.JuCollectionUtils;
 
 public class DbSchemaUtilTest extends AbstractDbTest {
 	@Test
@@ -14,11 +17,11 @@ public class DbSchemaUtilTest extends AbstractDbTest {
 		DbSchemaUtil su = new DbSchemaUtil(this.em);
 		
 		su.clearSchema();
-		assertThat(this.emUtil.getTableNames(), not(hasItem("TESTINGENTITY_LB")));
+		Assert.assertFalse(JuCollectionUtils.collectionContainsIgnoreCase(this.emUtil.getTableNames(), "TestingEntity_LB"));
 		
 		su.runLiquibaseChangeLog("ch/inftec/ju/dbutil/test/LiquibaseTestDataTest_testingEntity.xml");
 		
-		assertThat(this.emUtil.getTableNames(), hasItem("TESTINGENTITY_LB"));
+		Assert.assertTrue(JuCollectionUtils.collectionContainsIgnoreCase(this.emUtil.getTableNames(), "TestingEntity_LB"));
 	}
 	
 	@Test
@@ -26,11 +29,11 @@ public class DbSchemaUtilTest extends AbstractDbTest {
 		DbSchemaUtil su = new DbSchemaUtil(this.em);
 		
 		su.clearSchema();
-		assertThat(this.emUtil.getTableNames(), not(hasItem("TESTINGENTITY_FW")));
+		Assert.assertFalse(JuCollectionUtils.collectionContainsIgnoreCase(this.emUtil.getTableNames(), "TESTINGENTITY_FW"));
 		
 		su.runFlywayMigration("db/DbSchemaUtilTest-migration");
 		
-		assertThat(this.emUtil.getTableNames(), hasItem("TESTINGENTITY_FW"));
+		Assert.assertTrue(JuCollectionUtils.collectionContainsIgnoreCase(this.emUtil.getTableNames(), "TESTINGENTITY_FW"));
 	}
 	
 	/**

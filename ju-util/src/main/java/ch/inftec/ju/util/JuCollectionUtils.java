@@ -122,6 +122,30 @@ public final class JuCollectionUtils {
 	}
 	
 	/**
+	 * Checks if all specified values are part of the specified collection. Comparison
+	 * is done case insensitively.
+	 * <p>
+	 * The collection may contain more than the specified values.
+	 * @param cCollection Collection
+	 * @param values Values the collection must contain, in arbitrary order
+	 */
+	@SafeVarargs
+	public static boolean collectionContainsIgnoreCase(Collection<String> cCollection, String... values) {
+		for (String val : values) {
+			boolean containsVal = false;
+			for (String colVal : cCollection) {
+				if (colVal.equalsIgnoreCase(val)) {
+					containsVal = true;
+					break;
+				}
+			}
+			if (!containsVal) return false;
+		}
+		
+		return true;
+	}
+	
+	/**
 	 * Returns a map using the provided key (String or Object.toString) and
 	 * values (Object) pairs.
 	 * @param keyValuePairs Key value pairs

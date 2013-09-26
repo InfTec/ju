@@ -27,7 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.inftec.ju.util.DataHolder;
-import ch.inftec.ju.util.JuRuntimeException;
 
 /**
  * Helper class building on EntityManager that provides DB utility functions.
@@ -40,6 +39,12 @@ import ch.inftec.ju.util.JuRuntimeException;
 public class JuEmUtil {
 	private final Logger logger = LoggerFactory.getLogger(JuEmUtil.class);
 	private final EntityManager em;
+	
+	/**
+	 * We'll cache the DbType to avoid transaction problems in certain cases (Liquibase log executions) as we
+	 * need a running transaction to evaluate the DbType.
+	 */
+	private DbType dbType;
 	
 	/**
 	 * Creates a new JuDbUtil based on the specified EntityManager instance.
@@ -84,7 +89,7 @@ public class JuEmUtil {
 	 */
 	public void doWork(DsWork work) {
 		// Flush the EntityManager to make sure we have all entities available
-		this.em.flush();
+		//this.em.flush();
 				
 		HibernateEntityManagerFactory factory = (HibernateEntityManagerFactory) this.em.unwrap(EntityManagerImpl.class).getEntityManagerFactory();
 		SessionFactoryImpl sessionFactory = (SessionFactoryImpl) factory.getSessionFactory();
@@ -93,8 +98,10 @@ public class JuEmUtil {
 		DataSource ds = null;
 		if (connProvider instanceof DatasourceConnectionProviderImpl) {
 			ds = ((DatasourceConnectionProviderImpl) connProvider).getDataSource();
+			logger.debug("Using actual DataSource to execute DataSource work: " + ds);
 		} else {
 			ds = new ConnectionProviderDataSource(connProvider);
+			logger.debug("Using ConnectionProviderDataSource to execute DataSource work.");
 		}
 		
 		work.execute(ds);
@@ -165,7 +172,8 @@ public class JuEmUtil {
 	}
 	
 	/**
-	 * Gets a list of all table names of the DB. Table names are all upper case.
+	 * Gets a list of all table names of the DB. Table names are returned the way the DB driver
+	 * returns them, which may be lower, mixed or upper case.
 	 * @return List of Table names
 	 * @throws JuDbException If the list cannot be evaluated
 	 */
@@ -183,7 +191,7 @@ public class JuEmUtil {
 				
 				List<String> tableNames = new ArrayList<>();
 				while (rs.next()) {
-					String tableName = rs.getString("TABLE_NAME").toUpperCase();
+					String tableName = rs.getString("TABLE_NAME");
 					// We check if the TableName already exists in the list as
 					// Oracle seems to return the same table names multiple times on some
 					// Schemas...
@@ -210,10 +218,13 @@ public class JuEmUtil {
 	 * @return List of all columns that make up the primary key. If no primary key is applied, an empty list is returned.
 	 */
 	public List<String> getPrimaryKeyColumns(final String tableName) {
+		final String actualTableName = this.getDbType().getDbSpecificHandler(this, this.em).convertTableNameCasing(tableName);
+		
 		List<String> columnNames = this.extractDatabaseMetaData(new DatabaseMetaDataCallback<List<String>>() {
 			@Override
 			public List<String> processMetaData(DatabaseMetaData dbmd) throws SQLException {
-				ResultSet rs = dbmd.getPrimaryKeys(null, null, tableName.toUpperCase());
+				
+				ResultSet rs = dbmd.getPrimaryKeys(null, null, actualTableName);
 				
 				List<String> columnNames = new ArrayList<>();
 				while (rs.next()) {
@@ -229,32 +240,15 @@ public class JuEmUtil {
 	}
 	
 	/**
-	 * Gets a list of all sequence names of the DB. Sequences names are all upper case.
+	 * Gets a list of all sequence names of the DB. Sequences names are returned the
+	 * way the DB driver returns them, which is usually upper case.
 	 * @return List of Sequences names
 	 * @throws JuDbException If the list cannot be evaluated
 	 */
 	public List<String> getSequenceNames() throws JuDbException {
 		// There doesn't seem to be a generic way to retrieve sequences using JDBC meta data, so
-		// we have to use native queries
-		String nativeSql = null;
-		switch (this.getDbType()) {
-		case DERBY:
-			nativeSql = "select SEQUENCENAME name from SYS.SYSSEQUENCES";
-			break;
-		case H2:
-			nativeSql = "select SEQUENCE_NAME name from INFORMATION_SCHEMA.SEQUENCES";
-			break;
-		case ORACLE:
-			nativeSql = "select SEQUENCE_NAME from USER_SEQUENCES";
-			break;
-		default:
-			throw new JuRuntimeException("Unsupported DbType: " + this.getDbType());
-		}
-		
-		@SuppressWarnings("unchecked")
-		List<String> results = (List<String>) this.em.createNativeQuery(nativeSql).getResultList();
-		
-		return results;
+		// we have to use native queries. The queries are stored in the DB specific handlers.
+		return this.getDbType().getDbSpecificHandler(this, this.em).getSequenceNames();
 	}
 	
 	/**
@@ -265,71 +259,7 @@ public class JuEmUtil {
 	 * @param val Value for the next primary key
 	 */
 	public void resetIdentityGenerationOrSequences(int val) {
-		if (this.getDbType() == DbType.DERBY) {
-			List<?> res = this.em.createNativeQuery(
-				"select t.TABLENAME, c.COLUMNNAME " +
-				"from sys.SYSCOLUMNS c " +
-				"  inner join sys.SYSTABLES t on t.TABLEID = c.REFERENCEID " +
-				"where c.AUTOINCREMENTVALUE is not null").getResultList();
-			
-			for (Object row : res) {
-				Object[] aRow = (Object[]) row;
-				String tableName = aRow[0].toString();
-				String columnName = aRow[1].toString();
-				
-				logger.debug(String.format("Restarting ID column %s.%s with %d", tableName, columnName, val));
-				
-				this.em.createNativeQuery(String.format("alter table %s alter %s restart with %d"
-						, tableName
-						, columnName
-						, val)).executeUpdate();
-			}
-		} else if (this.getDbType() == DbType.H2) {
-			List<?> res = this.em.createNativeQuery(
-					"select c.TABLE_NAME, c.COLUMN_NAME " +
-					"from information_schema.columns c " +
-					"where c.SEQUENCE_NAME is not null").getResultList();
-				
-			for (Object row : res) {
-				Object[] aRow = (Object[]) row;
-				String tableName = aRow[0].toString();
-				String columnName = aRow[1].toString();
-				
-				logger.debug(String.format("Restarting ID column %s.%s with %d", tableName, columnName, val));
-				
-				this.em.createNativeQuery(String.format("alter table %s alter column %s restart with %d"
-						, tableName
-						, columnName
-						, val)).executeUpdate();
-			}
-		} else if (this.getDbType() == DbType.MYSQL) {
-			List<?> res = this.em.createNativeQuery(
-					"select c.TABLE_NAME, c.COLUMN_NAME " +
-					"from information_schema.columns c " +
-					"where c.EXTRA='auto_increment'" //c.TABLE_NAME='Player'" + 
-					).getResultList();
-				
-			for (Object row : res) {
-				Object[] aRow = (Object[]) row;
-				String tableName = aRow[0].toString();
-				String columnName = aRow[1].toString();
-				
-				logger.debug(String.format("Restarting ID column %s.%s with %d", tableName, columnName, val));
-				
-				this.em.createNativeQuery(String.format("alter table %s auto_increment = %d"
-						, tableName
-						, val)).executeUpdate();
-			}
-		} else if (this.getDbType() == DbType.ORACLE) {
-			for (String sequence : this.getSequenceNames()) {
-				// We'll just drop and recreate the sequence.
-				this.em.createNativeQuery("drop sequence " + sequence).executeUpdate();
-				this.em.createNativeQuery(String.format("create sequence %s start with %d", sequence, val)).executeUpdate();
-//				this.oracleSequenceSetNextVal(sequence, val);
-			}
-		} else {
-			throw new JuRuntimeException("Unsupported DbType " + this.getDbType());
-		}
+		this.getDbType().getDbSpecificHandler(this, this.em).resetIdentityGenerationOrSequences(val);
 	}
 	
 //	/**
@@ -355,21 +285,45 @@ public class JuEmUtil {
 	 * @return DbType
 	 */
 	public DbType getDbType() {
-		String productName = this.extractDatabaseMetaData(new DatabaseMetaDataCallback<String>() {
-			@Override
-			public String processMetaData(DatabaseMetaData dbmd) throws SQLException {
-				return dbmd.getDatabaseProductName();
-			}
-		});
+		if (this.dbType == null) {
+			String productName = this.extractDatabaseMetaData(new DatabaseMetaDataCallback<String>() {
+				@Override
+				public String processMetaData(DatabaseMetaData dbmd) throws SQLException {
+					return dbmd.getDatabaseProductName();
+				}
+			});
+			
+			this.dbType = DbType.evaluateDbType(productName);
+		}
 		
-		return DbType.evaluateDbType(productName);
+		return this.dbType;
 	}
 	
 	public enum DbType {
-		DERBY,
-		H2,
-		MYSQL,
-		ORACLE;
+		DERBY {
+			@Override
+			protected DbSpecificHandler getDbSpecificHandler(JuEmUtil emUtil, EntityManager em) {
+				return new DbSpecificHandlerDerby(emUtil, em);
+			}
+		},
+		H2 {
+			@Override
+			protected DbSpecificHandler getDbSpecificHandler(JuEmUtil emUtil, EntityManager em) {
+				return new DbSpecificHandlerH2(emUtil, em);
+			}
+		},
+		MYSQL {
+			@Override
+			protected DbSpecificHandler getDbSpecificHandler(JuEmUtil emUtil, EntityManager em) {
+				return new DbSpecificHandlerMySql(emUtil, em);
+			}
+		},
+		ORACLE {
+			@Override
+			protected DbSpecificHandler getDbSpecificHandler(JuEmUtil emUtil, EntityManager em) {
+				return new DbSpecificHandlerOracle(emUtil, em);
+			}
+		};
 		
 		private static DbType evaluateDbType(String productName) {
 			if (productName.toLowerCase().contains("derby")) {
@@ -384,6 +338,8 @@ public class JuEmUtil {
 				throw new JuDbException("Unknown DB. Product name: " + productName);
 			}
 		}
+		
+		protected abstract DbSpecificHandler getDbSpecificHandler(JuEmUtil emUtil, EntityManager em);
 	}
 	
 	private static class ConnectionProviderDataSource implements DataSource {

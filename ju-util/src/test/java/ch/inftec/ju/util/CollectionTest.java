@@ -211,6 +211,16 @@ public class CollectionTest {
 		Assert.assertTrue(JuCollectionUtils.collectionContains(col));
 	}
 	
+	public void collectionContainsIgnoreCase() {
+		Collection<String> col = Arrays.asList("a1", "A2", "b1", null);
+		
+		Assert.assertTrue(JuCollectionUtils.collectionContainsIgnoreCase(col, "a1"));
+		Assert.assertTrue(JuCollectionUtils.collectionContainsIgnoreCase(col, "A1"));
+		Assert.assertTrue(JuCollectionUtils.collectionContainsIgnoreCase(col, "A1", "b1"));
+		Assert.assertFalse(JuCollectionUtils.collectionContainsIgnoreCase(col, "a1", "A3"));
+		Assert.assertTrue(JuCollectionUtils.collectionContainsIgnoreCase(col));
+	}
+	
 	/**
 	 * Tests the WeakReferenceIterable implementation of JuCollectionUtils.
 	 */
