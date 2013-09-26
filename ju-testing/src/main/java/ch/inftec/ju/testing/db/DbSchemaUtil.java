@@ -215,6 +215,8 @@ public class DbSchemaUtil {
 			if (resetSequences) {
 				this.emUtil.resetIdentityGenerationOrSequences(1);
 			}
+			
+			this.tx.commit();
 		} finally {
 			this.tx.rollbackIfNotCommitted();
 		}
