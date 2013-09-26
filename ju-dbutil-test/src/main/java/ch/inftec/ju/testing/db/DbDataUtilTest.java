@@ -12,9 +12,10 @@ import ch.inftec.ju.util.xml.XmlUtils;
 public class DbDataUtilTest extends AbstractDbTest {
 	@Test
 	public void canImportData_fromDatasetFile() {
-		DbDataUtil du = new DbDataUtil(this.em);
-		du.prepareDefaultTestData(true, true, true);
+		DbSchemaUtil ds = new DbSchemaUtil(this.em);
+		ds.prepareDefaultTestData(true, true, true);
 		
+		DbDataUtil du = new DbDataUtil(this.em);
 		du.cleanImport("/ch/inftec/ju/testing/db/DbDataUtilTest_testingEntity.xml");
 		TestingEntity te = this.em.find(TestingEntity.class, 1L);
 		Assert.assertEquals("DbDataUtilTest", te.getName());
@@ -22,13 +23,14 @@ public class DbDataUtilTest extends AbstractDbTest {
 	
 	@Test
 	public void canExportData_toXmlDocument() {
-		DbDataUtil du = new DbDataUtil(this.em);
-		du.prepareDefaultTestData(true, true, true);
+		DbSchemaUtil ds = new DbSchemaUtil(this.em);
+		ds.prepareDefaultTestData(true, true, true);
 		
 		TestingEntity te = new TestingEntity();
 		te.setName("Export Test");
 		this.em.persist(te);
 		
+		DbDataUtil du = new DbDataUtil(this.em);
 		Document doc = du.buildExport().addTable("TestingEntity").writeToXmlDocument();
 		XPathGetter xg = new XPathGetter(doc);
 		logger.debug("Exported XML\n" + XmlUtils.toString(doc, false, true));
@@ -39,14 +41,15 @@ public class DbDataUtilTest extends AbstractDbTest {
 	
 	@Test
 	public void xmlExport_copesWithCamelCaseTable_andUsesUpperCaseColumnNames() {
-		DbDataUtil du = new DbDataUtil(this.em);
-		du.prepareDefaultTestData(true, true, true);
+		DbSchemaUtil ds = new DbSchemaUtil(this.em);
+		ds.prepareDefaultTestData(true, true, true);
 		
 		TestingEntity te = new TestingEntity();
 		te.setName("Export Test");
 		this.em.persist(te);
 		
 		// Export table with camel case
+		DbDataUtil du = new DbDataUtil(this.em);
 		Document doc = du.buildExport().addTable("TestingEntity").writeToXmlDocument();
 		XPathGetter xg = new XPathGetter(doc);
 		logger.debug("Exported XML\n" + XmlUtils.toString(doc, false, true));
@@ -60,14 +63,15 @@ public class DbDataUtilTest extends AbstractDbTest {
 		// MySQL is case sensitive
 		JuAssumeUtil.dbIsNot(this.emUtil, DbType.MYSQL);
 				
-		DbDataUtil du = new DbDataUtil(this.em);
-		du.prepareDefaultTestData(true, true, true);
+		DbSchemaUtil ds = new DbSchemaUtil(this.em);
+		ds.prepareDefaultTestData(true, true, true);
 		
 		TestingEntity te = new TestingEntity();
 		te.setName("Export Test");
 		this.em.persist(te);
 		
 		// Export table with camel case
+		DbDataUtil du = new DbDataUtil(this.em);
 		Document doc = du.buildExport().addTable("testingentity").writeToXmlDocument();
 		XPathGetter xg = new XPathGetter(doc);
 		logger.debug("Exported XML\n" + XmlUtils.toString(doc, false, true));
@@ -81,14 +85,15 @@ public class DbDataUtilTest extends AbstractDbTest {
 		// MySQL is case sensitive
 		JuAssumeUtil.dbIsNot(this.emUtil, DbType.MYSQL);
 		
-		DbDataUtil du = new DbDataUtil(this.em);
-		du.prepareDefaultTestData(true, true, true);
+		DbSchemaUtil ds = new DbSchemaUtil(this.em);
+		ds.prepareDefaultTestData(true, true, true);
 		
 		TestingEntity te = new TestingEntity();
 		te.setName("Export Test");
 		this.em.persist(te);
 		
 		// Export table with camel case
+		DbDataUtil du = new DbDataUtil(this.em);
 		Document doc = du.buildExport().addTable("TESTINGENTITY").writeToXmlDocument();
 		XPathGetter xg = new XPathGetter(doc);
 		logger.debug("Exported XML\n" + XmlUtils.toString(doc, false, true));
@@ -99,14 +104,15 @@ public class DbDataUtilTest extends AbstractDbTest {
 	
 	@Test
 	public void xmlExport_canApply_casedTableNames() {
-		DbDataUtil du = new DbDataUtil(this.em);
-		du.prepareDefaultTestData(true, true, true);
+		DbSchemaUtil ds = new DbSchemaUtil(this.em);
+		ds.prepareDefaultTestData(true, true, true);
 		
 		TestingEntity te = new TestingEntity();
 		te.setName("Export Test");
 		this.em.persist(te);
 		
 		// Export table with camel case
+		DbDataUtil du = new DbDataUtil(this.em);
 		Document doc = du.buildExport()
 			.addTable("TESTINGENTITY")
 			.setTableNamesCasingByDataSet("/ch/inftec/ju/testing/db/DbDataUtilTest_testingEntity.xml")
@@ -121,14 +127,15 @@ public class DbDataUtilTest extends AbstractDbTest {
 	
 	@Test
 	public void canExportTables_basedOnDatasetXml() {
-		DbDataUtil du = new DbDataUtil(this.em);
-		du.prepareDefaultTestData(true, true, true);
+		DbSchemaUtil ds = new DbSchemaUtil(this.em);
+		ds.prepareDefaultTestData(true, true, true);
 		
 		TestingEntity te = new TestingEntity();
 		te.setName("Export Test");
 		this.em.persist(te);
 		
 		// Export table with camel case
+		DbDataUtil du = new DbDataUtil(this.em);
 		Document doc = du.buildExport()
 			.addTablesByDataSet("/ch/inftec/ju/testing/db/DbDataUtilTest_testingEntity.xml", false)
 			.writeToXmlDocument();
@@ -142,9 +149,10 @@ public class DbDataUtilTest extends AbstractDbTest {
 	
 	@Test
 	public void exportTables_areSortedByPrimaryKey() {
-		DbDataUtil du = new DbDataUtil(this.em);
-		du.prepareDefaultTestData(true, true, true);
+		DbSchemaUtil ds = new DbSchemaUtil(this.em);
+		ds.prepareDefaultTestData(true, true, true);
 		
+		DbDataUtil du = new DbDataUtil(this.em);
 		du.cleanImport("/ch/inftec/ju/testing/db/DbDataUtilTest_testingEntity_unsorted.xml");
 		
 		// Export table with camel case
@@ -163,9 +171,10 @@ public class DbDataUtilTest extends AbstractDbTest {
 	
 	@Test
 	public void exportTables_basedOnDatasetXml_areSortedByPrimaryKey() {
-		DbDataUtil du = new DbDataUtil(this.em);
-		du.prepareDefaultTestData(true, true, true);
+		DbSchemaUtil ds = new DbSchemaUtil(this.em);
+		ds.prepareDefaultTestData(true, true, true);
 		
+		DbDataUtil du = new DbDataUtil(this.em);
 		du.cleanImport("/ch/inftec/ju/testing/db/DbDataUtilTest_testingEntity_unsorted.xml");
 		
 		// Export table with camel case

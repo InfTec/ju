@@ -51,7 +51,7 @@ public class JuEmUtilTest extends AbstractDbTest {
 	
 	@Test
 	public void canResetIdentityGeneration_orSequences() {
-		new DbDataUtil(this.emUtil).prepareDefaultTestData();
+		new DbSchemaUtil(this.emUtil).prepareDefaultTestData();
 		
 		// Try to set identity generation to 10
 		this.emUtil.resetIdentityGenerationOrSequences(10);
@@ -69,7 +69,7 @@ public class JuEmUtilTest extends AbstractDbTest {
 	
 	@Test
 	public void canEvaluate_primaryKeyColumnName_withSingleColumn() {
-		new DbDataUtil(this.emUtil).prepareDefaultTestData();
+		new DbSchemaUtil(this.emUtil).prepareDefaultTestData();
 		
 		List<String> primaryKeyColumns = this.emUtil.getPrimaryKeyColumns("TestingEntity");
 		Assert.assertEquals(1, primaryKeyColumns.size());
@@ -78,7 +78,7 @@ public class JuEmUtilTest extends AbstractDbTest {
 	
 	@Test
 	public void canEvaluate_primaryKeyColumnName_withMultipleColumns() {
-		new DbDataUtil(this.emUtil).prepareDefaultTestData();
+		new DbSchemaUtil(this.emUtil).prepareDefaultTestData();
 		
 		List<String> primaryKeyColumns = this.emUtil.getPrimaryKeyColumns("Team_Player");
 		Assert.assertEquals(2, primaryKeyColumns.size());
