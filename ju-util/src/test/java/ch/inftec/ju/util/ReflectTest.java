@@ -18,6 +18,18 @@ import org.junit.Test;
  */
 public class ReflectTest {
 	@Test
+	public void getInnerClass_returnesClass_ifExists() {
+		Class<?> innerClass = ReflectUtils.getInnerClass(ReflectTest.class, "InnerClass");
+		Assert.assertEquals(InnerClass.class, innerClass);
+	}
+	
+	@Test
+	public void getInnerClass_returnesNull_ifNotExists() {
+		Class<?> innerClass = ReflectUtils.getInnerClass(ReflectTest.class, "UnknownInnerClass");
+		Assert.assertNull(innerClass);
+	}
+	
+	@Test
 	public void getCallingClass() {
 		new CalledClass().callMe();		
 	}
@@ -115,6 +127,9 @@ public class ReflectTest {
 	
 	protected int getMethodTest(Long o1, Long o2) {
 		return 2;
+	}
+	
+	public static class InnerClass {
 	}
 	
 	@SuppressWarnings("unused")

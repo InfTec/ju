@@ -4,6 +4,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import javax.ejb.EJBException;
+
 import org.junit.runner.Description;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
@@ -55,7 +57,9 @@ public class ContainerClassRunner extends BlockJUnit4ClassRunner {
 	private Throwable getActualThrowable(Throwable t) {
 		if (t instanceof InvocationTargetException) {
 			return t.getCause();
-		} if (t instanceof ExceptionInInitializerError) {
+		} else if (t instanceof EJBException) {
+			return t.getCause();
+		} else if (t instanceof ExceptionInInitializerError) {
 			throw new IllegalStateException("Looks like we couldn't connect to JBoss. Make sure it is running.", t);
 		} else {
 			return t;

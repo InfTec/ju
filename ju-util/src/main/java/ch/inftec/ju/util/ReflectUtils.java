@@ -57,6 +57,26 @@ public final class ReflectUtils {
 			return null;
 		}
 	}
+	
+	/**
+	 * Gets the inner class of the specified class with the specified name.
+	 * <p>
+	 * If the class does not exist, null is returned.
+	 * <p>
+	 * Note that the class (or interface) has to be public.
+	 * @param clazz Enclosing class
+	 * @param innerClassName Public inner class or interface
+	 * @return Inner class or null if no such class exists
+	 */
+	public static Class<?> getInnerClass(Class<?> clazz, String innerClassName) {
+		for (Class<?> innerClass : clazz.getClasses()) {
+			if (innerClass.getSimpleName().equals(innerClassName)) {
+				return innerClass;
+			}
+		}
+		
+		return null;
+	}
 
 	/**
 	 * Get the actual type arguments a child class has used to extend a generic
@@ -230,12 +250,12 @@ public final class ReflectUtils {
 	 * @return New instance of the specified class
 	 * @throws JuRuntimeException if the instance cannot be created using the default constructor
 	 */
-	public static Object newInstance(Class<?> clazz, boolean forceAccess) {
+	public static <T> T newInstance(Class<T> clazz, boolean forceAccess) {
 		try {
 			if (!forceAccess) {
 				return clazz.newInstance();
 			} else {
-				Constructor<?> constructor = clazz.getDeclaredConstructor();
+				Constructor<T> constructor = clazz.getDeclaredConstructor();
 				constructor.setAccessible(true);
 				return constructor.newInstance();
 			}
