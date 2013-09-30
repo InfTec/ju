@@ -288,4 +288,34 @@ public final class ReflectUtils {
 			throw new JuRuntimeException("Couldn't access field " + field.getName(), ex);
 		}
 	}
+	
+	/**
+	 * Gets all annotations of the specified type for the specified class.
+	 * <p>
+	 * If no annotation is found, an empty list is returned.
+	 * <p>
+	 * If includeSuperClassesAnnotations is true, all super classes of the class are searched for the
+	 * specified annotation. The annotations are returned in order class (first) to super classes (Object last).
+	 * @param clazz Class to search for annotations
+	 * @param annotationClass Type of annotation
+	 * @param includeSuperClassesAnnotations If true, super classes are searched as well. If false, we can only get 0 or 1 results
+	 * @return List of annotations, in order of clazz (first) to super class (Object is last)
+	 */
+	public static <A extends Annotation> List<A> getAnnotations(
+			Class<?> clazz, 
+			Class<A> annotationClass, 
+			boolean includeSuperClassesAnnotations) {
+		
+		List<A> annos = new ArrayList<>();
+		
+		Class<?> c = clazz;
+		do {
+			A anno = c.getAnnotation(annotationClass);
+			if (anno != null) annos.add(anno);
+			
+			c = c.getSuperclass();
+		} while (includeSuperClassesAnnotations && c != null);
+		
+		return annos;
+	}
 }
