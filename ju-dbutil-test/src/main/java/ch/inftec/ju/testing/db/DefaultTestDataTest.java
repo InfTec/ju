@@ -21,20 +21,20 @@ public class DefaultTestDataTest extends AbstractDbTest {
 	
 	@Test
 	public void defaultTestData_canBeLoaded() {
-		new DbDataUtil(this.em).prepareDefaultTestData();
+		new DbSchemaUtil(this.em).prepareDefaultSchemaAndTestData();
 	}
 	
 	@Test
 	public void defaultTestData_canBeLoadedTwice() {
-		new DbDataUtil(this.em).prepareDefaultTestData();
-		new DbDataUtil(this.em).prepareDefaultTestData();
+		new DbSchemaUtil(this.em).prepareDefaultSchemaAndTestData();
+		new DbSchemaUtil(this.em).prepareDefaultSchemaAndTestData();
 	}
 	
 	@Test
 	public void canRead_allDataTypes_fromDefaultTestData() throws ParseException {
-		new DbDataUtil(this.em).prepareDefaultTestData();
+		new DbSchemaUtil(this.em).prepareDefaultSchemaAndTestData();
 		
-		DataTypes dt1 = this.em.find(DataTypes.class, 1L);
+		DataTypes dt1 = this.em.find(DataTypes.class, -1L);
 		
 		Assert.assertEquals(new Integer(1), dt1.getIntNumber());
 		Assert.assertEquals(new Long(2), dt1.getBigIntNumber());
@@ -55,9 +55,9 @@ public class DefaultTestDataTest extends AbstractDbTest {
 	
 	@Test
 	public void canRead_allNullValues_fromDefaultTestData() throws ParseException {
-		new DbDataUtil(this.em).prepareDefaultTestData();
+		new DbSchemaUtil(this.em).prepareDefaultSchemaAndTestData();
 		
-		DataTypes dt2 = this.em.find(DataTypes.class, 2L);
+		DataTypes dt2 = this.em.find(DataTypes.class, -2L);
 		
 		Assert.assertNull(dt2.getIntNumber());
 		Assert.assertNull(dt2.getBigIntNumber());

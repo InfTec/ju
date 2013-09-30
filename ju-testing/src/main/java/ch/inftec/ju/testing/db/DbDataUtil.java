@@ -147,50 +147,6 @@ public class DbDataUtil {
 	}
 	
 	/**
-	 * Loads the default test data (Player, Team, TestingEntity...), creating the
-	 * DB Schema as well.
-	 */
-	public void prepareDefaultTestData() {
-		this.prepareDefaultTestData(false, false, true);
-	}
-	
-	/**
-	 * Loads the default test data (Player, Team, TestingEntity, ...), making
-	 * sure that the tables have been created using Liquibase.
-	 * @param emptyTables If true, the default tables will be cleaned
-	 * @param resetSequences If true, sequences (or identity columns) will be reset to 1
-	 * @param createSchema If true, the Schema will be created (or verified) using Liquibase
-	 */
-	public void prepareDefaultTestData(boolean emptyTables, boolean resetSequences, boolean createSchema) {
-		if (createSchema) {
-			DbSchemaUtil su = new DbSchemaUtil(this.emUtil);
-			su.runLiquibaseChangeLog("ju-testing/data/default-changeLog.xml");
-			
-			// For non-MySQL DBs, we also need to create the hibernate_sequence sequence...
-			if (this.emUtil.getDbType() != DbType.MYSQL) {
-				su.runLiquibaseChangeLog("ju-testing/data/default-changeLog-hibernateSequence.xml");
-			}
-		}
-		
-		ImportBuilder fullData = this.buildImport().from("/ju-testing/data/default-fullData.xml");
-		if (emptyTables) {
-			fullData.executeDeleteAll();
-		} else {
-			fullData.executeCleanInsert();
-		}
-		
-		// Load TIMEFIELD for non-oracle DBs
-		if (this.emUtil.getDbType() != DbType.ORACLE && !emptyTables) {
-			this.buildImport().from("/ju-testing/data/default-fullData-dataTypes.xml").executeUpdate();
-		}
-		
-		if (resetSequences) {
-			this.emUtil.resetIdentityGenerationOrSequences(1);
-		}
-		
-	}
-	
-	/**
 	 * Sets the DB schema name to work with.
 	 * <p>
 	 * May be necessary for DBs like oracle to avoid duplicate name problems.
