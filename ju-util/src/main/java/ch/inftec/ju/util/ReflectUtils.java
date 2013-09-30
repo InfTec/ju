@@ -318,4 +318,62 @@ public final class ReflectUtils {
 		
 		return annos;
 	}
+	
+	/**
+	 * Gets annotations of the specified type for the specified method.
+	 * <p>
+	 * If no annotation is found, an empty list is returned.
+	 * <p>
+	 * If includeOverriddenMethods and includeClassAnnotations are both false, we can get either 1
+	 * or 2 results.
+	 * <p>
+	 * Annotations are returned in the following order:
+	 * <ol>
+	 *   <li>method</li>
+	 *   <li>overridden method(s)</li>
+	 *   <li>declaring class</li>
+	 *   <li>super classes of declaring class</li>
+	 * </ol>
+	 * @param method Method to get annotations for
+	 * @param annotationClass Class of the annotation to get
+	 * @param includeOverriddenMethods If true, overridden methods of super classes are also searched
+	 * @param includeClassAnnotations If true, the declaring class of the method is also searched
+	 * @param includeSuperClassesAnnotations If true, super classes of the declaring class are also searched. This
+	 * parameter is ignored if includeClassAnnotations is false.
+	 * @return List of annotations. If no annotations were found, an empty list is returned.
+	 */
+	public static <A extends Annotation> List<A> getAnnotations(
+			Method method,
+			Class<A> annotationClass,
+			boolean includeOverriddenMethods,
+			boolean includeClassAnnotations,
+			boolean includeSuperClassesAnnotations) {
+		
+		List<A> annos = new ArrayList<>();
+		
+		Method m = method;
+		do {
+			A anno = m.getAnnotation(annotationClass);
+			if (anno != null) annos.add(anno);
+			
+			// Check if the method is overriding a method in the super class
+			Class<?> superClass = m.getDeclaringClass().getSuperclass();
+			if (superClass != null) {
+				try {
+					m = superClass.getMethod(m.getName(), m.getParameterTypes());
+				} catch (NoSuchMethodException ex) {
+					m = null;
+				}
+			} else {
+				m = null;
+			}
+		} while (includeOverriddenMethods && m != null);
+		
+		if (includeClassAnnotations) {
+			List<A> classAnnos = ReflectUtils.getAnnotations(method.getDeclaringClass(), annotationClass, includeSuperClassesAnnotations);
+			annos.addAll(classAnnos);
+		}
+		
+		return annos;
+	}
 }
