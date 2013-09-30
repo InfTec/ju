@@ -30,7 +30,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>ju-dbutil</artifactId>
+			<artifactId>ju-testing</artifactId>
 		</dependency>
 	
 		<dependency>

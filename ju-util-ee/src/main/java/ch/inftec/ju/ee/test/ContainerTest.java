@@ -25,6 +25,9 @@ import ch.inftec.ju.util.JuRuntimeException;
  * <p>
  * You can, however, use override the doInit method to perform initialization tasks and use
  * the serviceLocator to perform CDI and JNDI lookups in the container.
+ * <p>
+ * Note that the container will have to provide an EntityManager producer so we can inject it
+ * into our test class.
  * @author Martin
  */
 @RunWith(ContainerClassRunner.class)

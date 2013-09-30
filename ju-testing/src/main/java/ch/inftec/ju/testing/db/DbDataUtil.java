@@ -36,6 +36,8 @@ import org.dbunit.ext.mysql.MySqlMetadataHandler;
 import org.dbunit.ext.oracle.Oracle10DataTypeFactory;
 import org.dbunit.operation.DatabaseOperation;
 import org.hibernate.jdbc.Work;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 
 import ch.inftec.ju.db.ConnectionInfo;
@@ -509,8 +511,11 @@ public class DbDataUtil {
 	 *
 	 */
 	public static class ImportBuilder {
+		private Logger logger = LoggerFactory.getLogger(ImportBuilder.class);
+		
 		private final DbDataUtil dbDataUtil;
 		private FlatXmlDataSet flatXmlDataSet;
+		private URL dataSetUrl;
 		
 		private ImportBuilder(DbDataUtil dbDataUtil) {
 			this.dbDataUtil = dbDataUtil;	
@@ -538,6 +543,7 @@ public class DbDataUtil {
 					.setColumnSensing(true)
 					.setCaseSensitiveTableNames(false)
 					.build(xmlUrl);
+				this.dataSetUrl = xmlUrl;
 				return this;
 			} catch (Exception ex) {
 				throw new JuDbException("Couldn't import data from XML: " + xmlUrl, ex);
@@ -553,9 +559,10 @@ public class DbDataUtil {
 				@Override
 				public void execute(IDatabaseConnection conn) {
 					try {
+						logger.debug("Executing Clean-Insert from: " + dataSetUrl);
 						DatabaseOperation.CLEAN_INSERT.execute(conn, flatXmlDataSet);
 					} catch (Exception ex) {
-						throw new JuDbException("Couldnt clean and insert data into DB", ex);
+						throw new JuDbException("Couldn't clean and insert data into DB", ex);
 					}
 				}
 			});
@@ -569,6 +576,7 @@ public class DbDataUtil {
 				@Override
 				public void execute(IDatabaseConnection conn) {
 					try {
+						logger.debug("Executing Delete-All from: " + dataSetUrl);
 						DatabaseOperation.DELETE_ALL.execute(conn, flatXmlDataSet);
 					} catch (Exception ex) {
 						throw new JuDbException("Couldnt truncate data in DB", ex);
@@ -586,6 +594,7 @@ public class DbDataUtil {
 				@Override
 				public void execute(IDatabaseConnection conn) {
 					try {
+						logger.debug("Executing Insert from: " + dataSetUrl);
 						DatabaseOperation.INSERT.execute(conn, flatXmlDataSet);
 					} catch (Exception ex) {
 						throw new JuDbException("Couldnt insert data into DB", ex);
@@ -603,6 +612,7 @@ public class DbDataUtil {
 				@Override
 				public void execute(IDatabaseConnection conn) {
 					try {
+						logger.debug("Executing Update from: " + dataSetUrl);
 						DatabaseOperation.UPDATE.execute(conn, flatXmlDataSet);
 					} catch (Exception ex) {
 						throw new JuDbException("Couldnt update data in DB", ex);
