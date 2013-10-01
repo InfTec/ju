@@ -41,6 +41,17 @@ public class ReflectTest {
 	}
 	
 	@Test
+	public void getMethod_returnsMethod_forValidMethod() {
+		Assert.assertEquals("getMethod_returnsMethod_forValidMethod"
+				, ReflectUtils.getMethod(this.getClass(), "getMethod_returnsMethod_forValidMethod", null).getName());
+	}
+	
+	@Test
+	public void getMethod_returnsNull_forInvalidMethod() {
+		Assert.assertNull(ReflectUtils.getMethod(this.getClass(), "bla", null));
+	}
+	
+	@Test
 	public void getDeclaredMethod() throws Exception {
 		Method m1 = ReflectUtils.getDeclaredMethod(ReflectTest.class, "getMethodTest", new Class<?>[] { Long.class, Long.class });
 		int res1 = (Integer)m1.invoke(new ReflectTest(), null, null);

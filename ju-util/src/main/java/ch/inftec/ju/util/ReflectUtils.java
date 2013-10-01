@@ -171,6 +171,26 @@ public final class ReflectUtils {
 	}
 	
 	/**
+	 * Gets the method of the specified class by its name.
+	 * <p>
+	 * If no such method can be found, null is returned.
+	 * <p>
+	 * This uses the Java Class.getMethod function internally.
+	 * @param clazz Clazz containing the method
+	 * @param name Name of the method
+	 * @param paramTypes Parameter types of the method
+	 * @return Method instance of null if no such method exists
+	 */
+	public static Method getMethod(Class<?> clazz, String name, Class<?> paramTypes[]) {
+		try {
+			Method method = clazz.getMethod(name, paramTypes);
+			return method;
+		} catch (NoSuchMethodException ex) {
+			return null;
+		}
+	}
+	
+	/**
 	 * Gets the first declared method that matches the specified name and parameter types. In contrast
 	 * to the Java reflection method, this method will try to find a method that only matches super types
 	 * of the specified parameters instead of the exact type.

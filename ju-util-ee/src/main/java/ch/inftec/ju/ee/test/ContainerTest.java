@@ -8,7 +8,7 @@ import java.nio.file.Paths;
 import javax.persistence.EntityManager;
 
 import org.jboss.logging.Logger;
-import org.junit.runner.RunWith;
+import org.junit.Rule;
 
 import ch.inftec.ju.db.JuEmUtil;
 import ch.inftec.ju.ee.client.ServiceLocator;
@@ -20,8 +20,8 @@ import ch.inftec.ju.util.JuRuntimeException;
  * Base class for container tests, i.e. integration tests that run in the application
  * server VM.
  * <p>
- * The container test facility does not support any annotations, neither JUnit (@Before, @Role, etc.)
- * not CDI (@Inject, @PersistenceContext, etc.)
+ * Note that any JUnit related features like @Before, @After and so on will run in the
+ * client JVM and not on the server.
  * <p>
  * You can, however, use override the doInit method to perform initialization tasks and use
  * the serviceLocator to perform CDI and JNDI lookups in the container.
@@ -30,9 +30,14 @@ import ch.inftec.ju.util.JuRuntimeException;
  * into our test class.
  * @author Martin
  */
-@RunWith(ContainerClassRunner.class)
 public class ContainerTest implements TestRunnerFacade.ContextAware, TestRunnerFacade.Initializable {
     protected Logger _log = Logger.getLogger(this.getClass());
+    
+    /**
+     * Rule that runs the method statements on the remote JBoss container VM
+     */
+    @Rule
+	public ContainerTestRunnerRule testRunnerRule = new ContainerTestRunnerRule();
     
     private TestRunnerContext context;
     

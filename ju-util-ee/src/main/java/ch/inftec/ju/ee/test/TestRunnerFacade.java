@@ -4,6 +4,15 @@ import java.io.Serializable;
 
 import javax.ejb.Remote;
 
+/**
+ * Helper facade to invoke (test) methods from local unit tests in a remote JVM server container
+ * context.
+ * <p>
+ * The facade is supposed to perform regular EJB transaction commit or rollback, depending on the
+ * exception that might arise when executing test methods.
+ * @author Martin
+ *
+ */
 @Remote
 public interface TestRunnerFacade {
 	/**
@@ -16,6 +25,9 @@ public interface TestRunnerFacade {
 	 */
 	public void runTestMethodInEjbContext(String className, String methodName, TestRunnerContext context) throws Exception;
 
+	
+	public void runDataVerifierInEjbContext(String... verifierClassNames) throws Exception;
+	
 	/**
 	 * Runs an arbitrary method in an EJB context and returns the result of the method.
 	 * @param className Class name that contains the method
