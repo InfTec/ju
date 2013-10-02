@@ -393,4 +393,11 @@ public class CollectionTest {
 		Assert.assertEquals(3, set.size());
 		Assert.assertTrue(JuCollectionUtils.arrayEquals(new String[] {"a", "b", "z"}, set.toArray()));
 	}
+	
+	@Test
+	public void collectionUtils_canCreatedTypedArrayList() {
+		List<Object> list = JuCollectionUtils.asTypedArrayList(Object.class, "a", "b");
+		Assert.assertEquals("a", list.get(0));
+		Assert.assertEquals("b", list.get(1));
+	}
 }

@@ -307,6 +307,20 @@ public final class JuCollectionUtils {
 	}
 	
 	/**
+	 * Converts the specified values to an ArrayList of the specified type.
+	 * @param type Explicit type
+	 * @param values List of values / array
+	 * @return ArrayList
+	 */
+	@SafeVarargs
+	public static <T, S extends T> ArrayList<T> asTypedArrayList(Class<T> type, S... values) {
+		ArrayList<T> list = new ArrayList<>();
+		for (T value : values) list.add(value);
+		
+		return list;
+	}
+	
+	/**
 	 * Returns a sorted set with all distinct values of the specified collection in their
 	 * natural order
 	 * @param collection Collection containing elements

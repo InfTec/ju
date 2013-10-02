@@ -8,7 +8,6 @@ import java.lang.reflect.Proxy;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,7 +17,6 @@ import javax.persistence.EntityManager;
 
 import org.dbunit.Assertion;
 import org.dbunit.DatabaseUnitException;
-import org.dbunit.database.AmbiguousTableNameException;
 import org.dbunit.database.DatabaseConfig;
 import org.dbunit.database.DatabaseConnection;
 import org.dbunit.database.DefaultMetadataHandler;
@@ -268,12 +266,7 @@ public class DbDataUtil {
 	public static class ExportBuilder {
 		private final DbDataUtil dbDataUtil;
 		
-		private final List<ExportItem> exportItems = new ArrayList<>();
-		
-		/**
-		 * List that may contain table names the way we are supposed to write them (casing)
-		 */
-		private List<String> casedTableNames = new ArrayList<>();
+		private final ExportItems exportItems = new ExportItems();
 		
 		private ExportBuilder(DbDataUtil dbDataUtil) {
 			this.dbDataUtil = dbDataUtil;	
@@ -289,7 +282,7 @@ public class DbDataUtil {
 		 */
 		public ExportBuilder setTableNamesCasingByDataSet(String resourcePath) {
 			try {
-				this.casedTableNames = new XPathGetter(XmlUtils.loadXml(IOUtil.getResourceURL(resourcePath))).getNodeNames("dataset/*");
+				this.exportItems.setCasedTableNames(new XPathGetter(XmlUtils.loadXml(IOUtil.getResourceURL(resourcePath))).getNodeNames("dataset/*"));
 			} catch (Exception ex) {
 				throw new JuDbException("Couldn't load table names data set " + resourcePath, ex);
 			}
@@ -336,8 +329,7 @@ public class DbDataUtil {
 		 * @return ExportBuilder to allow for chaining
 		 */
 		public ExportBuilder addTable(final String tableName, final String query) {
-			this.exportItems.add(new TableQueryExportItem(tableName, query));
-			
+			this.exportItems.add(tableName, query);
 			return this;
 		}
 		
@@ -371,8 +363,20 @@ public class DbDataUtil {
 		 * @return ExportBuilder to allow for chaining
 		 */
 		public ExportBuilder addTablesByDataSet(String resourcePath, boolean sortedByPrimaryKey) {
+			return this.addTablesByDataSet(IOUtil.getResourceURL(resourcePath), sortedByPrimaryKey);
+		}
+		
+		/**
+		 * Adds the data of the tables contained in the specified data set.
+		 * <p>
+		 * It doesn't matter what kind of dataset we got, we're just extracting the table names.
+		 * @param resourceUrl
+		 * @param sortedByPrimaryKey If true, the entries will be sorted by primary key
+		 * @return ExportBuilder to allow for chaining
+		 */
+		public ExportBuilder addTablesByDataSet(URL resourceUrl, boolean sortedByPrimaryKey) {
 			try {
-				Set<String> tableNames = JuCollectionUtils.asSameOrderSet(new XPathGetter(XmlUtils.loadXml(IOUtil.getResourceURL(resourcePath))).getNodeNames("dataset/*"));
+				Set<String> tableNames = JuCollectionUtils.asSameOrderSet(new XPathGetter(XmlUtils.loadXml(resourceUrl)).getNodeNames("dataset/*"));
 				for (String tableName : tableNames) {
 					if (sortedByPrimaryKey) {
 						this.addTableSorted(tableName);
@@ -383,7 +387,7 @@ public class DbDataUtil {
 				
 				return this;
 			} catch (Exception ex) {
-				throw new JuDbException("Couldn't add tables by dataset " + resourcePath, ex);
+				throw new JuDbException("Couldn't add tables by dataset " + resourceUrl, ex);
 			}
 		}
 		
@@ -391,23 +395,14 @@ public class DbDataUtil {
 			this.dbDataUtil.execute(new DbUnitWork() {
 				@Override
 				public void execute(IDatabaseConnection conn) {
-					if (exportItems.size() > 0) {
-						QueryDataSet dataSet = new QueryDataSet(conn, false);
-						for (ExportItem item : exportItems) {
-							item.addToQueryDataSet(dataSet, casedTableNames);
-						}
-						dataSetWork.execute(dataSet);
-					} else {
-						// Export whole DB
-						try {
-							IDataSet dataSet = conn.createDataSet();
-							dataSetWork.execute(dataSet);
-						} catch (Exception ex) {
-							throw new JuDbException("Couldn't export whole DB");
-						}
-					}
+					dataSetWork.execute(createDataSet(conn));
 				};
 			});
+		}
+		
+		private IDataSet createDataSet(IDatabaseConnection conn) {
+			IDataSet dataSet = exportItems.createDataSet(conn);
+			return dataSet;
 		}
 		
 		/**
@@ -458,37 +453,6 @@ public class DbDataUtil {
 		
 		private interface DataSetWork {
 			void execute(IDataSet dataSet);
-		}
-		
-		private interface ExportItem {
-			void addToQueryDataSet(QueryDataSet dataSet, List<String> casedTableNames);
-		}
-		
-		private static class TableQueryExportItem implements ExportItem {
-			private final String tableName;
-			private final String query;
-			
-			private TableQueryExportItem(String tableName, String query) {
-				this.tableName = tableName;
-				this.query = query;
-			}
-			
-			@Override
-			public void addToQueryDataSet(QueryDataSet dataSet, List<String> casedTableNames) {
-				try {
-					String actualTableName = this.tableName;
-					for (String casedTableName : casedTableNames) {
-						if (casedTableName.equalsIgnoreCase(this.tableName)) {
-							actualTableName = casedTableName;
-							break;
-						}
-					}
-					
-					dataSet.addTable(actualTableName, this.query);
-				} catch (AmbiguousTableNameException ex) {
-					throw new JuDbException(String.format("Couldn't add table %s to QueryDataSet: %s", this.tableName, this.query), ex);
-				}
-			}
 		}
 		
 		/**
@@ -631,9 +595,20 @@ public class DbDataUtil {
 	public static class AssertBuilder {
 		private final DbDataUtil dbDataUtil;
 		private FlatXmlDataSet flatXmlDataSet;
+		private URL dataSetUrl;
 		
 		private AssertBuilder(DbDataUtil dbDataUtil) {
 			this.dbDataUtil = dbDataUtil;	
+		}
+		
+		/**
+		 * Path to XML of expected data.
+		 * @param resourcePath Resource path, either absolute or relative to the current class
+		 * @return AssertBuilder
+		 */
+		public AssertBuilder expected(String resourcePath) {
+			URL url = IOUtil.getResourceURL(resourcePath, ReflectUtils.getCallingClass());
+			return expected(url);
 		}
 		
 		/**
@@ -643,6 +618,7 @@ public class DbDataUtil {
 		 */
 		public AssertBuilder expected(URL xmlUrl) {
 			try {
+				this.dataSetUrl = xmlUrl;
 				flatXmlDataSet = new FlatXmlDataSetBuilder().build(xmlUrl);
 				return this;
 			} catch (Exception ex) {
@@ -651,7 +627,30 @@ public class DbDataUtil {
 		}
 		
 		/**
+		 * Asserts that the data exported based on the result data set (i.e. all tables contained in the dataset, sorted
+		 * by primary key) equals the result data set.
+		 */
+		public void assertEquals() {
+			this.dbDataUtil.execute(new DbUnitWork() {
+				@Override
+				public void execute(IDatabaseConnection conn) {
+					try {
+						IDataSet dbDataSet = dbDataUtil.buildExport()
+							.addTablesByDataSet(dataSetUrl, true)
+							.createDataSet(conn);
+						
+						Assertion.assertEquals(flatXmlDataSet, dbDataSet);
+					} catch (Exception ex) {
+						throw new JuDbException("Couldn't assert DB data", ex);
+					}
+				}
+				
+			});
+		}
+		
+		/**
 		 * Asserts that the whole data set in the DB equals the expected data.
+		 * TODO: Add functionality to exclude (system) tables
 		 */
 		public void assertEqualsAll() {
 			this.dbDataUtil.execute(new DbUnitWork() {

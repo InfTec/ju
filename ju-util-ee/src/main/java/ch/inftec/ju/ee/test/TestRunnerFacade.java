@@ -1,6 +1,8 @@
 package ch.inftec.ju.ee.test;
 
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.List;
 
 import javax.ejb.Remote;
 
@@ -25,8 +27,13 @@ public interface TestRunnerFacade {
 	 */
 	public void runTestMethodInEjbContext(String className, String methodName, TestRunnerContext context) throws Exception;
 
-	
-	public void runDataVerifierInEjbContext(String... verifierClassNames) throws Exception;
+	/**
+	 * Runs a bunch of data verifiers in an EJB context, allowing test cases to verify data after the
+	 * test method has run (and the transaction was ended).
+	 * @param dataVerifierInfos Info to instantiate verifiers
+	 * @throws Exception If verification fails
+	 */
+	public void runDataVerifierInEjbContext(List<DataVerifierInfo> dataVerifierInfos) throws Exception;
 	
 	/**
 	 * Runs an arbitrary method in an EJB context and returns the result of the method.
@@ -87,5 +94,31 @@ public interface TestRunnerFacade {
 		 * The method will be called within the same EJB / transaction context as the test method
 		 */
 		void init();
+	}
+	
+	/**
+	 * Helper object that contains information to instantiate a DataVerifier.
+	 * <p>
+	 * Info consists of a class name and an optional list of parameters that will be passed to
+	 * the constructor of the DataVerifier.
+	 * @author Martin
+	 *
+	 */
+	public static class DataVerifierInfo implements Serializable {
+		private final String className;
+		private final List<Object> parameters;
+		
+		public DataVerifierInfo(String className, List<Object> parameters) {
+			this.className = className;
+			this.parameters = parameters == null ? Collections.emptyList() : parameters;
+		}
+		
+		public String getClassName() {
+			return className;
+		}
+		
+		public List<Object> getParameters() {
+			return parameters;
+		}
 	}
 }

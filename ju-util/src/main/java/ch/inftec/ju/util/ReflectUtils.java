@@ -267,17 +267,27 @@ public final class ReflectUtils {
 	 * Creates an instance of the specified class, forcing access to the default constructor if necessary.
 	 * @param clazz Clazz
 	 * @param forceAccess If true, access to a private constructor is forces
+	 * @param parameters Optional list of parameters to pass to the constructor
 	 * @return New instance of the specified class
 	 * @throws JuRuntimeException if the instance cannot be created using the default constructor
 	 */
-	public static <T> T newInstance(Class<T> clazz, boolean forceAccess) {
+	public static <T> T newInstance(Class<T> clazz, boolean forceAccess, Object... parameters) {
 		try {
-			if (!forceAccess) {
+			if (!forceAccess && parameters.length == 0) {
 				return clazz.newInstance();
 			} else {
-				Constructor<T> constructor = clazz.getDeclaredConstructor();
-				constructor.setAccessible(true);
-				return constructor.newInstance();
+				Class<?> parameterTypes[] = new Class<?>[parameters.length];
+				for (int i = 0; i < parameterTypes.length; i++) {
+					AssertUtil.assertNotNull("Null parameters not supported yet", parameters[i]);
+					parameterTypes[i] = parameters[i].getClass();
+				}
+				
+				Constructor<T> constructor = clazz.getDeclaredConstructor(parameterTypes);
+				if (forceAccess) {
+					constructor.setAccessible(true);
+				}
+				
+				return constructor.newInstance(parameters);
 			}
 		} catch (Exception ex) {
 			throw new JuRuntimeException("Couldn't create instance using default constructor for class " + clazz, ex);

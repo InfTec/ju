@@ -88,16 +88,16 @@ public class TestRunnerFacadeBean implements TestRunnerFacade {
 	}
 	
 	@Override
-	public void runDataVerifierInEjbContext(String... verifierClassNames) throws Exception {
+	public void runDataVerifierInEjbContext(List<DataVerifierInfo> dataVerifierInfos) throws Exception {
 		try (TxHandler txHandler = new TxHandler(this.tx, true)) { 
 			ServiceLocator serviceLocator = ServiceLocatorBuilder.buildLocal().createServiceLocator();
 			
-			for (String verifierClassName : verifierClassNames) {
-				Class<?> verifierClass = Class.forName(verifierClassName);
+			for (DataVerifierInfo info : dataVerifierInfos) {
+				Class<?> verifierClass = Class.forName(info.getClassName());
 				AssertUtil.assertTrue("Verifier must be of type DataVerifier: " + verifierClass.getName(), DataVerifier.class.isAssignableFrom(verifierClass));
 				
-				DataVerifier verifier = (DataVerifier) verifierClass.newInstance();
-				
+				DataVerifier verifier = (DataVerifier) ReflectUtils.newInstance(verifierClass, false, info.getParameters().toArray(new Object[0]));
+					
 				if (verifier instanceof DataVerifierCdi) {
 					((DataVerifierCdi) verifier).init(this.em, serviceLocator);
 				} else {
@@ -110,7 +110,7 @@ public class TestRunnerFacadeBean implements TestRunnerFacade {
 			txHandler.commit();
 		}
 	}
-	
+
 	@Override
 	public Object runMethodInEjbContext(String className, String methodName,
 			Class<?> argumentTypes[], Object[] args) throws Exception {

@@ -19,10 +19,14 @@ import org.junit.runners.model.Statement;
 
 import ch.inftec.ju.ee.client.JndiServiceLocator;
 import ch.inftec.ju.ee.client.ServiceLocatorBuilder;
+import ch.inftec.ju.ee.test.TestRunnerFacade.DataVerifierInfo;
 import ch.inftec.ju.ee.test.TestRunnerFacade.TestRunnerContext;
+import ch.inftec.ju.testing.db.DataSetVerify;
 import ch.inftec.ju.testing.db.DataVerifier;
 import ch.inftec.ju.testing.db.DataVerify;
+import ch.inftec.ju.testing.db.DbDataUtil;
 import ch.inftec.ju.util.AssertUtil;
+import ch.inftec.ju.util.JuCollectionUtils;
 import ch.inftec.ju.util.ReflectUtils;
 
 /**
@@ -64,8 +68,17 @@ public class ContainerTestRunnerRule implements TestRule {
 		
 		// Check if we have DataVerifiers that need to be run after the test statement has succeeded
 		// without errors (including throwing expected exceptions)
+		
+		List<DataVerifierInfo> verifierInfos = new ArrayList<>();
+		
+		// First, check if we need to perform DataSetVerify
+		List<DataSetVerify> dataSetVerifies = ReflectUtils.getAnnotations(method, DataSetVerify.class, true, false, false);
+		for (DataSetVerify dataSetVerify : dataSetVerifies) {
+			verifierInfos.add(new DataVerifierInfo(DataSetVerifier.class.getName(), JuCollectionUtils.asTypedArrayList(Object.class, dataSetVerify.value())));
+		}
+		
+		// Now check for programmatic verifiers
 		List<DataVerify> verifiers = ReflectUtils.getAnnotations(method, DataVerify.class, true, false, false);
-		List<String> verifierClassNames = new ArrayList<>();
 		for (DataVerify verify : verifiers) {
 			Class<?> verifierClass = null;
 			if (verify.value() == DataVerify.DEFAULT_DATA_VERIFIER.class) {
@@ -81,11 +94,11 @@ public class ContainerTestRunnerRule implements TestRule {
 			}
 			
 			AssertUtil.assertTrue("Verifier must be of type DataVerifier: " + verifierClass.getName(), DataVerifier.class.isAssignableFrom(verifierClass));
-			verifierClassNames.add(verifierClass.getName());
+			verifierInfos.add(new DataVerifierInfo(verifierClass.getName(), null));
 		}
 		
-		if (verifierClassNames.size() > 0) {
-			return new ContainerVerifyRunnerStatement(testStatement, verifierClassNames);
+		if (verifierInfos.size() > 0) {
+			return new ContainerVerifyRunnerStatement(testStatement, verifierInfos);
 		} else {
 			return testStatement;
 		}
@@ -121,7 +134,7 @@ public class ContainerTestRunnerRule implements TestRule {
 				return t.getCause();
 			} else if (t instanceof EJBException) {
 				// DataVerifier contain a nested RuntimeException more
-				if (t.getCause() != null && t.getCause() instanceof RuntimeException) {
+				if (t.getCause() != null && t.getCause().getClass() == RuntimeException.class) {
 					return t.getCause().getCause();
 				} else {
 					return t.getCause();
@@ -149,11 +162,11 @@ public class ContainerTestRunnerRule implements TestRule {
 	
 	private static class ContainerVerifyRunnerStatement extends ContainerRunnerStatement {
 		private final Statement testStatement;
-		private final List<String> verifierClassNames;
+		private final List<DataVerifierInfo> verifierInfos;
 		
-		private ContainerVerifyRunnerStatement(Statement testStatement, List<String> verifierClassNames) {
+		private ContainerVerifyRunnerStatement(Statement testStatement, List<DataVerifierInfo> verifierInfos) {
 			this.testStatement = testStatement;
-			this.verifierClassNames = verifierClassNames;
+			this.verifierInfos = verifierInfos;
 		}
 		
 		@Override
@@ -162,7 +175,28 @@ public class ContainerTestRunnerRule implements TestRule {
 			testStatement.evaluate();
 			
 			// Run the verifiers now
-			facade.runDataVerifierInEjbContext(this.verifierClassNames.toArray(new String[0]));
+			facade.runDataVerifierInEjbContext(this.verifierInfos);
+		}
+	}
+	
+	/**
+	 * Data verifier that verifies agains a data set.
+	 * @author Martin
+	 *
+	 */
+	public static class DataSetVerifier extends DataVerifier {
+		private final String dataSet;
+		
+		public DataSetVerifier(String dataSet) {
+			this.dataSet = dataSet;
+		}
+		
+		@Override
+		public void verify() {
+			DbDataUtil du = new DbDataUtil(this.emUtil);
+			du.buildAssert()
+				.expected(this.dataSet)
+				.assertEquals();
 		}
 	}
 }

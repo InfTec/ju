@@ -104,6 +104,12 @@ public class ReflectTest {
 			Assert.assertEquals(IllegalAccessException.class, ex.getCause().getClass());
 		}
 	}
+
+	@Test
+	public void newInstance_withParameters() {
+		ParamConstructor pc = ReflectUtils.newInstance(ParamConstructor.class, false, "Param");
+		Assert.assertEquals("Param", pc.getName());
+	}
 	
 	/**
 	 * Tests the getFieldsByAnnotation method.
@@ -141,6 +147,18 @@ public class ReflectTest {
 	}
 	
 	public static class InnerClass {
+	}
+	
+	public static class ParamConstructor {
+		private final String name;
+		
+		public ParamConstructor(String name) {
+			this.name = name;
+		}
+		
+		public String getName() {
+			return name;
+		}
 	}
 	
 	@SuppressWarnings("unused")
