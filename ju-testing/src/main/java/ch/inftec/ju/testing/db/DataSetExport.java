@@ -15,5 +15,9 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.METHOD})
 public @interface DataSetExport {
-//	String value();
+	/**
+	 * Name of the data set that contains the tables we should export.
+	 * @return Path to the export data set XML file resource 
+	 */
+	String value();
 }

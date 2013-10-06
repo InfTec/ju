@@ -87,7 +87,7 @@ public class TestRunnerFacadeBean implements TestRunnerFacade {
 			// Export test data if needed
 			List<DataSetExport> dataSetExports = ReflectUtils.getAnnotations(method, DataSetExport.class, false, false, false); // TODO: Handle inherited annotations...
 			if (dataSetExports.size() == 1) {
-//				DataSetExport dataSetExport = dataSetExports.get(0); // TODO: Handle annotation attributes
+				DataSetExport dataSetExport = dataSetExports.get(0);
 				
 				String targetDirName = "target/dataSetExport";
 				// Create target directory
@@ -102,7 +102,9 @@ public class TestRunnerFacadeBean implements TestRunnerFacade {
 				
 				txHandler.begin();
 				DbDataUtil du = new DbDataUtil(this.em);
-				du.buildExport().writeToXmlFile(targetFilePath.toString());
+				du.buildExport()
+					.addTablesByDataSet(dataSetExport.value(), true)
+					.writeToXmlFile(targetFilePath.toString());
 				txHandler.commit();
 			} else if (dataSetExports.size() > 1) {
 				throw new JuRuntimeException("Inherited @DataSetExport annotations not supported yet");
