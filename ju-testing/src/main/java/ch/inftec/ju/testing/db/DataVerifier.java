@@ -31,6 +31,7 @@ public abstract class DataVerifier {
 	 * Method that will be called by the testing framework after
 	 * the data test method has completed and the transaction has been
 	 * either committed or rolled back.
+	 * @throws Exception If verification fails
 	 */
-	public abstract void verify();
+	public abstract void verify() throws Exception;
 }

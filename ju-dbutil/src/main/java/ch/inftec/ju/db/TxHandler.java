@@ -1,14 +1,17 @@
 package ch.inftec.ju.db;
 
+import javax.persistence.EntityManager;
 import javax.transaction.UserTransaction;
 
 /**
- * Helper wrapper around a UserTransaction to help coping with optional
- * transaction object (null) and exceptions.
+ * Helper wrapper around an EntityManager (local transaction) or a UserTransaction (JTA) 
+ * to help coping with optional transaction object (null) and exceptions.
+ * TODO: Refactor (EntityManager vs. UserTransaction code) or drop resource local transaction support and require JTA
  * @author Martin
  *
  */
 public final class TxHandler implements AutoCloseable {
+	private final EntityManager em;
 	private final UserTransaction tx;
 	private boolean committed = true;
 	
@@ -21,13 +24,28 @@ public final class TxHandler implements AutoCloseable {
 	}
 	
 	/**
+	 * Creates a TxHandler around the EntityTransaction of the EntityManager and
+	 * automatically begins the transaction.
+	 * @param em EntityManager with local resource transaction handling
+	 */
+	public TxHandler(EntityManager em) {
+		this(em, null, true);
+	}
+	
+	/**
 	 * Creates a new TxHandler wrapper and begins a new transaction
 	 * if begin is true.
 	 * @param tx UserTransaction
 	 * @param begin If true, calls begin on the transaction
 	 */
 	public TxHandler(UserTransaction tx, boolean begin) {
-		this.tx = tx;		
+		this(null, tx, begin);
+	}
+
+	private TxHandler(EntityManager em, UserTransaction tx, boolean begin) {
+		this.em = em;
+		this.tx = tx;
+		
 		if (begin) this.begin();
 	}
 	
@@ -36,11 +54,17 @@ public final class TxHandler implements AutoCloseable {
 	 * @throws JuDbException If we cannot begin a transaction
 	 */
 	public void begin() {
-		try {
-			if (this.tx != null) tx.begin();
-			this.committed = false;
-		} catch (Exception ex) {
-			throw new JuDbException("Couldn't begin JTA transaction", ex);
+		if (this.em != null) {
+			if (!this.em.getTransaction().isActive()) {
+				this.em.getTransaction().begin();
+			}
+		} else {
+			try {
+				if (this.tx != null) tx.begin();
+				this.committed = false;
+			} catch (Exception ex) {
+				throw new JuDbException("Couldn't begin JTA transaction", ex);
+			}
 		}
 	}
 	
@@ -56,14 +80,21 @@ public final class TxHandler implements AutoCloseable {
 	 * @param beginNew If true, begins a new transaction
 	 */
 	public void commit(boolean beginNew) {
-		try {
-			if (this.tx != null) tx.commit();
+		if (this.em != null) {
+			this.em.getTransaction().commit();
 			this.committed = true;
-		} catch (Exception ex) {
-			throw new JuDbException("Couldn't commit JTA transaction", ex);
+			
+			if (beginNew) this.em.getTransaction().begin();
+		} else {
+			try {
+				if (this.tx != null) tx.commit();
+				this.committed = true;
+			} catch (Exception ex) {
+				throw new JuDbException("Couldn't commit JTA transaction", ex);
+			}
+			
+			if (beginNew) this.begin();
 		}
-		
-		if (beginNew) this.begin();
 	}
 	
 	/**
@@ -71,13 +102,17 @@ public final class TxHandler implements AutoCloseable {
 	 * committed yet.
 	 */
 	public void rollbackIfNotCommitted() {
-		if (!this.committed && this.tx != null) {
-			try {
-				this.tx.rollback();
-				this.committed = true;
-			} catch (Exception ex) {
-				throw new JuDbException("Couldn't rollback transaction", ex);
+		if (!this.committed) {
+			if (this.em != null) {
+				this.em.getTransaction().rollback();
+			} else if (this.tx != null) {
+				try {
+					this.tx.rollback();
+				} catch (Exception ex) {
+					throw new JuDbException("Couldn't rollback transaction", ex);
+				}
 			}
+			this.committed = true;
 		}
 	}
 	

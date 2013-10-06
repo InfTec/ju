@@ -12,6 +12,7 @@ import javax.transaction.UserTransaction;
 
 import org.jboss.logging.Logger;
 
+import ch.inftec.ju.db.JuEmUtil;
 import ch.inftec.ju.db.TxHandler;
 import ch.inftec.ju.ee.client.ServiceLocator;
 import ch.inftec.ju.ee.client.ServiceLocatorBuilder;
@@ -60,6 +61,8 @@ public class TestRunnerFacadeBean implements TestRunnerFacade {
 			// Reverse the list as we want to start with the base class, then class and method last
 			Collections.reverse(dataSets);
 			this.loadDataSets(dataSets, clazz);
+			// Reset the sequences to 1
+			new JuEmUtil(this.em).resetIdentityGenerationOrSequences(1);
 			txHandler.commit(true);
 			
 			// Try to set the context (if the class is ContextAware)

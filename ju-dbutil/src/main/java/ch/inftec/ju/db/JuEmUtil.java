@@ -251,6 +251,10 @@ public class JuEmUtil {
 		return this.getDbType().getDbSpecificHandler(this, this.em).getSequenceNames();
 	}
 	
+	public Long getNextValueFromSequence(String sequenceName) throws JuDbException {
+		return this.getDbType().getDbSpecificHandler(this, this.em).getNextValueFromSequence(sequenceName);
+	}
+	
 	/**
 	 * Resets identity generation of all tables or sequences to allow for predictable
 	 * and repeatable entity generation.

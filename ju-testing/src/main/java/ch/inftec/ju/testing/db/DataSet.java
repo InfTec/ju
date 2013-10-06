@@ -15,6 +15,9 @@ import java.lang.annotation.Target;
  *   <li>Class</li>
  *   <li>Method (without overridden methods)</li>
  * </ol>
+ * <p>
+ * When test data is loaded, the sequences are automatically set back to 1 so we get predictable
+ * new IDs
  * @author Martin
  *
  */

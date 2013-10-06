@@ -51,7 +51,7 @@ public class DbSchemaUtil {
 	
 	private DbSchemaUtil(JuEmUtil emUtil, UserTransaction tx) {
 		this.emUtil = emUtil;
-		this.tx = new TxHandler(tx);
+		this.tx = tx != null ? new TxHandler(tx) : new TxHandler(this.emUtil.getEm());
 	}
 	
 	public DbSchemaUtil(EntityManager em) {
@@ -75,53 +75,58 @@ public class DbSchemaUtil {
 	
 	/**
 	 * Runs the specified liquibase change log.
+	 * <p>
+	 * Liquibase uses a JDBC datasource to get a connection to the database and has its own transaction handling.
+	 * Therefore, it won't participate in the current transaction.
+	 * <p>
+	 * As we need a transaction for the entity manager to access meta information as well, we'll make sure
+	 * we have one, commit it after meta data retriaval and open it again.
+	 * <p>
+	 * That means that the EntityManager's transaction will be open at the end of this method and can be used
+	 * to perform further queries / updates.
 	 * @param changeLogResourceName Name of the change log resource. The resource will be loaded using the
 	 * default class loader.
 	 */
 	public void runLiquibaseChangeLog(final String changeLogResourceName) {
-		try {
-			// Make sure we have a transaction when accessing entity manager meta data
-			this.tx.begin();
-			final DbType dbType = this.emUtil.getDbType();
-			final String metaDataUserName = this.emUtil.getMetaDataUserName();
-			this.tx.commit();
-			
-			this.emUtil.doWork(new DsWork() {
-				@Override
-				public void execute(DataSource ds) {
-					try (Connection conn = ds.getConnection()) {
-						JdbcConnection jdbcConn = new JdbcConnection(conn);
-						
-						/*
-						 * The default implementation of Liquibase for Oracle has an error in the default Schema
-						 * lookup, so we'll set it here to avoid problems.
-						 */
-						Database db = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(jdbcConn);
-						if (dbType == DbType.ORACLE) {
-							db.setDefaultSchemaName(metaDataUserName);
-						}
-						
-						/*
-						 * Derby doesn't support the CREATE OR REPLACE syntax for Views and Liquibase will throw
-						 * an error if the attribute is specified for Derby or H2.
-						 * As we will use those DBs usually in memory, we'll just remote the attribute in all change logs
-						 * using a custom ResourceAccessor that will filter the character stream.
-						 */
-						ResourceAccessor resourceAccessor = new ClassLoaderResourceAccessor();
-						if (dbType == DbType.DERBY || dbType == DbType.H2) {
-							resourceAccessor = new ResourceAccessorFilter(resourceAccessor);
-						}
-						
-						Liquibase liquibase = new Liquibase(changeLogResourceName, resourceAccessor, db);
-						liquibase.update(null);
-					} catch (Exception ex) {
-						throw new JuRuntimeException("Couldn't run Liquibase change log " + changeLogResourceName, ex);
+		// Make sure we have a transaction when accessing entity manager meta data
+		this.tx.begin();
+		final DbType dbType = this.emUtil.getDbType();
+		final String metaDataUserName = this.emUtil.getMetaDataUserName();
+		this.tx.commit(true);
+		
+		this.emUtil.doWork(new DsWork() {
+			@Override
+			public void execute(DataSource ds) {
+				try (Connection conn = ds.getConnection()) {
+					JdbcConnection jdbcConn = new JdbcConnection(conn);
+					
+					/*
+					 * The default implementation of Liquibase for Oracle has an error in the default Schema
+					 * lookup, so we'll set it here to avoid problems.
+					 */
+					Database db = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(jdbcConn);
+					if (dbType == DbType.ORACLE) {
+						db.setDefaultSchemaName(metaDataUserName);
 					}
+					
+					/*
+					 * Derby doesn't support the CREATE OR REPLACE syntax for Views and Liquibase will throw
+					 * an error if the attribute is specified for Derby or H2.
+					 * As we will use those DBs usually in memory, we'll just remote the attribute in all change logs
+					 * using a custom ResourceAccessor that will filter the character stream.
+					 */
+					ResourceAccessor resourceAccessor = new ClassLoaderResourceAccessor();
+					if (dbType == DbType.DERBY || dbType == DbType.H2) {
+						resourceAccessor = new ResourceAccessorFilter(resourceAccessor);
+					}
+					
+					Liquibase liquibase = new Liquibase(changeLogResourceName, resourceAccessor, db);
+					liquibase.update(null);
+				} catch (Exception ex) {
+					throw new JuRuntimeException("Couldn't run Liquibase change log " + changeLogResourceName, ex);
 				}
-			});
-		} finally {
-			this.tx.rollbackIfNotCommitted();
-		}
+			}
+		});
 	}
 	
 	/**
@@ -163,7 +168,7 @@ public class DbSchemaUtil {
 	 * Also resets the sequences to 1.
 	 */
 	public void prepareDefaultSchemaAndTestData() {
-		this.prepareDefaultTestData(false, false, true);
+		this.prepareDefaultTestData(false, true, true);
 	}
 	
 	/**

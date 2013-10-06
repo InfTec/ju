@@ -4,6 +4,8 @@ import java.util.List;
 
 import javax.persistence.EntityManager;
 
+import ch.inftec.ju.util.ConversionUtils;
+
 /**
  * DbSpecificHandler implementations for H2.
  * @author Martin
@@ -31,5 +33,11 @@ public class DbSpecificHandlerOracle extends DbSpecificHandlerDefault {
 			this.em.createNativeQuery(String.format("create sequence %s start with %d", sequence, val)).executeUpdate();
 //			this.oracleSequenceSetNextVal(sequence, val);
 		}
+	}
+	
+	@Override
+	public Long getNextValueFromSequence(String sequenceName) {
+		// We'll probably get a BigDecimal
+		return ConversionUtils.toLong(this.em.createNativeQuery(String.format("select %s.nextVal from dual", sequenceName)).getSingleResult());
 	}
 }

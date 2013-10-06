@@ -32,4 +32,9 @@ public abstract class DbSpecificHandlerDefault implements DbSpecificHandler {
 	public List<String> getSequenceNames() {
 		throw new JuDbException("Sequences not supported by " + this.emUtil.getDbType());
 	}
+	
+	@Override
+	public Long getNextValueFromSequence(String sequenceName) {
+		throw new JuDbException("Sequences not supported by " + this.emUtil.getDbType());
+	}
 }
