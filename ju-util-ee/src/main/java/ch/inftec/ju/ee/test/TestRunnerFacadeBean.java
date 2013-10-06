@@ -1,6 +1,9 @@
 package ch.inftec.ju.ee.test;
 
 import java.lang.reflect.Method;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 
@@ -17,10 +20,12 @@ import ch.inftec.ju.db.TxHandler;
 import ch.inftec.ju.ee.client.ServiceLocator;
 import ch.inftec.ju.ee.client.ServiceLocatorBuilder;
 import ch.inftec.ju.testing.db.DataSet;
+import ch.inftec.ju.testing.db.DataSetExport;
 import ch.inftec.ju.testing.db.DataVerifier;
 import ch.inftec.ju.testing.db.DbDataUtil;
 import ch.inftec.ju.util.AssertUtil;
 import ch.inftec.ju.util.IOUtil;
+import ch.inftec.ju.util.JuRuntimeException;
 import ch.inftec.ju.util.ReflectUtils;
 
 /**
@@ -78,6 +83,30 @@ public class TestRunnerFacadeBean implements TestRunnerFacade {
 			// Invoke the method
 			method.invoke(instance);
 			txHandler.commit();
+			
+			// Export test data if needed
+			List<DataSetExport> dataSetExports = ReflectUtils.getAnnotations(method, DataSetExport.class, false, false, false); // TODO: Handle inherited annotations...
+			if (dataSetExports.size() == 1) {
+//				DataSetExport dataSetExport = dataSetExports.get(0); // TODO: Handle annotation attributes
+				
+				String targetDirName = "target/dataSetExport";
+				// Create target directory
+				Path targetDirPath = Paths.get(context.getLocalRoot(), targetDirName);
+				Files.createDirectories(targetDirPath);
+				
+				// Get file name
+				String targetFileName = String.format("%s_%s.xml", method.getDeclaringClass().getSimpleName(), method.getName());
+				
+				// Build file path
+				Path targetFilePath = targetDirPath.resolve(targetFileName);
+				
+				txHandler.begin();
+				DbDataUtil du = new DbDataUtil(this.em);
+				du.buildExport().writeToXmlFile(targetFilePath.toString());
+				txHandler.commit();
+			} else if (dataSetExports.size() > 1) {
+				throw new JuRuntimeException("Inherited @DataSetExport annotations not supported yet");
+			}
 		}
 	}
 		

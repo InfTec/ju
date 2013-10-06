@@ -1,6 +1,7 @@
 package ch.inftec.ju.db;
 
 import javax.persistence.EntityManager;
+import javax.transaction.Status;
 import javax.transaction.UserTransaction;
 
 /**
@@ -16,11 +17,11 @@ public final class TxHandler implements AutoCloseable {
 	private boolean committed = true;
 	
 	/**
-	 * Creates a TxHandler wrapper without starting a new transaction.
+	 * Creates a TxHandler wrapper, starting a new transaction (if no active transaction is present).
 	 * @param tx Underlying user transaction
 	 */
 	public TxHandler(UserTransaction tx) {
-		this(tx, false);
+		this(tx, true);
 	}
 	
 	/**
@@ -50,7 +51,7 @@ public final class TxHandler implements AutoCloseable {
 	}
 	
 	/**
-	 * Begins a new transaction.
+	 * Begins a new transaction (unless we already have an active tranaction).
 	 * @throws JuDbException If we cannot begin a transaction
 	 */
 	public void begin() {
@@ -60,7 +61,7 @@ public final class TxHandler implements AutoCloseable {
 			}
 		} else {
 			try {
-				if (this.tx != null) tx.begin();
+				if (this.tx != null && tx.getStatus() != Status.STATUS_ACTIVE) tx.begin();
 				this.committed = false;
 			} catch (Exception ex) {
 				throw new JuDbException("Couldn't begin JTA transaction", ex);

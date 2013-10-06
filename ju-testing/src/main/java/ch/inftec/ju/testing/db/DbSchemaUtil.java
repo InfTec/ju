@@ -79,9 +79,8 @@ public class DbSchemaUtil {
 	 * Liquibase uses a JDBC datasource to get a connection to the database and has its own transaction handling.
 	 * Therefore, it won't participate in the current transaction.
 	 * <p>
-	 * As we need a transaction for the entity manager to access meta information as well, we'll make sure
-	 * we have one, commit it after meta data retriaval and open it again.
-	 * <p>
+	 * We'll still require a transaction to be present for the current EntityManager. We'll commit that transaction
+	 * in order to execute the Liquibase changes and begin a new transaction before returning.
 	 * That means that the EntityManager's transaction will be open at the end of this method and can be used
 	 * to perform further queries / updates.
 	 * @param changeLogResourceName Name of the change log resource. The resource will be loaded using the
@@ -89,10 +88,9 @@ public class DbSchemaUtil {
 	 */
 	public void runLiquibaseChangeLog(final String changeLogResourceName) {
 		// Make sure we have a transaction when accessing entity manager meta data
-		this.tx.begin();
 		final DbType dbType = this.emUtil.getDbType();
 		final String metaDataUserName = this.emUtil.getMetaDataUserName();
-		this.tx.commit(true);
+		this.tx.commit(); // We must not be within a managed transaction when performing Liquibase work...
 		
 		this.emUtil.doWork(new DsWork() {
 			@Override
@@ -127,6 +125,8 @@ public class DbSchemaUtil {
 				}
 			}
 		});
+		
+		this.tx.begin(); // Start a new transaction so we won't get problems with EntityManager calls after this method
 	}
 	
 	/**
@@ -183,25 +183,25 @@ public class DbSchemaUtil {
 	/**
 	 * Loads the default test data (Player, Team, TestingEntity, ...), making
 	 * sure that the tables have been created using Liquibase.
+	 * <p>
+	 * This method will use Liquibase to perform Schema updates. Therefore, we'll need a transaction when the method is
+	 * started that we will have to commit in order to execute Liquibase. We'll make sure however that we start a new
+	 * transaction before returning.
 	 * @param emptyTables If true, the default tables will be cleaned
 	 * @param resetSequences If true, sequences (or identity columns) will be reset to 1
 	 * @param createSchema If true, the Schema will be created (or verified) using Liquibase
 	 */
 	public void prepareDefaultTestData(boolean emptyTables, boolean resetSequences, boolean createSchema) {
 		try {
-			this.tx.begin();
 			DbType dbType = this.emUtil.getDbType();
 			
 			if (createSchema) {
-				this.tx.commit();
 				this.runLiquibaseChangeLog("ju-testing/data/default-changeLog.xml");
 				
 				// For non-MySQL DBs, we also need to create the hibernate_sequence sequence...
 				if (dbType != DbType.MYSQL) {
 					this.runLiquibaseChangeLog("ju-testing/data/default-changeLog-hibernateSequence.xml");
 				}
-				
-				this.tx.begin();
 			}
 			
 			DbDataUtil du = new DbDataUtil(emUtil);
@@ -224,6 +224,7 @@ public class DbSchemaUtil {
 			this.tx.commit();
 		} finally {
 			this.tx.rollbackIfNotCommitted();
+			this.tx.begin();
 		}
 	}
 	

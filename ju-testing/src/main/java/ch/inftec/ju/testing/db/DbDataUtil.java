@@ -264,6 +264,8 @@ public class DbDataUtil {
 	 *
 	 */
 	public static class ExportBuilder {
+		private Logger logger = LoggerFactory.getLogger(ExportBuilder.class);
+		
 		private final DbDataUtil dbDataUtil;
 		
 		private final ExportItems exportItems = new ExportItems();
@@ -433,6 +435,8 @@ public class DbDataUtil {
 		 * @param fileName Path of the file
 		 */
 		public void writeToXmlFile(final String fileName) {
+			logger.debug("Writing dataset to XML file: " + fileName);
+			
 			try (final OutputStream stream = new BufferedOutputStream(
 							new FileOutputStream(fileName))) {
 
