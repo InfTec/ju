@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+	<a1/>
+	<a2 id="3"/>
+	<a3>test</a3>
+	<a4>
+		<a5></a5>
+		<a5></a5>
+	</a4>
+</root>

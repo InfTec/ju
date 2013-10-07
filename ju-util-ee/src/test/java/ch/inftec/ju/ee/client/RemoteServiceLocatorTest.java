@@ -112,7 +112,7 @@ public class RemoteServiceLocatorTest {
 		Context ctx = new InitialContext(jndiProps);
 
 		TestRunnerFacade testRunnerFacade = (TestRunnerFacade) ctx.lookup("ee-ear-ear/ee-ear-ejb/TestRunnerFacadeBean!" + TestRunnerFacade.class.getName());
-		testRunnerFacade.runTestMethodInEjbContext("bli", "bla", null);
+//		testRunnerFacade.runTestMethodInEjbContext("bli", "bla", null);
 	}
 
 	@Test
@@ -137,7 +137,7 @@ public class RemoteServiceLocatorTest {
 			.createServiceLocator();
 		
 		TestRunnerFacade testRunnerFacade = loc.lookup(TestRunnerFacade.class);
-		testRunnerFacade.runTestMethodInEjbContext("bli", "bla", null);
+//		testRunnerFacade.runTestMethodInEjbContext("bli", "bla", null);
 	}
 	
 }

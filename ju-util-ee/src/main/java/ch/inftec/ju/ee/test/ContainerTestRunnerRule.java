@@ -4,12 +4,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.ejb.EJBException;
 
-import org.apache.commons.lang3.StringUtils;
+import org.junit.ComparisonFailure;
 import org.junit.Test;
 import org.junit.Test.None;
 import org.junit.internal.runners.statements.ExpectException;
@@ -19,14 +17,8 @@ import org.junit.runners.model.Statement;
 
 import ch.inftec.ju.ee.client.JndiServiceLocator;
 import ch.inftec.ju.ee.client.ServiceLocatorBuilder;
-import ch.inftec.ju.ee.test.TestRunnerFacade.DataVerifierInfo;
 import ch.inftec.ju.ee.test.TestRunnerFacade.TestRunnerContext;
-import ch.inftec.ju.testing.db.DataSetVerify;
-import ch.inftec.ju.testing.db.DataVerifier;
-import ch.inftec.ju.testing.db.DataVerify;
-import ch.inftec.ju.testing.db.DbDataUtil;
 import ch.inftec.ju.util.AssertUtil;
-import ch.inftec.ju.util.JuCollectionUtils;
 import ch.inftec.ju.util.ReflectUtils;
 
 /**
@@ -51,7 +43,7 @@ public class ContainerTestRunnerRule implements TestRule {
 		AssertUtil.assertNotNull("Description must contain test method name", testMethod);
 		
 		Method method = ReflectUtils.getMethod(testClass, testMethod, null);
-
+		
 		// Create the test statement, i.e. the statement that invokes the test method annotated
 		// with @Test
 		Statement containerTestRunnerStatement = new ContainerTestRunnerStatement(method);
@@ -66,45 +58,19 @@ public class ContainerTestRunnerRule implements TestRule {
 			testStatement = containerTestRunnerStatement;
 		}
 		
-		// Check if we have DataVerifiers that need to be run after the test statement has succeeded
-		// without errors (including throwing expected exceptions)
 		
-		List<DataVerifierInfo> verifierInfos = new ArrayList<>();
-		
-		// First, check if we need to perform DataSetVerify
-		List<DataSetVerify> dataSetVerifies = ReflectUtils.getAnnotations(method, DataSetVerify.class, true, false, false);
-		for (DataSetVerify dataSetVerify : dataSetVerifies) {
-			verifierInfos.add(new DataVerifierInfo(DataSetVerifier.class.getName(), JuCollectionUtils.asTypedArrayList(Object.class, dataSetVerify.value())));
-		}
-		
-		// Now check for programmatic verifiers
-		List<DataVerify> verifiers = ReflectUtils.getAnnotations(method, DataVerify.class, true, false, false);
-		for (DataVerify verify : verifiers) {
-			Class<?> verifierClass = null;
-			if (verify.value() == DataVerify.DEFAULT_DATA_VERIFIER.class) {
-				String verifierName = StringUtils.capitalize(testMethod);
-				Class<?> defaultVerifier = ReflectUtils.getInnerClass(testClass, verifierName);
-				AssertUtil.assertNotNull(String.format("Couldn't find Verifier %s as inner class of %s. Make sure it exists and is public static."
-							, verifierName, testClass)
-						, defaultVerifier);
-				
-				verifierClass = defaultVerifier;
-			} else {
-				verifierClass = verify.value();
-			}
-			
-			AssertUtil.assertTrue("Verifier must be of type DataVerifier: " + verifierClass.getName(), DataVerifier.class.isAssignableFrom(verifierClass));
-			verifierInfos.add(new DataVerifierInfo(verifierClass.getName(), null));
-		}
-		
-		if (verifierInfos.size() > 0) {
-			return new ContainerVerifyRunnerStatement(testStatement, verifierInfos);
-		} else {
-			return testStatement;
-		}
+		// Wrap the testStatement in a ContainerVerifyRunnerStatement to handle
+		// possible verification and post processing
+		return new ContainerVerifyRunnerStatement(method, testStatement);
 	}
 	
 	private static abstract class ContainerRunnerStatement extends Statement {
+		protected final Method method;
+		
+		private ContainerRunnerStatement(Method method) {
+			this.method = method;
+		}
+		
 		@Override
 		public void evaluate() throws Throwable {
 			try {
@@ -141,6 +107,8 @@ public class ContainerTestRunnerRule implements TestRule {
 				}
 			} else if (t instanceof ExceptionInInitializerError) {
 				throw new IllegalStateException("Looks like we couldn't connect to JBoss. Make sure it is running.", t);
+			} else if (t.getCause() instanceof ComparisonFailure) {
+				return t.getCause();
 			} else {
 				return t;
 			}		
@@ -148,25 +116,24 @@ public class ContainerTestRunnerRule implements TestRule {
 	}
 	
 	private static class ContainerTestRunnerStatement extends ContainerRunnerStatement {
-		private final Method method;
-		
 		private ContainerTestRunnerStatement(Method method) {
-			this.method = method;
+			super(method);
 		}
 
 		@Override
 		protected void doEvaluation(TestRunnerFacade facade, TestRunnerContext context) throws Throwable {
-			facade.runTestMethodInEjbContext(method.getDeclaringClass().getName(), method.getName(), context);
+			facade.runTestMethodInEjbContext(new TestRunnerAnnotationHandler(method, context));
+//			facade.runTestMethodInEjbContext(method.getDeclaringClass().getName(), method.getName(), context);
 		}
 	}
 	
 	private static class ContainerVerifyRunnerStatement extends ContainerRunnerStatement {
 		private final Statement testStatement;
-		private final List<DataVerifierInfo> verifierInfos;
 		
-		private ContainerVerifyRunnerStatement(Statement testStatement, List<DataVerifierInfo> verifierInfos) {
+		private ContainerVerifyRunnerStatement(Method method, Statement testStatement) {
+			super(method);
+			
 			this.testStatement = testStatement;
-			this.verifierInfos = verifierInfos;
 		}
 		
 		@Override
@@ -175,28 +142,9 @@ public class ContainerTestRunnerRule implements TestRule {
 			testStatement.evaluate();
 			
 			// Run the verifiers now
-			facade.runDataVerifierInEjbContext(this.verifierInfos);
+			facade.runPostTestActionsInEjbContext(new TestRunnerAnnotationHandler(method, context));
 		}
 	}
 	
-	/**
-	 * Data verifier that verifies agains a data set.
-	 * @author Martin
-	 *
-	 */
-	public static class DataSetVerifier extends DataVerifier {
-		private final String dataSet;
-		
-		public DataSetVerifier(String dataSet) {
-			this.dataSet = dataSet;
-		}
-		
-		@Override
-		public void verify() {
-			DbDataUtil du = new DbDataUtil(this.emUtil);
-			du.buildAssert()
-				.expected(this.dataSet)
-				.assertEquals();
-		}
-	}
+
 }

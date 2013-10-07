@@ -20,20 +20,17 @@ public interface TestRunnerFacade {
 	/**
 	 * Runs a (test) method in an EJB context, allowing it to use container functionality and
 	 * beans.
-	 * @param className Class name
-	 * @param methodName Method name
-	 * @param context TestRunnerContext containing meta information about the text execution
+	 * @param handler TestRunner handler that provides information about the test class and method
 	 * @throws Exception If the method fails with an exception (including test assertion failures)
 	 */
-	public void runTestMethodInEjbContext(String className, String methodName, TestRunnerContext context) throws Exception;
+	public void runTestMethodInEjbContext(TestRunnerAnnotationHandler handler) throws Exception;
 
 	/**
-	 * Runs a bunch of data verifiers in an EJB context, allowing test cases to verify data after the
-	 * test method has run (and the transaction was ended).
-	 * @param dataVerifierInfos Info to instantiate verifiers
-	 * @throws Exception If verification fails
+	 * Runs post test actions (like data set exports and data verifies) in an EJB context.
+	 * @param handler TestRunner handler providing information about the test class and method
+	 * @throws Exception If the actions fail
 	 */
-	public void runDataVerifierInEjbContext(List<DataVerifierInfo> dataVerifierInfos) throws Exception;
+	public void runPostTestActionsInEjbContext(TestRunnerAnnotationHandler handler) throws Exception;
 	
 	/**
 	 * Runs an arbitrary method in an EJB context and returns the result of the method.
