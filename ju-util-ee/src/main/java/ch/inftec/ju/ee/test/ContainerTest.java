@@ -13,6 +13,7 @@ import org.junit.Rule;
 import ch.inftec.ju.db.JuEmUtil;
 import ch.inftec.ju.ee.client.ServiceLocator;
 import ch.inftec.ju.ee.client.ServiceLocatorBuilder;
+import ch.inftec.ju.ee.test.ContainerTestRunnerRule.TestRunnerType;
 import ch.inftec.ju.ee.test.TestRunnerFacade.TestRunnerContext;
 import ch.inftec.ju.util.JuRuntimeException;
 
@@ -37,7 +38,7 @@ public class ContainerTest implements TestRunnerFacade.ContextAware, TestRunnerF
      * Rule that runs the method statements on the remote JBoss container VM
      */
     @Rule
-	public ContainerTestRunnerRule testRunnerRule = new ContainerTestRunnerRule();
+	public ContainerTestRunnerRule testRunnerRule = new ContainerTestRunnerRule(TestRunnerType.CONTAINER);
     
     private TestRunnerContext context;
     

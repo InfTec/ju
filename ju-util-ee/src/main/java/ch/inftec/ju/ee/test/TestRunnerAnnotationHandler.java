@@ -2,6 +2,7 @@ package ch.inftec.ju.ee.test;
 
 import java.io.Serializable;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -84,7 +85,14 @@ class TestRunnerAnnotationHandler implements Serializable {
 	
 	void executePreTestAnnotations(JuEmUtil emUtil) {
 		// Load test data as defined by annotations
+		
 		for (DataSet dataSet : this.dataSetAnnos) {
+			URL url = IOUtil.getResourceURL(dataSet.value(), this.getTestClass());
+			if (url == null) {
+				throw new JuRuntimeException(String.format("Couldn't find resource %s, relative to class %s"
+						, dataSet.value()
+						, this.getTestClass()));
+			}
 			new DbDataUtil(emUtil).buildImport()
 				.from(IOUtil.getResourceURL(dataSet.value(), this.getTestClass()))
 				.executeCleanInsert();

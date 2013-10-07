@@ -18,6 +18,13 @@ import javax.ejb.Remote;
 @Remote
 public interface TestRunnerFacade {
 	/**
+	 * Runs pre test actions (like data set loading) in an EJB context.
+	 * @param handler TestRunner handler providing information about the test class and method
+	 * @throws Exception If the actions fail
+	 */
+	public void runPreTestActionsInEjbContext(TestRunnerAnnotationHandler handler) throws Exception;
+	
+	/**
 	 * Runs a (test) method in an EJB context, allowing it to use container functionality and
 	 * beans.
 	 * @param handler TestRunner handler that provides information about the test class and method

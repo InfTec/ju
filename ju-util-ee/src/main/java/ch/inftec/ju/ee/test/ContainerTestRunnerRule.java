@@ -35,6 +35,32 @@ import ch.inftec.ju.util.ReflectUtils;
  *
  */
 public class ContainerTestRunnerRule implements TestRule {
+	private final TestRunnerType type;
+	
+	public enum TestRunnerType {
+		/**
+		 * Test method code and everything else runs in the container.
+		 */
+		CONTAINER,
+		
+		/**
+		 * Test method code runs remotely, setup and verification runs on the server.
+		 * Can be used for web tests (e.g. Selenium)
+		 */
+		REMOTE_TEST;
+	}
+	
+	/**
+	 * Creates a new test runner rule.
+	 * <p>
+	 * Type CONTAINER will run the test code in the container. Type REMOTE_TEST will run test
+	 * code in a local JVM (not the container JVM) and just run the test setup and verification code in the container.
+	 * @param type Running type
+	 */
+	public ContainerTestRunnerRule(TestRunnerType type) {
+		this.type = type;
+	}
+	
 	@Override
 	public Statement apply(Statement base, Description description) {
 		Class<?> testClass = description.getTestClass();
@@ -44,24 +70,29 @@ public class ContainerTestRunnerRule implements TestRule {
 		
 		Method method = ReflectUtils.getMethod(testClass, testMethod, null);
 		
-		// Create the test statement, i.e. the statement that invokes the test method annotated
-		// with @Test
-		Statement containerTestRunnerStatement = new ContainerTestRunnerStatement(method);
 		Statement testStatement = null;
-		
-		// Handle expected exception. We need to handle this explicitly as it is implemented
-		// using a statement that we will discard here (as we don't use base)
-		Test t = method.getAnnotation(Test.class);
-		if (t != null && t.expected() != None.class) {
-			testStatement = new ExpectException(containerTestRunnerStatement, t.expected());
+		if (this.type == TestRunnerType.CONTAINER) {
+			// Create the test statement, i.e. the statement that invokes the test method annotated
+			// with @Test
+			Statement containerTestRunnerStatement = new ContainerTestRunnerStatement(method);
+			
+			// Handle expected exception. We need to handle this explicitly as it is implemented
+			// using a statement that we will discard here (as we don't use base)
+			Test t = method.getAnnotation(Test.class);
+			if (t != null && t.expected() != None.class) {
+				testStatement = new ExpectException(containerTestRunnerStatement, t.expected());
+			} else {
+				testStatement = containerTestRunnerStatement;
+			}
 		} else {
-			testStatement = containerTestRunnerStatement;
+			// With LOCAL_TEST, just run the original statement locally.
+			testStatement = base;
 		}
 		
 		
 		// Wrap the testStatement in a ContainerVerifyRunnerStatement to handle
 		// possible verification and post processing
-		return new ContainerVerifyRunnerStatement(method, testStatement);
+		return new ContainerPreAndPostRunnerStatement(method, testStatement);
 	}
 	
 	private static abstract class ContainerRunnerStatement extends Statement {
@@ -79,12 +110,7 @@ public class ContainerTestRunnerRule implements TestRule {
 				Path localRoot = Paths.get(".").toAbsolutePath();
 				context.setLocalRoot(localRoot.toString());
 				
-				// TODO: Allow to define properties dynamically
-				JndiServiceLocator serviceLocator = ServiceLocatorBuilder.buildRemote()
-					.remoteServer("localhost", 14447)
-					.appName("ee-ear-ear")
-					.moduleName("ee-ear-ejb")
-					.createServiceLocator();
+				JndiServiceLocator serviceLocator = ServiceLocatorBuilder.createRemoteByConfigurationFiles();
 				
 				TestRunnerFacade testRunnerFacade = serviceLocator.lookup(TestRunnerFacade.class);
 				this.doEvaluation(testRunnerFacade, context);
@@ -127,10 +153,10 @@ public class ContainerTestRunnerRule implements TestRule {
 		}
 	}
 	
-	private static class ContainerVerifyRunnerStatement extends ContainerRunnerStatement {
+	private static class ContainerPreAndPostRunnerStatement extends ContainerRunnerStatement {
 		private final Statement testStatement;
 		
-		private ContainerVerifyRunnerStatement(Method method, Statement testStatement) {
+		private ContainerPreAndPostRunnerStatement(Method method, Statement testStatement) {
 			super(method);
 			
 			this.testStatement = testStatement;
@@ -138,11 +164,16 @@ public class ContainerTestRunnerRule implements TestRule {
 		
 		@Override
 		protected void doEvaluation(TestRunnerFacade facade, TestRunnerContext context) throws Throwable {
+			TestRunnerAnnotationHandler handler = new TestRunnerAnnotationHandler(method, context);
+			
+			// Run the pre actions
+			facade.runPreTestActionsInEjbContext(handler);
+			
 			// Run the test statement first. We'll only run the verifiers if the test statement succeeds
 			testStatement.evaluate();
 			
 			// Run the verifiers now
-			facade.runPostTestActionsInEjbContext(new TestRunnerAnnotationHandler(method, context));
+			facade.runPostTestActionsInEjbContext(handler);
 		}
 	}
 	

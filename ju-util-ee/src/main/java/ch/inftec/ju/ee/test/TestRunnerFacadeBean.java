@@ -35,21 +35,25 @@ public class TestRunnerFacadeBean implements TestRunnerFacade {
 //	private DateProvider dateProvider;
 	
 	@Override
+	public void runPreTestActionsInEjbContext(TestRunnerAnnotationHandler handler) throws Exception {
+		try (TxHandler txHandler = new TxHandler(this.tx, true)) { 
+			// Execute post test annotations (dataset exporting, data verifying)
+			handler.executePreTestAnnotations(new JuEmUtil(this.em));
+			txHandler.commit(); // Commit after data verifying / exporting
+		}
+	}
+	
+	@Override
 	public void runTestMethodInEjbContext(TestRunnerAnnotationHandler handler) throws Exception {
 		JuEmUtil emUtil = new JuEmUtil(this.em);
 		
 		try (TxHandler txHandler = new TxHandler(this.tx, true)) { 
-			
 			logger.debug(String.format("Running Test %s", handler));
 	//		this.dateProvider.resetProvider();
 			
-			// Execute pre test annotations (dataset loading)
-			handler.executePreTestAnnotations(emUtil);
-			txHandler.commit(true); // Perform commit before we execute the test method
-			
 			// Run the test method
 			handler.executeTestMethod();
-			txHandler.commit(); // Perform another commit after the execution of the test method
+			txHandler.commit(); // Perform a commit after the execution of the test method
 		}
 	}
 	
