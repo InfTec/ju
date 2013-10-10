@@ -21,7 +21,6 @@ import org.hibernate.Session;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.jdbc.Work;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
-import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +32,7 @@ import org.springframework.jdbc.support.MetaDataAccessException;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import ch.inftec.ju.util.AssertUtil;
 import ch.inftec.ju.util.IOUtil;
 import ch.inftec.ju.util.JuObjectUtils;
 
@@ -108,7 +108,7 @@ public class JuDbUtils {
 	 */
 	@Transactional
 	public void createDefaultTables() {
-		Assert.assertNotNull("EntityManagerFactory needs to be injected to create default tables", this.emf);
+		AssertUtil.assertNotNull("EntityManagerFactory needs to be injected to create default tables", this.emf);
 		
 		EntityManager em = this.emf.createEntityManager();
 		

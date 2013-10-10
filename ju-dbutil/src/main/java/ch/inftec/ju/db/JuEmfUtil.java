@@ -48,10 +48,10 @@ public class JuEmfUtil {
 		private String user;
 		private String password;
 		
-		private String hostName;
-		private String dbName;
-		
-		private String driverClass;
+//		private String hostName;
+//		private String dbName;
+//		
+//		private String driverClass;
 		
 		public JuEmfUtilBuilder persistenceUnitName(String persistenceUnitName) {
 			this.persistenceUnitName = persistenceUnitName;
@@ -151,11 +151,14 @@ public class JuEmfUtil {
 		
 		@Override
 		public void close() {
-			if (this.rollbackOnly) {
-				this.em.getTransaction().rollback();
-			} else {
-				this.em.getTransaction().commit();
+			if (this.em.getTransaction().isActive()) {
+				if (this.rollbackOnly) {
+					this.em.getTransaction().rollback();
+				} else {
+					this.em.getTransaction().commit();
+				}
 			}
+			
 			this.em.close();
 		}
 	}

@@ -9,9 +9,12 @@ import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.collections15.ListUtils;
@@ -113,6 +116,30 @@ public final class JuCollectionUtils {
 	public static <T> boolean collectionContains(Collection<T> cCollection, T... values) {
 		for (T val : values) {
 			if (!cCollection.contains(val)) return false;
+		}
+		
+		return true;
+	}
+	
+	/**
+	 * Checks if all specified values are part of the specified collection. Comparison
+	 * is done case insensitively.
+	 * <p>
+	 * The collection may contain more than the specified values.
+	 * @param cCollection Collection
+	 * @param values Values the collection must contain, in arbitrary order
+	 */
+	@SafeVarargs
+	public static boolean collectionContainsIgnoreCase(Collection<String> cCollection, String... values) {
+		for (String val : values) {
+			boolean containsVal = false;
+			for (String colVal : cCollection) {
+				if (colVal.equalsIgnoreCase(val)) {
+					containsVal = true;
+					break;
+				}
+			}
+			if (!containsVal) return false;
 		}
 		
 		return true;
@@ -277,6 +304,42 @@ public final class JuCollectionUtils {
 		for (T value : values) list.add(value);
 		
 		return list;
+	}
+	
+	/**
+	 * Converts the specified values to an ArrayList of the specified type.
+	 * @param type Explicit type
+	 * @param values List of values / array
+	 * @return ArrayList
+	 */
+	@SafeVarargs
+	public static <T, S extends T> ArrayList<T> asTypedArrayList(Class<T> type, S... values) {
+		ArrayList<T> list = new ArrayList<>();
+		for (T value : values) list.add(value);
+		
+		return list;
+	}
+	
+	/**
+	 * Returns a sorted set with all distinct values of the specified collection in their
+	 * natural order
+	 * @param collection Collection containing elements
+	 * @return Sorted set
+	 */
+	public static <T> Set<T> asSortedSet(Collection<T> collection) {
+		Set<T> set = new TreeSet<>(collection);
+		return set;
+	}
+	
+	/**
+	 * Returns a sorted set with all distinct values of the specified collection in the order
+	 * they first appear.
+	 * @param collection Collection containing elements
+	 * @return Sorted set
+	 */
+	public static <T> Set<T> asSameOrderSet(Collection<T> collection) {
+		Set<T> set = new LinkedHashSet<>(collection);
+		return set;
 	}
 	
 	/**

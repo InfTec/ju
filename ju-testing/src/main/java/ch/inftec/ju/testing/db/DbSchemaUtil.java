@@ -7,11 +7,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.Enumeration;
 
 import javax.persistence.EntityManager;
 import javax.sql.DataSource;
+import javax.transaction.UserTransaction;
 
 import liquibase.Liquibase;
 import liquibase.database.Database;
@@ -20,13 +20,14 @@ import liquibase.database.jvm.JdbcConnection;
 import liquibase.resource.ClassLoaderResourceAccessor;
 import liquibase.resource.ResourceAccessor;
 
-import org.hibernate.jdbc.Work;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.inftec.ju.db.DsWork;
 import ch.inftec.ju.db.JuEmUtil;
 import ch.inftec.ju.db.JuEmUtil.DbType;
+import ch.inftec.ju.db.TxHandler;
+import ch.inftec.ju.testing.db.DbDataUtil.ImportBuilder;
 import ch.inftec.ju.util.IOUtil;
 import ch.inftec.ju.util.JuRuntimeException;
 
@@ -42,30 +43,68 @@ public class DbSchemaUtil {
 	private final Logger logger = LoggerFactory.getLogger(DbSchemaUtil.class);
 	
 	private final JuEmUtil emUtil;
+	private final TxHandler tx;
+	
+	public DbSchemaUtil(JuEmUtil emUtil) {
+		this(emUtil, null);
+	}
+	
+	private DbSchemaUtil(JuEmUtil emUtil, UserTransaction tx) {
+		this.emUtil = emUtil;
+		this.tx = tx != null ? new TxHandler(tx) : new TxHandler(this.emUtil.getEm());
+	}
 	
 	public DbSchemaUtil(EntityManager em) {
-		this.emUtil = new JuEmUtil(em);
+		this(new JuEmUtil(em));
+	}
+	
+	/**
+	 * Initializes the DbSchemaUtil with an EntityManager and a UserTransaction object.
+	 * <p>
+	 * This initialization must be used in a container environment in a bean
+	 * managed transaction context. Otherwise, we cannot control the transactions the way
+	 * we have. Liquibase uses its own transaction management and this is not possible if there
+	 * is a managed transaction running. On the other hand, we perform some operations on the
+	 * EntityManager that require a transaction to be active.
+	 * @param em EntityManager provided by the container
+	 * @param tx UserTransaction instance of a bean managed transaction context
+	 */
+	public DbSchemaUtil(EntityManager em, UserTransaction tx) {
+		this(new JuEmUtil(em), tx);
 	}
 	
 	/**
 	 * Runs the specified liquibase change log.
+	 * <p>
+	 * Liquibase uses a JDBC datasource to get a connection to the database and has its own transaction handling.
+	 * Therefore, it won't participate in the current transaction.
+	 * <p>
+	 * We'll still require a transaction to be present for the current EntityManager. We'll commit that transaction
+	 * in order to execute the Liquibase changes and begin a new transaction before returning.
+	 * That means that the EntityManager's transaction will be open at the end of this method and can be used
+	 * to perform further queries / updates.
 	 * @param changeLogResourceName Name of the change log resource. The resource will be loaded using the
 	 * default class loader.
 	 */
 	public void runLiquibaseChangeLog(final String changeLogResourceName) {
-		this.emUtil.doWork(new Work() {
+		// Make sure we have a transaction when accessing entity manager meta data
+		final DbType dbType = this.emUtil.getDbType();
+		final String metaDataUserName = this.emUtil.getMetaDataUserName();
+		this.tx.commit(); // We must not be within a managed transaction when performing Liquibase work...
+		
+		this.emUtil.doWork(new DsWork() {
 			@Override
-			public void execute(Connection connection) throws SQLException {
-				try {
-					JdbcConnection jdbcConn = new JdbcConnection(connection);
+			public void execute(DataSource ds) {
+				try (Connection conn = ds.getConnection()) {
+					JdbcConnection jdbcConn = new JdbcConnection(conn);
 					
 					/*
 					 * The default implementation of Liquibase for Oracle has an error in the default Schema
 					 * lookup, so we'll set it here to avoid problems.
 					 */
 					Database db = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(jdbcConn);
-					if (emUtil.getDbType() == DbType.ORACLE) {
-						db.setDefaultSchemaName(emUtil.getMetaDataUserName());
+					if (dbType == DbType.ORACLE) {
+						db.setDefaultSchemaName(metaDataUserName);
 					}
 					
 					/*
@@ -75,7 +114,7 @@ public class DbSchemaUtil {
 					 * using a custom ResourceAccessor that will filter the character stream.
 					 */
 					ResourceAccessor resourceAccessor = new ClassLoaderResourceAccessor();
-					if (emUtil.getDbType() == DbType.DERBY || emUtil.getDbType() == DbType.H2) {
+					if (dbType == DbType.DERBY || dbType == DbType.H2) {
 						resourceAccessor = new ResourceAccessorFilter(resourceAccessor);
 					}
 					
@@ -86,6 +125,8 @@ public class DbSchemaUtil {
 				}
 			}
 		});
+		
+		this.tx.begin(); // Start a new transaction so we won't get problems with EntityManager calls after this method
 	}
 	
 	/**
@@ -115,9 +156,76 @@ public class DbSchemaUtil {
 			public void execute(DataSource ds) {
 				Flyway flyway = new Flyway();
 				flyway.setDataSource(ds);
-				flyway.clean();
+				flyway.clean(); // FIXME: Try Liquibase.dropAll()
 			}
 		});
+	}
+	
+	/**
+	 * Creates the Default test DB Schema (Player, Team, TestingEntity...) and
+	 * loads the default test data.
+	 * <p>
+	 * Also resets the sequences to 1.
+	 */
+	public void prepareDefaultSchemaAndTestData() {
+		this.prepareDefaultTestData(false, true, true);
+	}
+	
+	/**
+	 * Loads the default test data and resets the sequences to 1.
+	 * <p>
+	 * Doesn't perform Schema updates.
+	 */
+	public void loadDefaultTestData() {
+		this.prepareDefaultTestData(false, true, false);
+	}
+	
+	/**
+	 * Loads the default test data (Player, Team, TestingEntity, ...), making
+	 * sure that the tables have been created using Liquibase.
+	 * <p>
+	 * This method will use Liquibase to perform Schema updates. Therefore, we'll need a transaction when the method is
+	 * started that we will have to commit in order to execute Liquibase. We'll make sure however that we start a new
+	 * transaction before returning.
+	 * @param emptyTables If true, the default tables will be cleaned
+	 * @param resetSequences If true, sequences (or identity columns) will be reset to 1
+	 * @param createSchema If true, the Schema will be created (or verified) using Liquibase
+	 */
+	public void prepareDefaultTestData(boolean emptyTables, boolean resetSequences, boolean createSchema) {
+		try {
+			DbType dbType = this.emUtil.getDbType();
+			
+			if (createSchema) {
+				this.runLiquibaseChangeLog("ju-testing/data/default-changeLog.xml");
+				
+				// For non-MySQL DBs, we also need to create the hibernate_sequence sequence...
+				if (dbType != DbType.MYSQL) {
+					this.runLiquibaseChangeLog("ju-testing/data/default-changeLog-hibernateSequence.xml");
+				}
+			}
+			
+			DbDataUtil du = new DbDataUtil(emUtil);
+			ImportBuilder fullData = du.buildImport().from("/ju-testing/data/default-fullData.xml");
+			if (emptyTables) {
+				fullData.executeDeleteAll();
+			} else {
+				fullData.executeCleanInsert();
+			}
+			
+			// Load TIMEFIELD for non-oracle DBs
+			if (this.emUtil.getDbType() != DbType.ORACLE && !emptyTables) {
+				du.buildImport().from("/ju-testing/data/default-fullData-dataTypes.xml").executeUpdate();
+			}
+			
+			if (resetSequences) {
+				this.emUtil.resetIdentityGenerationOrSequences(1);
+			}
+			
+			this.tx.commit();
+		} finally {
+			this.tx.rollbackIfNotCommitted();
+			this.tx.begin();
+		}
 	}
 	
 	private class ResourceAccessorFilter implements ResourceAccessor {
@@ -148,7 +256,5 @@ public class DbSchemaUtil {
 		public ClassLoader toClassLoader() {
 			return this.accessor.toClassLoader();
 		}
-		
-		
 	}
 }

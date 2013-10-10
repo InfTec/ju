@@ -81,6 +81,8 @@ public class XmlTest {
 		
 		assertEquals(xg.getSingle("/root/a1/@text"), "A1");
 		assertEquals(xg.getSingleLong("/root/a1/b2/c1/@value"), new Long(1));
+		
+		assertEquals(3, xg.getCount("//a1/*"));
 	}
 	
 	/**
@@ -191,6 +193,19 @@ public class XmlTest {
 		// The name() function is an XPath 2.0 function
 		String name = xg.getSingle("root/a1/name()");
 		Assert.assertEquals("a1", name);
+	}
+	
+	@Test
+	public void xPathGetter_reckognizesEmptyElements() throws Exception {
+		Document doc = XmlUtils.loadXml(IOUtil.getResourceURL("xPathGetter_emptyElement.xml"));
+		XPathGetter xg = new XPathGetter(doc);
+		
+		Assert.assertTrue(xg.isEmptyElement("//a1"));
+		Assert.assertTrue(xg.isEmptyElement("//a5"));
+		Assert.assertTrue(xg.isEmptyElement("//a6")); // Empty result
+		
+		Assert.assertFalse(xg.isEmptyElement("//a2"));
+		Assert.assertFalse(xg.isEmptyElement("//a4"));
 	}
 }
 

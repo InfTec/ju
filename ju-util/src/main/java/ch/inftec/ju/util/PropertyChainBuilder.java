@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
-
 import org.slf4j.LoggerFactory;
 
 /**
@@ -96,6 +96,35 @@ public class PropertyChainBuilder {
 		public String get(String key, String defaultValue) {
 			String val = this.get(key, false);
 			return val != null ? val : defaultValue;
+		}
+		
+		@Override
+		public <T> T get(String key, Class<T> clazz) {
+			String val = this.get(key);
+			return this.convert(val, clazz);
+		}
+		
+		@Override
+		public <T> T get(String key, Class<T> clazz, boolean throwExceptionIfNotDefined) {
+			String val = this.get(key, throwExceptionIfNotDefined);
+			return this.convert(val, clazz);
+		}
+		
+		@Override
+		public <T> T get(String key, Class<T> clazz, String defaultValue) {
+			String val = this.get(key, defaultValue);
+			return this.convert(val, clazz);
+		}
+		
+		@SuppressWarnings("unchecked")
+		private <T> T convert(String val, Class<T> clazz) {
+			if (StringUtils.isEmpty(val)) return null;
+			
+			if (clazz == Integer.class) {
+				return (T) new Integer(val);
+			} else {
+				throw new JuRuntimeException("Conversion not supported: " + clazz);
+			}
 		}
 		
 		private Object getObject(String key, Object defaultValue, boolean throwExceptionIfNotDefined) {

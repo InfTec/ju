@@ -1,7 +1,7 @@
 package ch.inftec.ju.testing.db.data.repo;
 
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
 
 import ch.inftec.ju.testing.db.data.entity.Team;
 
@@ -10,7 +10,7 @@ import ch.inftec.ju.testing.db.data.entity.Team;
  * @author Martin
  *
  */
-public interface TeamRepo extends CrudRepository<Team, Long> {
+public interface TeamRepo extends JpaRepository<Team, Long> {
 	/*
 	 * EclipseLink has a problem when the query should be created dynamically. When
 	 * we explicitly define the query, we don't have this problem.

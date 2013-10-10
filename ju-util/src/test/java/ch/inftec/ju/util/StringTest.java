@@ -40,6 +40,14 @@ public class StringTest {
 	}
 	
 	@Test
+	public void replaceAll_copesWithBackslashes() {
+		String testString = "path: %path%";
+		String replacedString = JuStringUtils.replaceAll(testString, "path", "c:\\test");
+		
+		assertEquals("path: c:\\test", replacedString);
+	}
+	
+	@Test
 	public void occurrancies() {
 		String testString = "abbcccddddblabla";
 		

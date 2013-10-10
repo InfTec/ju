@@ -18,6 +18,18 @@ import org.junit.Test;
  */
 public class ReflectTest {
 	@Test
+	public void getInnerClass_returnesClass_ifExists() {
+		Class<?> innerClass = ReflectUtils.getInnerClass(ReflectTest.class, "InnerClass");
+		Assert.assertEquals(InnerClass.class, innerClass);
+	}
+	
+	@Test
+	public void getInnerClass_returnesNull_ifNotExists() {
+		Class<?> innerClass = ReflectUtils.getInnerClass(ReflectTest.class, "UnknownInnerClass");
+		Assert.assertNull(innerClass);
+	}
+	
+	@Test
 	public void getCallingClass() {
 		new CalledClass().callMe();		
 	}
@@ -26,6 +38,17 @@ public class ReflectTest {
 		public void callMe() {
 			assertEquals(ReflectUtils.getCallingClass(), ReflectTest.class);
 		}
+	}
+	
+	@Test
+	public void getMethod_returnsMethod_forValidMethod() {
+		Assert.assertEquals("getMethod_returnsMethod_forValidMethod"
+				, ReflectUtils.getMethod(this.getClass(), "getMethod_returnsMethod_forValidMethod", null).getName());
+	}
+	
+	@Test
+	public void getMethod_returnsNull_forInvalidMethod() {
+		Assert.assertNull(ReflectUtils.getMethod(this.getClass(), "bla", null));
 	}
 	
 	@Test
@@ -81,6 +104,12 @@ public class ReflectTest {
 			Assert.assertEquals(IllegalAccessException.class, ex.getCause().getClass());
 		}
 	}
+
+	@Test
+	public void newInstance_withParameters() {
+		ParamConstructor pc = ReflectUtils.newInstance(ParamConstructor.class, false, "Param");
+		Assert.assertEquals("Param", pc.getName());
+	}
 	
 	/**
 	 * Tests the getFieldsByAnnotation method.
@@ -115,6 +144,21 @@ public class ReflectTest {
 	
 	protected int getMethodTest(Long o1, Long o2) {
 		return 2;
+	}
+	
+	public static class InnerClass {
+	}
+	
+	public static class ParamConstructor {
+		private final String name;
+		
+		public ParamConstructor(String name) {
+			this.name = name;
+		}
+		
+		public String getName() {
+			return name;
+		}
 	}
 	
 	@SuppressWarnings("unused")
