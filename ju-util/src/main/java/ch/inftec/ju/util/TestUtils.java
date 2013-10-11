@@ -8,6 +8,8 @@ import java.util.Map;
 
 import junit.framework.Assert;
 
+import org.junit.runner.Computer;
+import org.junit.runner.JUnitCore;
 import org.w3c.dom.Document;
 
 import ch.inftec.ju.util.comparison.EqualityTester;
@@ -49,6 +51,15 @@ public final class TestUtils {
 		} catch (Exception ex) {
 			throw new RuntimeException("internalTests raised exception for class " + c.getName(), ex);
 		}
+	}
+	
+	/**
+	 * Runs all tests in the specified class using the default JUnit class runner. 
+	 * @param clazz Class containing tests
+	 */
+	public static void runJUnitTests(Class<?> clazz) {
+		Computer computer = new Computer();
+		new JUnitCore().run(computer, clazz);
 	}
 	
 	/**

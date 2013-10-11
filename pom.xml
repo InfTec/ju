@@ -101,6 +101,27 @@
 		<version.build-helper-maven-plugin>1.8</version.build-helper-maven-plugin>
 	</properties>
 
+	
+	<repositories>
+		<!-- JBoss repository -->
+		<repository>
+			<id>jboss-repository</id>
+			<url>http://repository.jboss.org/nexus/content/groups/public-jboss</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+	 
+		<!-- JBoss repository containing -redhat specific artifacts -->
+		<repository>
+			<id>jboss-ga-repository</id>
+			<url>http://maven.repository.redhat.com/techpreview/all</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
+	
 	<dependencyManagement>
 		<dependencies>
 			<!-- JU dependencies. These will be updated by versions:set as well.
