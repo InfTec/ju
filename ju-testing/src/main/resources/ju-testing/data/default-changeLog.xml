@@ -70,6 +70,9 @@
             <column name="name" type="varchar(50)"/>
         </createTable>
     </changeSet>
+    <changeSet id="testingEntity-2" author="mm">
+    	<modifyDataType tableName="TestingEntity" columnName="name" newDataType="varchar(512)"/> <!-- As we use it in some tests to save paths that might be longer than 50 characters -->
+    </changeSet>
     
     <changeSet id="dataTypes-1" author="mm">
         <createTable tableName="DataTypes">

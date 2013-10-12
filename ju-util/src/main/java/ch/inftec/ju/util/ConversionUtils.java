@@ -1,6 +1,7 @@
 package ch.inftec.ju.util;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -34,6 +35,22 @@ public final class ConversionUtils {
 		if (o instanceof BigDecimal) return (BigDecimal)o;
 		
 		return null;
+	}
+	
+	/**
+	 * Converts an Object to a Long (if possible) or returns null if this is not possible.
+	 * <p>
+	 * Note that we might lose precision when converting. E.g. we'll lose digital fragments
+	 * when converting a floating point value to a long.
+	 * @param o Object
+	 * @return Value as Long or null if conversion is not possible
+	 */
+	public static Long toLong(Object o) {
+		if (o == null) return null;
+		if (o instanceof Long) return (Long) o;
+		if (o instanceof BigInteger) return ((BigInteger) o).longValue();
+		BigDecimal bd = ConversionUtils.toBigDecimal(o);
+		return bd == null ? null : bd.longValue();
 	}
 	
 	/**

@@ -138,6 +138,15 @@ public class XString {
 	}
 	
 	/**
+	 * Adds a line to this indent string using the String.format method.
+	 * @param format Format string
+	 * @param args arguments to String.format
+	 */
+	public void addLineFormatted(String format, Object... args) {
+		this.addLine(String.format(format, args));
+	}
+	
+	/**
 	 * Adds the object(s) to the indent string. If the object is null, an empty
 	 * string is added. Otherwise the String returned by the object's toString
 	 * method is added. The objects are concatenated without any character between

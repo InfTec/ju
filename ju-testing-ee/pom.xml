@@ -100,5 +100,28 @@
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-validator-annotation-processor</artifactId>
 		</dependency>
+		
+		
+		<!-- Selenium Dependencies -->
+		<dependency>
+	        <groupId>org.seleniumhq.selenium</groupId>
+	        <artifactId>selenium-htmlunit-driver</artifactId>
+	    </dependency>
+	    <dependency>
+	        <groupId>org.seleniumhq.selenium</groupId>
+	        <artifactId>selenium-support</artifactId>
+	    </dependency>
+	    
+	    <!-- Optional drivers -->
+	    <dependency>
+	        <groupId>org.seleniumhq.selenium</groupId>
+	        <artifactId>selenium-chrome-driver</artifactId>
+	        <optional>true</optional>
+	    </dependency>
+		<dependency>
+	        <groupId>org.seleniumhq.selenium</groupId>
+	        <artifactId>selenium-firefox-driver</artifactId>
+	        <optional>true</optional>
+	    </dependency>
 	</dependencies>
 </project>

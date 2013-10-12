@@ -51,7 +51,7 @@ public class DbSchemaUtil {
 	
 	private DbSchemaUtil(JuEmUtil emUtil, UserTransaction tx) {
 		this.emUtil = emUtil;
-		this.tx = new TxHandler(tx);
+		this.tx = tx != null ? new TxHandler(tx) : new TxHandler(this.emUtil.getEm());
 	}
 	
 	public DbSchemaUtil(EntityManager em) {
@@ -75,53 +75,58 @@ public class DbSchemaUtil {
 	
 	/**
 	 * Runs the specified liquibase change log.
+	 * <p>
+	 * Liquibase uses a JDBC datasource to get a connection to the database and has its own transaction handling.
+	 * Therefore, it won't participate in the current transaction.
+	 * <p>
+	 * We'll still require a transaction to be present for the current EntityManager. We'll commit that transaction
+	 * in order to execute the Liquibase changes and begin a new transaction before returning.
+	 * That means that the EntityManager's transaction will be open at the end of this method and can be used
+	 * to perform further queries / updates.
 	 * @param changeLogResourceName Name of the change log resource. The resource will be loaded using the
 	 * default class loader.
 	 */
 	public void runLiquibaseChangeLog(final String changeLogResourceName) {
-		try {
-			// Make sure we have a transaction when accessing entity manager meta data
-			this.tx.begin();
-			final DbType dbType = this.emUtil.getDbType();
-			final String metaDataUserName = this.emUtil.getMetaDataUserName();
-			this.tx.commit();
-			
-			this.emUtil.doWork(new DsWork() {
-				@Override
-				public void execute(DataSource ds) {
-					try (Connection conn = ds.getConnection()) {
-						JdbcConnection jdbcConn = new JdbcConnection(conn);
-						
-						/*
-						 * The default implementation of Liquibase for Oracle has an error in the default Schema
-						 * lookup, so we'll set it here to avoid problems.
-						 */
-						Database db = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(jdbcConn);
-						if (dbType == DbType.ORACLE) {
-							db.setDefaultSchemaName(metaDataUserName);
-						}
-						
-						/*
-						 * Derby doesn't support the CREATE OR REPLACE syntax for Views and Liquibase will throw
-						 * an error if the attribute is specified for Derby or H2.
-						 * As we will use those DBs usually in memory, we'll just remote the attribute in all change logs
-						 * using a custom ResourceAccessor that will filter the character stream.
-						 */
-						ResourceAccessor resourceAccessor = new ClassLoaderResourceAccessor();
-						if (dbType == DbType.DERBY || dbType == DbType.H2) {
-							resourceAccessor = new ResourceAccessorFilter(resourceAccessor);
-						}
-						
-						Liquibase liquibase = new Liquibase(changeLogResourceName, resourceAccessor, db);
-						liquibase.update(null);
-					} catch (Exception ex) {
-						throw new JuRuntimeException("Couldn't run Liquibase change log " + changeLogResourceName, ex);
+		// Make sure we have a transaction when accessing entity manager meta data
+		final DbType dbType = this.emUtil.getDbType();
+		final String metaDataUserName = this.emUtil.getMetaDataUserName();
+		this.tx.commit(); // We must not be within a managed transaction when performing Liquibase work...
+		
+		this.emUtil.doWork(new DsWork() {
+			@Override
+			public void execute(DataSource ds) {
+				try (Connection conn = ds.getConnection()) {
+					JdbcConnection jdbcConn = new JdbcConnection(conn);
+					
+					/*
+					 * The default implementation of Liquibase for Oracle has an error in the default Schema
+					 * lookup, so we'll set it here to avoid problems.
+					 */
+					Database db = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(jdbcConn);
+					if (dbType == DbType.ORACLE) {
+						db.setDefaultSchemaName(metaDataUserName);
 					}
+					
+					/*
+					 * Derby doesn't support the CREATE OR REPLACE syntax for Views and Liquibase will throw
+					 * an error if the attribute is specified for Derby or H2.
+					 * As we will use those DBs usually in memory, we'll just remote the attribute in all change logs
+					 * using a custom ResourceAccessor that will filter the character stream.
+					 */
+					ResourceAccessor resourceAccessor = new ClassLoaderResourceAccessor();
+					if (dbType == DbType.DERBY || dbType == DbType.H2) {
+						resourceAccessor = new ResourceAccessorFilter(resourceAccessor);
+					}
+					
+					Liquibase liquibase = new Liquibase(changeLogResourceName, resourceAccessor, db);
+					liquibase.update(null);
+				} catch (Exception ex) {
+					throw new JuRuntimeException("Couldn't run Liquibase change log " + changeLogResourceName, ex);
 				}
-			});
-		} finally {
-			this.tx.rollbackIfNotCommitted();
-		}
+			}
+		});
+		
+		this.tx.begin(); // Start a new transaction so we won't get problems with EntityManager calls after this method
 	}
 	
 	/**
@@ -163,7 +168,7 @@ public class DbSchemaUtil {
 	 * Also resets the sequences to 1.
 	 */
 	public void prepareDefaultSchemaAndTestData() {
-		this.prepareDefaultTestData(false, false, true);
+		this.prepareDefaultTestData(false, true, true);
 	}
 	
 	/**
@@ -178,25 +183,25 @@ public class DbSchemaUtil {
 	/**
 	 * Loads the default test data (Player, Team, TestingEntity, ...), making
 	 * sure that the tables have been created using Liquibase.
+	 * <p>
+	 * This method will use Liquibase to perform Schema updates. Therefore, we'll need a transaction when the method is
+	 * started that we will have to commit in order to execute Liquibase. We'll make sure however that we start a new
+	 * transaction before returning.
 	 * @param emptyTables If true, the default tables will be cleaned
 	 * @param resetSequences If true, sequences (or identity columns) will be reset to 1
 	 * @param createSchema If true, the Schema will be created (or verified) using Liquibase
 	 */
 	public void prepareDefaultTestData(boolean emptyTables, boolean resetSequences, boolean createSchema) {
 		try {
-			this.tx.begin();
 			DbType dbType = this.emUtil.getDbType();
 			
 			if (createSchema) {
-				this.tx.commit();
 				this.runLiquibaseChangeLog("ju-testing/data/default-changeLog.xml");
 				
 				// For non-MySQL DBs, we also need to create the hibernate_sequence sequence...
 				if (dbType != DbType.MYSQL) {
 					this.runLiquibaseChangeLog("ju-testing/data/default-changeLog-hibernateSequence.xml");
 				}
-				
-				this.tx.begin();
 			}
 			
 			DbDataUtil du = new DbDataUtil(emUtil);
@@ -219,6 +224,7 @@ public class DbSchemaUtil {
 			this.tx.commit();
 		} finally {
 			this.tx.rollbackIfNotCommitted();
+			this.tx.begin();
 		}
 	}
 	

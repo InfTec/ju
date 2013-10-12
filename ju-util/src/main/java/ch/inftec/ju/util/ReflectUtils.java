@@ -57,6 +57,26 @@ public final class ReflectUtils {
 			return null;
 		}
 	}
+	
+	/**
+	 * Gets the inner class of the specified class with the specified name.
+	 * <p>
+	 * If the class does not exist, null is returned.
+	 * <p>
+	 * Note that the class (or interface) has to be public.
+	 * @param clazz Enclosing class
+	 * @param innerClassName Public inner class or interface
+	 * @return Inner class or null if no such class exists
+	 */
+	public static Class<?> getInnerClass(Class<?> clazz, String innerClassName) {
+		for (Class<?> innerClass : clazz.getClasses()) {
+			if (innerClass.getSimpleName().equals(innerClassName)) {
+				return innerClass;
+			}
+		}
+		
+		return null;
+	}
 
 	/**
 	 * Get the actual type arguments a child class has used to extend a generic
@@ -151,6 +171,26 @@ public final class ReflectUtils {
 	}
 	
 	/**
+	 * Gets the method of the specified class by its name.
+	 * <p>
+	 * If no such method can be found, null is returned.
+	 * <p>
+	 * This uses the Java Class.getMethod function internally.
+	 * @param clazz Clazz containing the method
+	 * @param name Name of the method
+	 * @param paramTypes Parameter types of the method
+	 * @return Method instance of null if no such method exists
+	 */
+	public static Method getMethod(Class<?> clazz, String name, Class<?> paramTypes[]) {
+		try {
+			Method method = clazz.getMethod(name, paramTypes);
+			return method;
+		} catch (NoSuchMethodException ex) {
+			return null;
+		}
+	}
+	
+	/**
 	 * Gets the first declared method that matches the specified name and parameter types. In contrast
 	 * to the Java reflection method, this method will try to find a method that only matches super types
 	 * of the specified parameters instead of the exact type.
@@ -227,17 +267,27 @@ public final class ReflectUtils {
 	 * Creates an instance of the specified class, forcing access to the default constructor if necessary.
 	 * @param clazz Clazz
 	 * @param forceAccess If true, access to a private constructor is forces
+	 * @param parameters Optional list of parameters to pass to the constructor
 	 * @return New instance of the specified class
 	 * @throws JuRuntimeException if the instance cannot be created using the default constructor
 	 */
-	public static Object newInstance(Class<?> clazz, boolean forceAccess) {
+	public static <T> T newInstance(Class<T> clazz, boolean forceAccess, Object... parameters) {
 		try {
-			if (!forceAccess) {
+			if (!forceAccess && parameters.length == 0) {
 				return clazz.newInstance();
 			} else {
-				Constructor<?> constructor = clazz.getDeclaredConstructor();
-				constructor.setAccessible(true);
-				return constructor.newInstance();
+				Class<?> parameterTypes[] = new Class<?>[parameters.length];
+				for (int i = 0; i < parameterTypes.length; i++) {
+					AssertUtil.assertNotNull("Null parameters not supported yet", parameters[i]);
+					parameterTypes[i] = parameters[i].getClass();
+				}
+				
+				Constructor<T> constructor = clazz.getDeclaredConstructor(parameterTypes);
+				if (forceAccess) {
+					constructor.setAccessible(true);
+				}
+				
+				return constructor.newInstance(parameters);
 			}
 		} catch (Exception ex) {
 			throw new JuRuntimeException("Couldn't create instance using default constructor for class " + clazz, ex);
@@ -287,5 +337,93 @@ public final class ReflectUtils {
 		} catch (IllegalAccessException ex) {
 			throw new JuRuntimeException("Couldn't access field " + field.getName(), ex);
 		}
+	}
+	
+	/**
+	 * Gets all annotations of the specified type for the specified class.
+	 * <p>
+	 * If no annotation is found, an empty list is returned.
+	 * <p>
+	 * If includeSuperClassesAnnotations is true, all super classes of the class are searched for the
+	 * specified annotation. The annotations are returned in order class (first) to super classes (Object last).
+	 * @param clazz Class to search for annotations
+	 * @param annotationClass Type of annotation
+	 * @param includeSuperClassesAnnotations If true, super classes are searched as well. If false, we can only get 0 or 1 results
+	 * @return List of annotations, in order of clazz (first) to super class (Object is last)
+	 */
+	public static <A extends Annotation> List<A> getAnnotations(
+			Class<?> clazz, 
+			Class<A> annotationClass, 
+			boolean includeSuperClassesAnnotations) {
+		
+		List<A> annos = new ArrayList<>();
+		
+		Class<?> c = clazz;
+		do {
+			A anno = c.getAnnotation(annotationClass);
+			if (anno != null) annos.add(anno);
+			
+			c = c.getSuperclass();
+		} while (includeSuperClassesAnnotations && c != null);
+		
+		return annos;
+	}
+	
+	/**
+	 * Gets annotations of the specified type for the specified method.
+	 * <p>
+	 * If no annotation is found, an empty list is returned.
+	 * <p>
+	 * If includeOverriddenMethods and includeClassAnnotations are both false, we can get either 1
+	 * or 2 results.
+	 * <p>
+	 * Annotations are returned in the following order:
+	 * <ol>
+	 *   <li>method</li>
+	 *   <li>overridden method(s)</li>
+	 *   <li>declaring class</li>
+	 *   <li>super classes of declaring class</li>
+	 * </ol>
+	 * @param method Method to get annotations for
+	 * @param annotationClass Class of the annotation to get
+	 * @param includeOverriddenMethods If true, overridden methods of super classes are also searched
+	 * @param includeClassAnnotations If true, the declaring class of the method is also searched
+	 * @param includeSuperClassesAnnotations If true, super classes of the declaring class are also searched. This
+	 * parameter is ignored if includeClassAnnotations is false.
+	 * @return List of annotations. If no annotations were found, an empty list is returned.
+	 */
+	public static <A extends Annotation> List<A> getAnnotations(
+			Method method,
+			Class<A> annotationClass,
+			boolean includeOverriddenMethods,
+			boolean includeClassAnnotations,
+			boolean includeSuperClassesAnnotations) {
+		
+		List<A> annos = new ArrayList<>();
+		
+		Method m = method;
+		do {
+			A anno = m.getAnnotation(annotationClass);
+			if (anno != null) annos.add(anno);
+			
+			// Check if the method is overriding a method in the super class
+			Class<?> superClass = m.getDeclaringClass().getSuperclass();
+			if (superClass != null) {
+				try {
+					m = superClass.getMethod(m.getName(), m.getParameterTypes());
+				} catch (NoSuchMethodException ex) {
+					m = null;
+				}
+			} else {
+				m = null;
+			}
+		} while (includeOverriddenMethods && m != null);
+		
+		if (includeClassAnnotations) {
+			List<A> classAnnos = ReflectUtils.getAnnotations(method.getDeclaringClass(), annotationClass, includeSuperClassesAnnotations);
+			annos.addAll(classAnnos);
+		}
+		
+		return annos;
 	}
 }

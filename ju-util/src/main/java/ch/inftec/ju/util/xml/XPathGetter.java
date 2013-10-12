@@ -8,6 +8,7 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.w3c.dom.Node;
@@ -114,6 +115,38 @@ public class XPathGetter {
 		} catch (Exception ex) {
 			throw new JuRuntimeException("Couldn't convert " + value + " to Long", ex);
 		}
+	}
+	
+	/**
+	 * Gets the count of results for the specified queries.
+	 * @param query XPath expression
+	 * @return Number of results
+	 * @throws JuRuntimeException If the XPath cannot be evaluated
+	 */
+	public int getCount(String query) throws JuRuntimeException {
+		return this.getNodes(query).length;
+	}
+	
+	/**
+	 * Gets whether the specified query either returns nothing or an empty element
+	 * like &lt;a/&gt;
+	 * <p>
+	 * Note that an element is not considered empty though if it contains only empty elements.
+	 * @param query XPath expression
+	 * @return If the expression returns nothing or only empty elements (i.e. an element that doesn't contain
+	 * any attributes nor text. The method also returns true if we find multiple of such elements.
+	 * @throws JuRuntimeException I the XPath cannot be evaluated
+	 */
+	public boolean isEmptyElement(String query) throws JuRuntimeException {
+		for (Node node : this.getNodes(query)) {
+			if (!StringUtils.isEmpty(node.getTextContent())
+					|| node.getChildNodes().getLength() > 0
+					|| node.getAttributes().getLength() > 0) {
+				return false;
+			}
+		}
+		
+		return true;
 	}
 	
 	/**

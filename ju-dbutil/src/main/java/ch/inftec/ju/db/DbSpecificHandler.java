@@ -22,6 +22,13 @@ interface DbSpecificHandler {
 	List<String> getSequenceNames();
 	
 	/**
+	 * Gets the next value from the specified sequence.
+	 * @param sequenceName Sequence name
+	 * @return Next value for the sequence
+	 */
+	Long getNextValueFromSequence(String sequenceName);
+	
+	/**
 	 * Resets identity generation of all tables or sequences to allow for predictable
 	 * and repeatable entity generation.
 	 * @param val Value for the next primary key

@@ -7,9 +7,8 @@ import static org.junit.Assert.assertNull;
 import java.io.File;
 import java.util.Properties;
 
-import junit.framework.Assert;
-import junit.framework.ComparisonFailure;
-
+import org.junit.Assert;
+import org.junit.ComparisonFailure;
 import org.junit.Test;
 
 public class IOTest {

@@ -49,7 +49,7 @@ public class JuEmUtilTest extends AbstractDbTest {
 	}
 	
 	@Test
-	public void canResetIdentityGeneration_orSequences() {
+	public void canResetIdentityGeneration_forPrimeryKeys() {
 		new DbSchemaUtil(this.emUtil).prepareDefaultSchemaAndTestData();
 		
 		// Try to set identity generation to 10
@@ -64,6 +64,22 @@ public class JuEmUtilTest extends AbstractDbTest {
 		TestingEntity te2 = new TestingEntity();
 		this.em.persist(te2);
 		Assert.assertEquals(new Long(1L), te2.getId());
+	}
+	
+	@Test
+	public void canResetIdentityGeneration_forSequences() {
+		JuAssumeUtil.dbIsNot(this.emUtil, DbType.MYSQL);
+		
+		DbSchemaUtil su = new DbSchemaUtil(this.emUtil);
+		su.prepareDefaultSchemaAndTestData();
+		su.runLiquibaseChangeLog("ch/inftec/ju/dbutil/test/JuEmUtilTest_canListSequences.xml");
+		this.emUtil.resetIdentityGenerationOrSequences(1); // Is done by prepareDefaultSchemaAndTestData, but the testSequence might just have been created
+		
+		//CREATE SEQUENCE PUBLIC.testSequence
+		Assert.assertEquals(new Long(1L), this.emUtil.getNextValueFromSequence("testSequence"));
+		
+		this.emUtil.resetIdentityGenerationOrSequences(10);
+		Assert.assertEquals(new Long(10L), this.emUtil.getNextValueFromSequence("testSequence"));
 	}
 	
 	@Test

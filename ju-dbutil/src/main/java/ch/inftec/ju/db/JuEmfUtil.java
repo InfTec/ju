@@ -151,11 +151,14 @@ public class JuEmfUtil {
 		
 		@Override
 		public void close() {
-			if (this.rollbackOnly) {
-				this.em.getTransaction().rollback();
-			} else {
-				this.em.getTransaction().commit();
+			if (this.em.getTransaction().isActive()) {
+				if (this.rollbackOnly) {
+					this.em.getTransaction().rollback();
+				} else {
+					this.em.getTransaction().commit();
+				}
 			}
+			
 			this.em.close();
 		}
 	}

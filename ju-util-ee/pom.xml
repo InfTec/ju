@@ -30,7 +30,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>ju-dbutil</artifactId>
+			<artifactId>ju-testing</artifactId>
 		</dependency>
 	
 		<dependency>
@@ -61,12 +61,12 @@
 			<scope>runtime</scope>
 		</dependency>
 	
-		<!-- Import the transaction spec API, we use runtime scope because we aren't 
-			using any direct reference to the spec API in our client code -->
+		<!-- Import the transaction spec API, we use provided scope as this has
+		     to be provided by a container anyway -->
 		<dependency>
 			<groupId>org.jboss.spec.javax.transaction</groupId>
 			<artifactId>jboss-transaction-api_1.1_spec</artifactId>
-			<scope>runtime</scope>
+			<scope>provided</scope>
 		</dependency>
 	
 		<!-- Import the EJB 3.1 API. We'll use provided as this has to be provided 

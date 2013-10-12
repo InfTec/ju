@@ -6,6 +6,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
+import java.util.regex.Matcher;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -128,7 +129,7 @@ public final class JuStringUtils {
 			String key = replacements[i];
 			String value = replacements[i + 1];
 			
-			s = s.replaceAll("%" + key + "%", value);
+			s = s.replaceAll("%" + key + "%", Matcher.quoteReplacement(value)); // We don't want special handling of regex signs in replacement string
 		}
 		
 		return s;

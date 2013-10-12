@@ -1,5 +1,7 @@
 package ch.inftec.ju.testing.db;
 
+import junit.framework.ComparisonFailure;
+
 import org.junit.Assert;
 import org.junit.Test;
 import org.w3c.dom.Document;
@@ -189,5 +191,25 @@ public class DbDataUtilTest extends AbstractDbTest {
 		Assert.assertEquals("1", xg.getSingle("//TestingEntity[1]/@id"));
 		Assert.assertEquals("2", xg.getSingle("//TestingEntity[2]/@id"));
 		Assert.assertEquals("3", xg.getSingle("//TestingEntity[3]/@id"));
+	}
+	
+	@Test
+	public void assert_canAssertTables() {
+		DbDataUtil du = new DbDataUtil(this.emUtil);
+		du.cleanImport("/ch/inftec/ju/testing/db/DbDataUtilTest_testingEntity_unsorted.xml");
+		
+		du.buildAssert()
+			.expected("/ch/inftec/ju/testing/db/DbDataUtilTest_testingEntity_sorted.xml")
+			.assertEquals();
+	}
+	
+	@Test(expected=ComparisonFailure.class)
+	public void assert_canAssertTables_failsOnWrongData() {
+		DbDataUtil du = new DbDataUtil(this.emUtil);
+		du.cleanImport("/ch/inftec/ju/testing/db/DbDataUtilTest_testingEntity_unsorted.xml");
+		
+		du.buildAssert()
+			.expected("/ch/inftec/ju/testing/db/DbDataUtilTest_testingEntity.xml")
+			.assertEquals();
 	}
 }
