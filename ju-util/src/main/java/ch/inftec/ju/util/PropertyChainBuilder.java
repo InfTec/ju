@@ -122,6 +122,8 @@ public class PropertyChainBuilder {
 			
 			if (clazz == Integer.class) {
 				return (T) new Integer(val);
+			} else if (clazz == Boolean.class) {
+				return (T) new Boolean(val);
 			} else {
 				throw new JuRuntimeException("Conversion not supported: " + clazz);
 			}

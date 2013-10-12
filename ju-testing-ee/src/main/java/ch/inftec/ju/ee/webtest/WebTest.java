@@ -32,11 +32,12 @@ public class WebTest {
 		
 		PropertyChain pc = JuUtils.getJuPropertyChain();
 		
-		String driverType = pc.get(PROP_DRIVER);
+		String driverType = pc.get(PROP_DRIVER, true);
 		
 		LoggerFactory.getLogger(WebTest.class).debug("Creating driver: " + driverType);
 		if ("HtmlUnit".equals(driverType)) {
-			driver = new HtmlUnitDriver(true);
+			boolean enableJavaScript = pc.get("ju-testing-ee.selenium.htmlUnit.enableJavascript", Boolean.class);
+			driver = new HtmlUnitDriver(enableJavaScript);
 		} else if ("Chrome".equals(driverType)) {
 			System.setProperty("webdriver.chrome.driver", pc.get("ju-testing-ee.selenium.chrome.driver"));
 	        driver = new ChromeDriver();

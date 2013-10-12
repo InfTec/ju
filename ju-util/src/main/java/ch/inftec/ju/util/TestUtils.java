@@ -6,10 +6,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 
-import junit.framework.Assert;
-
+import org.apache.log4j.Logger;
+import org.junit.Assert;
 import org.junit.runner.Computer;
 import org.junit.runner.JUnitCore;
+import org.junit.runner.Result;
+import org.junit.runner.notification.Failure;
 import org.w3c.dom.Document;
 
 import ch.inftec.ju.util.comparison.EqualityTester;
@@ -21,6 +23,8 @@ import ch.inftec.ju.util.xml.XmlUtils;
  *
  */
 public final class TestUtils {
+	private static final Logger logger = Logger.getLogger(TestUtils.class);
+	
 	/**
 	 * Don't instantiate.
 	 */
@@ -54,12 +58,25 @@ public final class TestUtils {
 	}
 	
 	/**
-	 * Runs all tests in the specified class using the default JUnit class runner. 
+	 * Runs all tests in the specified class using the default JUnit class runner.
+	 * <p>
+	 * If one or more tests have failed, a JuRuntimeException is thrown. Additionally, we'll log
+	 * the exception stack traces and add the first exception as a cause to the runtime exception.
 	 * @param clazz Class containing tests
 	 */
 	public static void runJUnitTests(Class<?> clazz) {
 		Computer computer = new Computer();
-		new JUnitCore().run(computer, clazz);
+		Result res = new JUnitCore().run(computer, clazz);
+		
+		if (res.getFailureCount() > 0) {
+			XString xs = new XString("Unit tests failed. Failure count: " + res.getFailureCount());
+			for (Failure f : res.getFailures()) {
+				 xs.addLineFormatted("%s: %s", f.getException().getClass(), f.getException().getMessage());
+				 logger.error("Unit test failed: " + f.getMessage(), f.getException());
+			}
+			
+			throw new JuRuntimeException(xs.toString(), res.getFailures().get(0).getException());
+		}
 	}
 	
 	/**

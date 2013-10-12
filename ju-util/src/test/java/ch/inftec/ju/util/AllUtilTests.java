@@ -7,7 +7,7 @@ import org.junit.runners.Suite.SuiteClasses;
 @RunWith(Suite.class)
 @SuiteClasses({ AuthUtilTest.class, CollectionTest.class, ConversionUtilTest.class, CsvTableLookupTest.class, 
 	    IOTest.class, JuBeanUtilsTest.class, LoggingTest.class, ObjectUtilTest.class, PropertyChainTest.class,
-		ReflectTest.class, RegexTest.class, StringTest.class, TimerTest.class,
+		ReflectTest.class, RegexTest.class, StringTest.class, TestUtilsTest.class, TimerTest.class,
 		XStringTest.class })
 public class AllUtilTests {
 }
