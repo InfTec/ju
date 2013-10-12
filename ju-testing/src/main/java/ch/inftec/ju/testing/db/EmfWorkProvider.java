@@ -5,8 +5,8 @@ import org.slf4j.LoggerFactory;
 
 import ch.inftec.ju.db.EmfWork;
 import ch.inftec.ju.db.JuEmfUtil;
+import ch.inftec.ju.util.JuUtils;
 import ch.inftec.ju.util.PropertyChain;
-import ch.inftec.ju.util.PropertyChainBuilder;
 
 /**
  * Helper class to create EmfWork instance based on property files or
@@ -28,12 +28,7 @@ public final class EmfWorkProvider {
 	public EmfWork createEmfWork(String persistenceUnitName, String profile) {
 		logger.debug("Creating EmfWork");
 		
-		PropertyChain pc = new PropertyChainBuilder()
-			.addSystemPropertyEvaluator()
-			.addResourcePropertyEvaluator("/META-INF/ju-testing.properties", true)
-			.addResourcePropertyEvaluator("/META-INF/ju-testing_user.properties", true)
-			.addResourcePropertyEvaluator("/META-INF/ju-testing_default.properties", false)				
-			.getPropertyChain();
+		PropertyChain pc = JuUtils.getJuPropertyChain();
 		
 		String profileName = profile != null ? profile : pc.get("ju-dbutil-test.profile", true);
 		String prefix = "ju-dbutil-test." + profileName;

@@ -1,5 +1,6 @@
 package ch.inftec.ee.webtest;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -32,7 +33,7 @@ public class WebTestTest {
 //	}
 	
 	@Test
-//	@Ignore
+	@Ignore
 	public void canOpenGoogle_andSearchForCheese_usingChrome() {
 		try (SystemPropertyTempSetter ts = new SystemPropertyTempSetter()) {
 			ts.setProperty("ju-testing-ee.selenium.driver", "Chrome");
@@ -45,6 +46,7 @@ public class WebTestTest {
 	public void canOpenGoogle_andSearchForCheese_usingHtmlUnit() {
 		try (SystemPropertyTempSetter ts = new SystemPropertyTempSetter()) {
 			ts.setProperty("ju-testing-ee.selenium.driver", "HtmlUnit");
+			ts.setProperty("ju-testing-ee.selenium.htmlUnit.enableJavascript", "false");
 			
 			TestUtils.runJUnitTests(GoogleSeleniumTest.class);
 		}		

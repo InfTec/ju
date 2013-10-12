@@ -20,8 +20,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.inftec.ju.util.JuRuntimeException;
+import ch.inftec.ju.util.JuUtils;
 import ch.inftec.ju.util.PropertyChain;
-import ch.inftec.ju.util.PropertyChainBuilder;
 
 /**
  * Builder to create ServiceLocator instances.
@@ -52,17 +52,12 @@ public final class ServiceLocatorBuilder {
 	 * @return Remote service locator
 	 */
 	public static JndiServiceLocator createRemoteByConfigurationFiles() {
-		PropertyChain pc = new PropertyChainBuilder()
-			.addSystemPropertyEvaluator()
-			.addResourcePropertyEvaluator("/ju-remote_user.properties", true)
-			.addResourcePropertyEvaluator("/ju-remote.properties", false)
-			.setDefaultThrowExceptionIfUndefined(true)
-			.getPropertyChain();
+		PropertyChain pc = JuUtils.getJuPropertyChain();
 		
 		return buildRemote()
-			.remoteServer(pc.get("ju.ee.remote.host"), pc.get("ju.ee.remote.port", Integer.class))
-			.appName(pc.get("ju.ee.remote.appName"))
-			.moduleName(pc.get("ju.ee.remote.moduleName"))
+			.remoteServer(pc.get("ju-util-ee.remote.host", true), pc.get("ju-util-ee.remote.port", Integer.class, true))
+			.appName(pc.get("ju-util-ee.remote.appName", true))
+			.moduleName(pc.get("ju-util-ee.remote.moduleName", true))
 			.createServiceLocator();
 	}
 	
